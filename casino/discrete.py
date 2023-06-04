@@ -39,7 +39,7 @@ class RandomVariable():
         while sCum < UPPER:
 
             oCum = 0
-            ok = self.min()
+            ok = other.min()
             while oCum < UPPER:
 
                 fk = ok + sk
@@ -64,7 +64,7 @@ class RandomVariable():
         while sCum < UPPER:
 
             oCum = 0
-            ok = self.min()
+            ok = other.min()
             while oCum < UPPER:
 
                 fk = ok * sk
@@ -104,12 +104,13 @@ class DiscreteEmperical(RandomVariable):
         self.k = np.array([], dtype=np.int32)
         self.w = np.array([], dtype=np.float32)
 
-    # def min(self):
+    def min(self):
 
-    #     if len(self.k) == 0:
-    #         return 0
-    #     else:
-    #         return self.k.min()
+        if len(self.k) == 0:
+            return 0
+        else:
+            print(f'Returning min = {self.k.min()}')
+            return self.k.min()
 
     def add(self, k, weight=1):
         """
@@ -152,6 +153,33 @@ class DiscreteEmperical(RandomVariable):
             return 0.
 
 
+    def compress(self):
+        """
+        Comresses the distribution by dropping the tail entries.
+        """
+        cumProb = 0
+
+        minI = 9e9
+        maxI = -9e9
+
+
+        for i in range(len(self.k)):
+
+            k = self.k[i]
+            cumProb += self.pmf(k)
+
+            if LOWER <= cumProb <= UPPER:
+                minI = min(i, minI)
+                maxI = max(i, maxI)
+
+        self.k = self.k[minI:maxI+1]
+        self.w = self.w[minI:maxI+1]
+
+
+
+
+
+
 
 
 
@@ -161,13 +189,23 @@ if __name__ == '__main__':
     bla = dice1 
 
     for i in range(10):
+        print(f'Iteration {i}')
+
         bla = bla + Dice()
+        print(bla.k)
+        print(bla.w)        
+        print(bla.k.min())
 
     bla.hist()
     print(bla.w)
     print(bla.k)
 
+    bla.compress()
 
+    bla.hist()
+    print(bla.w)
+    print(bla.k)    
+    print(bla.k.min())
 
     # dice1 = Dice()
     # dice2 = Dice()
