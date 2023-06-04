@@ -97,6 +97,51 @@ class Dice(RandomVariable):
     def max(self):
         return 7
 
+
+#---------------------------------------------------------------------------------------------------
+
+
+class Triangular(RandomVariable):
+    def __init__(self, a, b, c):
+        self.a = a
+        self.b = b
+        self.c = c
+
+    def pmf(self, k):
+
+        if k <= self.a:
+            return 0
+        elif self.a < k <= self.c:
+            return 2*(k - self.a) / ((self.b - self.a)*(self.c - self.a))
+        elif k == self.c:
+            return 2/(self.b - self.a)
+        elif self.c < k <= self.b:
+            return 2*(self.b - k) / ((self.b - self.a)*(self.b - self.c))
+        else:
+            return 0
+
+    def min(self):
+        return self.a
+
+    def hist(self):
+
+        maxW = self.pmf(self.c)
+
+        cumProb = 0
+        k = self.min()
+        while cumProb < UPPER:
+            p = self.pmf(k)
+            print(f'{k:5} | {"█"*int(p/maxW*50)}')
+            cumProb += self.pmf(k)
+            k += 1            
+
+#---------------------------------------------------------------------------------------------------
+
+class ThreePointEstimation(Triangular):
+    def __init__(self, worst=1, best=10, most=5):
+        super().__init__(worst-1, best+1, most)
+
+
 #---------------------------------------------------------------------------------------------------
 
 class DiscreteEmperical(RandomVariable):
@@ -109,7 +154,6 @@ class DiscreteEmperical(RandomVariable):
         if len(self.k) == 0:
             return 0
         else:
-            print(f'Returning min = {self.k.min()}')
             return self.k.min()
 
     def add(self, k, weight=1):
@@ -162,7 +206,6 @@ class DiscreteEmperical(RandomVariable):
         minI = 9e9
         maxI = -9e9
 
-
         for i in range(len(self.k)):
 
             k = self.k[i]
@@ -185,46 +228,38 @@ class DiscreteEmperical(RandomVariable):
 
 if __name__ == '__main__':
 
-    dice1 = Dice()
-    bla = dice1 
+    t1 = ThreePointEstimation(10,50,20)
+    t1.hist()
+
+    # dice1 = Dice()
+    # bla = dice1 
+
+    bla = t1
 
     for i in range(10):
-        print(f'Iteration {i}')
-
-        bla = bla + Dice()
-        print(bla.k)
-        print(bla.w)        
-        print(bla.k.min())
-
-    bla.hist()
-    print(bla.w)
-    print(bla.k)
+        bla = bla + ThreePointEstimation(10, 50, 20)
 
     bla.compress()
 
     bla.hist()
-    print(bla.w)
-    print(bla.k)    
-    print(bla.k.min())
 
-    # dice1 = Dice()
-    # dice2 = Dice()
-    # dice3 = Dice()
-    # dice4 = Dice()
-    # dice5 = Dice()
 
-    # dice1.hist()
+    # for i in range(10):
+    #     print(f'Iteration {i}')
 
-    # bla = dice1 + dice2 + dice3 + dice4 + dice5
-
-    # bla2 = bla + dice5
-
-    # print(bla.k)
-    # print(bla.w)
-    # print(bla.w.sum())
-
-    # print(bla2.k)
-    # print(bla2.w)
-    # print(bla2.w.sum())
+    #     bla = bla + Dice()
+    #     print(bla.k)
+    #     print(bla.w)        
+    #     print(bla.k.min())
 
     # bla.hist()
+    # print(bla.w)
+    # print(bla.k)
+
+    # bla.compress()
+
+    # bla.hist()
+    # print(bla.w)
+    # print(bla.k)    
+    # print(bla.k.min())
+
