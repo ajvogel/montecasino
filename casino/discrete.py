@@ -1,4 +1,5 @@
 import numpy as np
+import numba
 
 LOWER = 0.001
 UPPER = 1 - LOWER
@@ -143,6 +144,16 @@ class ThreePointEstimation(Triangular):
 
 
 #---------------------------------------------------------------------------------------------------
+@numba.njit
+def _discreateEmpericalPMF(W, K, k):
+    kk = K
+    ww = W
+    wSum = ww.sum()
+    for i in range(len(kk)):
+        if kk[i] == k:
+            return ww[i] / wSum
+    else:
+        return 0.    
 
 class DiscreteEmperical(RandomVariable):
     def __init__(self) -> None:
@@ -190,11 +201,15 @@ class DiscreteEmperical(RandomVariable):
             k += 1            
 
     def pmf(self, k):
-        for i in range(len(self.k)):
-            if self.k[i] == k:
-                return self.w[i] / self.w.sum()
-        else:
-            return 0.
+        return _discreateEmpericalPMF(self.w, self.k, k)
+        # kk = self.k
+        # ww = self.w
+        # wSum = ww.sum()
+        # for i in range(len(kk)):
+        #     if kk[i] == k:
+        #         return ww[i] / wSum
+        # else:
+        #     return 0.
 
 
     def compress(self):

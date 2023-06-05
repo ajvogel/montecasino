@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "casino"
+version = "0.1.0"
+description = "Casino enables fast probabilistic modelling"
+authors = ["Adolph Vogel <ajvogel@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.12"
+numpy = "^1.24.3"
+scipy = "^1.10.1"
+numba = "^0.57.0"
+cython = "^0.29.35"
+
+
+[tool.poetry.group.dev.dependencies]
+ipython = "^8.14.0"
+pyinstrument = "^4.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
