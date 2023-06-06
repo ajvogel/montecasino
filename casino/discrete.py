@@ -1,5 +1,5 @@
 import numpy as np
-import numba
+# import numba
 
 LOWER = 0.001
 UPPER = 1 - LOWER
@@ -50,6 +50,7 @@ class RandomVariable():
             sCum += self.pmf(sk)
             sk   += 1
 
+        out.compress()
         return out        
 
 
@@ -168,30 +169,30 @@ class ThreePointEstimation(Triangular):
 
 
 #---------------------------------------------------------------------------------------------------
-@numba.njit
-def _discreateEmpericalPMF(ww, kk, k):
-    wSum = ww.sum()
-    nK   = len(kk)
+# @numba.njit
+# def _discreateEmpericalPMF(ww, kk, k):
+#     wSum = ww.sum()
+#     nK   = len(kk)
 
-    # We now that the k and w arrays are sorted, so we can use a bisection search
-    # to find the correct values faster. Iterating over every thing is probably
-    # inefficent.
+#     # We now that the k and w arrays are sorted, so we can use a bisection search
+#     # to find the correct values faster. Iterating over every thing is probably
+#     # inefficent.
 
-    l = 0
-    u = nK
+#     l = 0
+#     u = nK
 
-    while True:
-        m = (u + l) // 2
+#     while True:
+#         m = (u + l) // 2
 
-        if kk[m] == k:
-            return ww[m] / wSum
-        elif kk[m] < k:
-            l = m
-        elif kk[m] > k:
-            u = m
+#         if kk[m] == k:
+#             return ww[m] / wSum
+#         elif kk[m] < k:
+#             l = m
+#         elif kk[m] > k:
+#             u = m
 
-        if (u - l) <= 1:
-            return 0
+#         if (u - l) <= 1:
+#             return 0
 
 class DiscreteEmperical(RandomVariable):
     def __init__(self) -> None:
@@ -239,31 +240,31 @@ class DiscreteEmperical(RandomVariable):
             k += 1            
 
     def pmf(self, k):
-        return _discreateEmpericalPMF(self.w, self.k, k)
-        # kk   = self.k
-        # ww   = self.w
-        # wSum = ww.sum()
-        # nK   = len(kk)
+        # return _discreateEmpericalPMF(self.w, self.k, k)
+        kk   = self.k
+        ww   = self.w
+        wSum = ww.sum()
+        nK   = len(kk)
 
-        # # We now that the k and w arrays are sorted, so we can use a bisection search
-        # # to find the correct values faster. Iterating over every thing is probably
-        # # inefficent.
+        # We now that the k and w arrays are sorted, so we can use a bisection search
+        # to find the correct values faster. Iterating over every thing is probably
+        # inefficent.
 
-        # l = 0
-        # u = nK
+        l = 0
+        u = nK
 
-        # while True:
-        #     m = (u + l) // 2
+        while True:
+            m = (u + l) // 2
 
-        #     if kk[m] == k:
-        #         return ww[m] / wSum
-        #     elif kk[m] < k:
-        #         l = m
-        #     elif kk[m] > k:
-        #         u = m
+            if kk[m] == k:
+                return ww[m] / wSum
+            elif kk[m] < k:
+                l = m
+            elif kk[m] > k:
+                u = m
 
-        #     if (u - l) <= 1:
-        #         return 0
+            if (u - l) <= 1:
+                return 0
 
     def compress(self):
         """

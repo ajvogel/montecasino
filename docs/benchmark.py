@@ -19,6 +19,10 @@ for i in range(15):
 toc = time.time()
 
 print(len(bla.w))
+
+
+# cs.printPMF(bla)
+
 print(f'Took {(toc - tic) * 1000} milliseconds')
 
 
