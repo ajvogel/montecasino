@@ -67,39 +67,7 @@ class RandomVariable():
                 out.add(fk, fp)
 
         out.compress()
-        # print(out.k)
-        # print(out.w)
         return out
-
-
-
-        # out = DiscreteEmperical()
-
-        # sCum = 0
-        # sk = self.min()
-        # while sCum < UPPER:
-
-        #     oCum = 0
-        #     ok = other.min()
-        #     while oCum < UPPER:
-
-        #         if func == __ADD__:
-        #             fk = ok + sk
-        #         elif func == __MUL__:
-        #             fk = ok * sk
-
-        #         fp = self.pmf(sk) * other.pmf(ok)
-
-        #         out.add(fk, fp)
-
-        #         oCum += self.pmf(ok)
-        #         ok   += 1
-
-        #     sCum += self.pmf(sk)
-        #     sk   += 1
-
-        # out.compress()
-        # return out        
 
 
     def __add__(self, other):
@@ -172,31 +140,6 @@ class ThreePointEstimation(Triangular):
 
 
 #---------------------------------------------------------------------------------------------------
-# @numba.njit
-# def _discreateEmpericalPMF(ww, kk, k):
-#     wSum = ww.sum()
-#     nK   = len(kk)
-
-#     # We now that the k and w arrays are sorted, so we can use a bisection search
-#     # to find the correct values faster. Iterating over every thing is probably
-#     # inefficent.
-
-#     l = 0
-#     u = nK
-
-#     while True:
-#         m = (u + l) // 2
-
-#         if kk[m] == k:
-#             return ww[m] / wSum
-#         elif kk[m] < k:
-#             l = m
-#         elif kk[m] > k:
-#             u = m
-
-#         if (u - l) <= 1:
-#             return 0
-
 
 @numba.njit
 def _bisection(kk, k):
@@ -220,6 +163,7 @@ def _bisection(kk, k):
         if (u - l) <= 1:
             return None
 
+#---------------------------------------------------------------------------------------------------
 
 class DiscreteEmperical(RandomVariable):
     def __init__(self) -> None:
@@ -253,50 +197,7 @@ class DiscreteEmperical(RandomVariable):
             self.k = self.k[idx]
             self.w = self.w[idx]            
 
-
-        # for i in range(len(self.k)):
-        #     # TODO: Replace this with bisection searching, which should be more efficient.
-        #     if self.k[i] == k:
-        #         self.w[i] += weight
-        #         break
-        # else:
-        #     # The current k value is not already in the data arrays.
-        #     self.k = np.append(self.k, k)
-        #     self.w = np.append(self.w, weight)
-        #     idx = np.argsort(self.k)
-        #     self.k = self.k[idx]
-        #     self.w = self.w[idx]
-
-
-    def _bisect(self, k):
-        """
-        Finds i where self.k[i] == k through bisection search. If it's not found it
-        returns -1
-        """
-        kk = self.k
-        nK = kk.shape[0]
-        u  = nK
-        l  = 0
-
-        if nK == 0:
-            return None
-
-        while True:
-            m = (u + l) // 2
-
-            if kk[m] == k:
-                return m
-            elif kk[m] < k:
-                l = m
-            elif kk[m] > k:
-                u = m
-
-            if (u - l) <= 1:
-                return None
-
-
     def pmf(self, k):
-        # return _discreateEmpericalPMF(self.w, self.k, k)
         kk   = self.k
         ww   = self.w
         wSum = ww.sum()
@@ -311,22 +212,6 @@ class DiscreteEmperical(RandomVariable):
         else:
             return 0
 
-
-        # l = 0
-        # u = nK
-
-        # while True:
-        #     m = (u + l) // 2
-
-        #     if kk[m] == k:
-        #         return ww[m] / wSum
-        #     elif kk[m] < k:
-        #         l = m
-        #     elif kk[m] > k:
-        #         u = m
-
-        #     if (u - l) <= 1:
-        #         return 0
 
     def compress(self):
         """
