@@ -1,5 +1,5 @@
 import numpy as np
-# import numba
+import numba
 
 LOWER = 0.001
 UPPER = 1 - LOWER
@@ -23,88 +23,91 @@ class RandomVariable():
     def min(self):
         return 0
 
-    def __convul__(self, other, func):
+    def toArray(self):
+        outW = []
+        outK = []
 
+        som = 0
+        k = self.min()
+        while som < UPPER:
+            pk = self.pmf(k)
+            som += pk
+            k   += 1
+            outW.append(pk)
+            outK.append(k)
+
+        return np.array(outW), np.array(outK)
+
+    def __conv__(self, other, func):
         out = DiscreteEmperical()
+        # We extract the probability array once in the beginning of the loop
+        # so that we don't have to regenerate it everytime. We are essentially
+        # iterating over the same array more than once.
+        pSelf, kSelf   = self.toArray()
+        pOther, kOther = other.toArray()
 
-        sCum = 0
-        sk = self.min()
-        while sCum < UPPER:
+        sMin = self.min()
+        oMin = other.min()
 
-            oCum = 0
-            ok = other.min()
-            while oCum < UPPER:
+        nS = pSelf.shape[0]
+        nO = pOther.shape[0]
+
+        for iS in range(nS):
+
+            for iO in range(nO):
+                sk = sMin + iS
+                ok = oMin + iO
+                fp = pSelf[iS] * pOther[iO]
 
                 if func == __ADD__:
                     fk = ok + sk
                 elif func == __MUL__:
-                    fk = ok * sk
-
-                fp = self.pmf(sk) * other.pmf(ok)
+                    fk = ok*sk
 
                 out.add(fk, fp)
 
-                oCum += self.pmf(ok)
-                ok   += 1
-
-            sCum += self.pmf(sk)
-            sk   += 1
-
         out.compress()
-        return out        
+        # print(out.k)
+        # print(out.w)
+        return out
+
+
+
+        # out = DiscreteEmperical()
+
+        # sCum = 0
+        # sk = self.min()
+        # while sCum < UPPER:
+
+        #     oCum = 0
+        #     ok = other.min()
+        #     while oCum < UPPER:
+
+        #         if func == __ADD__:
+        #             fk = ok + sk
+        #         elif func == __MUL__:
+        #             fk = ok * sk
+
+        #         fp = self.pmf(sk) * other.pmf(ok)
+
+        #         out.add(fk, fp)
+
+        #         oCum += self.pmf(ok)
+        #         ok   += 1
+
+        #     sCum += self.pmf(sk)
+        #     sk   += 1
+
+        # out.compress()
+        # return out        
 
 
     def __add__(self, other):
-        return self.__convul__(other, __ADD__)
-
-        # out = DiscreteEmperical()
-
-        # sCum = 0
-        # sk = self.min()
-        # while sCum < UPPER:
-
-        #     oCum = 0
-        #     ok = other.min()
-        #     while oCum < UPPER:
-
-        #         fk = ok + sk
-        #         fp = self.pmf(sk) * other.pmf(ok)
-
-        #         out.add(fk, fp)
-
-        #         oCum += self.pmf(ok)
-        #         ok   += 1
-
-        #     sCum += self.pmf(sk)
-        #     sk   += 1
-
-        # return out
+        return self.__conv__(other, __ADD__)
 
     def __mul__(self, other):
-        return self.__convul__(other, __MUL__)
-
-        # out = DiscreteEmperical()
-
-        # sCum = 0
-        # sk = self.min()
-        # while sCum < UPPER:
-
-        #     oCum = 0
-        #     ok = other.min()
-        #     while oCum < UPPER:
-
-        #         fk = ok * sk
-        #         fp = self.pmf(sk) * other.pmf(ok)
-
-        #         out.add(fk, fp)
-
-        #         oCum += self.pmf(ok)
-        #         ok   += 1
-
-        #     sCum += self.pmf(sk)
-        #     sk   += 1
-
-        # return out        
+        return self.__conv__(other, __MUL__)
+      
 
 
 #---------------------------------------------------------------------------------------------------
@@ -169,35 +172,38 @@ class ThreePointEstimation(Triangular):
 
 
 #---------------------------------------------------------------------------------------------------
-# @numba.njit
-# def _discreateEmpericalPMF(ww, kk, k):
-#     wSum = ww.sum()
-#     nK   = len(kk)
+@numba.njit
+def _discreateEmpericalPMF(ww, kk, k):
+    wSum = ww.sum()
+    nK   = len(kk)
 
-#     # We now that the k and w arrays are sorted, so we can use a bisection search
-#     # to find the correct values faster. Iterating over every thing is probably
-#     # inefficent.
+    # We now that the k and w arrays are sorted, so we can use a bisection search
+    # to find the correct values faster. Iterating over every thing is probably
+    # inefficent.
 
-#     l = 0
-#     u = nK
+    l = 0
+    u = nK
 
-#     while True:
-#         m = (u + l) // 2
+    while True:
+        m = (u + l) // 2
 
-#         if kk[m] == k:
-#             return ww[m] / wSum
-#         elif kk[m] < k:
-#             l = m
-#         elif kk[m] > k:
-#             u = m
+        if kk[m] == k:
+            return ww[m] / wSum
+        elif kk[m] < k:
+            l = m
+        elif kk[m] > k:
+            u = m
 
-#         if (u - l) <= 1:
-#             return 0
+        if (u - l) <= 1:
+            return 0
 
 class DiscreteEmperical(RandomVariable):
     def __init__(self) -> None:
         self.k = np.array([], dtype=np.int32)
         self.w = np.array([], dtype=np.float32)
+
+    def toArray(self):
+        return self.w, self.k        
 
     def min(self):
 
