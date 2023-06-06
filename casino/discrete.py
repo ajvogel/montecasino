@@ -172,30 +172,54 @@ class ThreePointEstimation(Triangular):
 
 
 #---------------------------------------------------------------------------------------------------
+# @numba.njit
+# def _discreateEmpericalPMF(ww, kk, k):
+#     wSum = ww.sum()
+#     nK   = len(kk)
+
+#     # We now that the k and w arrays are sorted, so we can use a bisection search
+#     # to find the correct values faster. Iterating over every thing is probably
+#     # inefficent.
+
+#     l = 0
+#     u = nK
+
+#     while True:
+#         m = (u + l) // 2
+
+#         if kk[m] == k:
+#             return ww[m] / wSum
+#         elif kk[m] < k:
+#             l = m
+#         elif kk[m] > k:
+#             u = m
+
+#         if (u - l) <= 1:
+#             return 0
+
+
 @numba.njit
-def _discreateEmpericalPMF(ww, kk, k):
-    wSum = ww.sum()
-    nK   = len(kk)
+def _bisection(kk, k):
+    nK = kk.shape[0]
+    u  = nK
+    l  = 0
 
-    # We now that the k and w arrays are sorted, so we can use a bisection search
-    # to find the correct values faster. Iterating over every thing is probably
-    # inefficent.
-
-    l = 0
-    u = nK
+    if nK == 0:
+        return None
 
     while True:
         m = (u + l) // 2
 
         if kk[m] == k:
-            return ww[m] / wSum
+            return m
         elif kk[m] < k:
             l = m
         elif kk[m] > k:
             u = m
 
         if (u - l) <= 1:
-            return 0
+            return None
+
 
 class DiscreteEmperical(RandomVariable):
     def __init__(self) -> None:
@@ -220,7 +244,7 @@ class DiscreteEmperical(RandomVariable):
             return
 
 
-        if ik := self._bisect(k):   
+        if ik := _bisection(self.k, k):   
             self.w[ik] += weight
         else:
             self.k = np.append(self.k, k)
@@ -282,21 +306,27 @@ class DiscreteEmperical(RandomVariable):
         # to find the correct values faster. Iterating over every thing is probably
         # inefficent.
 
-        l = 0
-        u = nK
+        if ik := _bisection(self.k, k):
+            return ww[ik] / wSum
+        else:
+            return 0
 
-        while True:
-            m = (u + l) // 2
 
-            if kk[m] == k:
-                return ww[m] / wSum
-            elif kk[m] < k:
-                l = m
-            elif kk[m] > k:
-                u = m
+        # l = 0
+        # u = nK
 
-            if (u - l) <= 1:
-                return 0
+        # while True:
+        #     m = (u + l) // 2
+
+        #     if kk[m] == k:
+        #         return ww[m] / wSum
+        #     elif kk[m] < k:
+        #         l = m
+        #     elif kk[m] > k:
+        #         u = m
+
+        #     if (u - l) <= 1:
+        #         return 0
 
     def compress(self):
         """
