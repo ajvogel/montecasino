@@ -220,30 +220,56 @@ class DiscreteEmperical(RandomVariable):
             return
 
 
-        for i in range(len(self.k)):
-            # TODO: Replace this with bisection searching, which should be more efficient.
-            if self.k[i] == k:
-                self.w[i] += weight
-                break
+        if ik := self._bisect(k):   
+            self.w[ik] += weight
         else:
-            # The current k value is not already in the data arrays.
             self.k = np.append(self.k, k)
             self.w = np.append(self.w, weight)
             idx = np.argsort(self.k)
             self.k = self.k[idx]
-            self.w = self.w[idx]
+            self.w = self.w[idx]            
 
-    def hist(self):
 
-        maxW = self.w.max()
+        # for i in range(len(self.k)):
+        #     # TODO: Replace this with bisection searching, which should be more efficient.
+        #     if self.k[i] == k:
+        #         self.w[i] += weight
+        #         break
+        # else:
+        #     # The current k value is not already in the data arrays.
+        #     self.k = np.append(self.k, k)
+        #     self.w = np.append(self.w, weight)
+        #     idx = np.argsort(self.k)
+        #     self.k = self.k[idx]
+        #     self.w = self.w[idx]
 
-        cumProb = 0
-        k = self.min()
-        while cumProb < UPPER:
-            p = self.pmf(k)
-            print(f'{k:5} | {"█"*int(p / maxW *50)}')
-            cumProb += self.pmf(k)
-            k += 1            
+
+    def _bisect(self, k):
+        """
+        Finds i where self.k[i] == k through bisection search. If it's not found it
+        returns -1
+        """
+        kk = self.k
+        nK = kk.shape[0]
+        u  = nK
+        l  = 0
+
+        if nK == 0:
+            return None
+
+        while True:
+            m = (u + l) // 2
+
+            if kk[m] == k:
+                return m
+            elif kk[m] < k:
+                l = m
+            elif kk[m] > k:
+                u = m
+
+            if (u - l) <= 1:
+                return None
+
 
     def pmf(self, k):
         # return _discreateEmpericalPMF(self.w, self.k, k)
