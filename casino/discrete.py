@@ -4,6 +4,9 @@ import numba
 LOWER = 0.001
 UPPER = 1 - LOWER
 
+__ADD__ = 0
+__MUL__ = 1
+
 #---------------------------------------------------------------------------------------------------
 
 class RandomVariable():
@@ -20,18 +23,7 @@ class RandomVariable():
     def min(self):
         return 0
 
-    def hist(self):
-
-        cumProb = 0
-        k = self.min()
-        while cumProb < UPPER:
-            p = self.pmf(k)
-            print(f'{k:5} | {"#"*int(p*1000)}')
-            cumProb += self.pmf(k)
-            k += 1
-
-
-    def __add__(self, other):
+    def __convul__(self, other, func):
 
         out = DiscreteEmperical()
 
@@ -43,32 +35,11 @@ class RandomVariable():
             ok = other.min()
             while oCum < UPPER:
 
-                fk = ok + sk
-                fp = self.pmf(sk) * other.pmf(ok)
+                if func == __ADD__:
+                    fk = ok + sk
+                elif func == __MUL__:
+                    fk = ok * sk
 
-                out.add(fk, fp)
-
-                oCum += self.pmf(ok)
-                ok   += 1
-
-            sCum += self.pmf(sk)
-            sk   += 1
-
-        return out
-
-    def __mul__(self, other):
-
-        out = DiscreteEmperical()
-
-        sCum = 0
-        sk = self.min()
-        while sCum < UPPER:
-
-            oCum = 0
-            ok = other.min()
-            while oCum < UPPER:
-
-                fk = ok * sk
                 fp = self.pmf(sk) * other.pmf(ok)
 
                 out.add(fk, fp)
@@ -80,6 +51,59 @@ class RandomVariable():
             sk   += 1
 
         return out        
+
+
+    def __add__(self, other):
+        return self.__convul__(other, __ADD__)
+
+        # out = DiscreteEmperical()
+
+        # sCum = 0
+        # sk = self.min()
+        # while sCum < UPPER:
+
+        #     oCum = 0
+        #     ok = other.min()
+        #     while oCum < UPPER:
+
+        #         fk = ok + sk
+        #         fp = self.pmf(sk) * other.pmf(ok)
+
+        #         out.add(fk, fp)
+
+        #         oCum += self.pmf(ok)
+        #         ok   += 1
+
+        #     sCum += self.pmf(sk)
+        #     sk   += 1
+
+        # return out
+
+    def __mul__(self, other):
+        return self.__convul__(other, __MUL__)
+
+        # out = DiscreteEmperical()
+
+        # sCum = 0
+        # sk = self.min()
+        # while sCum < UPPER:
+
+        #     oCum = 0
+        #     ok = other.min()
+        #     while oCum < UPPER:
+
+        #         fk = ok * sk
+        #         fp = self.pmf(sk) * other.pmf(ok)
+
+        #         out.add(fk, fp)
+
+        #         oCum += self.pmf(ok)
+        #         ok   += 1
+
+        #     sCum += self.pmf(sk)
+        #     sk   += 1
+
+        # return out        
 
 
 #---------------------------------------------------------------------------------------------------
@@ -201,16 +225,31 @@ class DiscreteEmperical(RandomVariable):
             k += 1            
 
     def pmf(self, k):
-        return _discreateEmpericalPMF(self.w, self.k, k)
-        # kk = self.k
-        # ww = self.w
-        # wSum = ww.sum()
-        # for i in range(len(kk)):
-        #     if kk[i] == k:
-        #         return ww[i] / wSum
-        # else:
-        #     return 0.
+        # return _discreateEmpericalPMF(self.w, self.k, k)
+        kk   = self.k
+        ww   = self.w
+        wSum = ww.sum()
+        nK   = len(kk)
 
+        # We now that the k and w arrays are sorted, so we can use a bisection search
+        # to find the correct values faster. Iterating over every thing is probably
+        # inefficent.
+
+        l = 0
+        u = nK
+
+        while True:
+            m = (u + l) // 2
+
+            if kk[m] == k:
+                return ww[m] / wSum
+            elif kk[m] < k:
+                l = m
+            elif kk[m] > k:
+                u = m
+
+            if (u - l) <= 1:
+                return 0
 
     def compress(self):
         """
