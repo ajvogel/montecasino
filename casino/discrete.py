@@ -6,6 +6,7 @@ UPPER = 1 - LOWER
 
 __ADD__ = 0
 __MUL__ = 1
+__MAX__ = 2
 
 #---------------------------------------------------------------------------------------------------
 
@@ -63,6 +64,8 @@ class RandomVariable():
                     fk = ok + sk
                 elif func == __MUL__:
                     fk = ok*sk
+                elif func == __MAX__:
+                    fk = ok if ok > sk else sk
 
                 out.add(fk, fp)
 
@@ -75,6 +78,9 @@ class RandomVariable():
 
     def __mul__(self, other):
         return self.__conv__(other, __MUL__)
+
+    def __max__(self, other):
+        return self.__conv__(other, __MAX__)
       
 
 
@@ -99,9 +105,15 @@ class Dice(RandomVariable):
 
 
 class Triangular(RandomVariable):
-    def __init__(self, a, b, c):
-        self.a = a
-        self.b = b
+    def __init__(self, a, b, c, endpoints=False):
+
+        if endpoints:
+            self.a = a - 1
+            self.b = b + 1
+        else:
+            self.a = a
+            self.b = b
+
         self.c = c
 
     def pmf(self, k):
@@ -219,6 +231,11 @@ class DiscreteEmperical(RandomVariable):
         """
         Comresses the distribution by dropping the tail entries.
         """
+
+        if self.w.shape[0] <= 100:
+            return
+
+
         cumProb = 0
 
         minI = 9e9
