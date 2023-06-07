@@ -7,7 +7,8 @@ UPPER = 1 - LOWER
 __ADD__ = 0
 __MUL__ = 1
 __MAX__ = 2
-
+__MIN__ = 3
+__SUB__ = 4
 #---------------------------------------------------------------------------------------------------
 
 class RandomVariable():
@@ -66,6 +67,10 @@ class RandomVariable():
                     fk = ok*sk
                 elif func == __MAX__:
                     fk = ok if ok > sk else sk
+                elif func == __MIN__:
+                    fk = ok  if ok < sk else sk
+                elif func == __SUB__:
+                    fk = sk - ok
 
                 out.add(fk, fp)
 
@@ -76,12 +81,17 @@ class RandomVariable():
     def __add__(self, other):
         return self.__conv__(other, __ADD__)
 
+    def __sub__(self, other):
+        return self.__conv__(other, __SUB__)
+
     def __mul__(self, other):
         return self.__conv__(other, __MUL__)
 
     def __max__(self, other):
         return self.__conv__(other, __MAX__)
       
+    def __min__(self, other):
+        return self.__conv__(other, __MIN__)      
 
 
 #---------------------------------------------------------------------------------------------------

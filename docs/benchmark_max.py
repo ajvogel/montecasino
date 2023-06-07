@@ -11,9 +11,11 @@ print('Running...')
 tic = time.time()
 tri1 = cs.Triangular(10, 50, 30, endpoints=True)
 
-tris = [tri1]*100
+tris = [tri1]*2
 
-out = cs.max(*tris)
+# out = tri1
+
+out = cs.max(*tris) + cs.Triangular(5, 20, 15, endpoints=True)
 
 # for i in range(5):
 #     out = cs.max(out,cs.Triangular(10, 50, 30))
