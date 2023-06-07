@@ -1,4 +1,5 @@
 from .discrete import *
+from .core import *
 import builtins
 
 # def max(val1, val2):
@@ -38,7 +39,7 @@ def printPMF(rv):
     pVec = []
 
     cumProb = 0
-    k = rv.min()
+    k = rv.lowerBound()
     while cumProb < UPPER:
         p = rv.pmf(k)
         kVec.append(k)
