@@ -19,4 +19,4 @@ def printPMF(rv):
     maxP = max(pVec)
 
     for k, p in zip(kVec, pVec):
-        print(f'{k:5} | {"█"*int(p / maxP *50)}')
+        print(f'{k:5} | {"█"*int(p / maxP *100)}')

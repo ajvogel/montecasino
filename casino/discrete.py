@@ -168,7 +168,7 @@ def _bisection(kk, k):
 class DiscreteEmperical(RandomVariable):
     def __init__(self) -> None:
         self.k = np.array([], dtype=np.int32)
-        self.w = np.array([], dtype=np.float32)
+        self.w = np.array([], dtype=np.double)
 
     def toArray(self):
         return self.w, self.k        
@@ -191,6 +191,8 @@ class DiscreteEmperical(RandomVariable):
         if ik := _bisection(self.k, k):   
             self.w[ik] += weight
         else:
+            # TODO: Replace this algorithm with an algorithm that makes better use of the fact
+            #       that we already have a sorted list and we are only inserting a single entry.
             self.k = np.append(self.k, k)
             self.w = np.append(self.w, weight)
             idx = np.argsort(self.k)
@@ -234,6 +236,20 @@ class DiscreteEmperical(RandomVariable):
         self.k = self.k[minI:maxI+1]
         self.w = self.w[minI:maxI+1]
 
+        # Some opperations such as * cause exponentially increasing k vectors,
+        # which causes things to scale very badly. We need a way to limit the
+        # increase here so that we can atleast implement some form of upper
+        # limit on the CPU time.
+
+        if self.w.shape[0] > 500:
+            idx = np.argsort(self.w)[::-1]
+            self.w = self.w[idx][:500]
+            self.k = self.k[idx][:500]
+
+            # Sort back in ascending k order for things to work.
+            idx = np.argsort(self.k)
+            self.w = self.w[idx]
+            self.k = self.k[idx]
 
 
 
