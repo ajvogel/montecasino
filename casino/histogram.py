@@ -1,4 +1,81 @@
 import numpy as np
+import numba
+
+
+#======================================================================================
+@numba.njit
+def _frequency(bl, bu, data):
+    n = len(bl)
+    f = np.zeros(bl.shape)
+
+    for di in data:
+        for i in range(n):
+            if bl[i] <= di < bu[i]:
+                f[i] += 1
+                break
+        else:
+            f[-1] += 1
+
+    return f
+
+
+class ECHAP():
+    """
+    Vermorel and Bronnimann, ‘Greedy Online Histograms Applied to Deterministic Sampling’.
+    """
+    def __init__(self, nBins=16):
+        self.nBins = nBins
+
+        self.bl = np.zeros(nBins)
+        self.bu = np.zeros(nBins)
+        self.f  = np.zeros(nBins)
+
+    def fit(self, data):
+        minD = data.min()
+        maxD = data.max()
+        bins = np.linspace(minD, maxD, self.nBins + 1)
+
+        bl = bins[:-1].copy()
+        bu = bins[1:].copy()
+
+        while True:
+            f  = _frequency(bl, bu, data)
+            c  = (bu - bl) * f
+            cc = c[:-1] + c[1:]
+
+            iMax = np.argmax(c)
+            iMin = np.argmin(cc)
+
+            if c[iMax] <= 2*cc[iMin]:
+                break
+
+            # Merge (iMin) and (iMin + 1)
+            bu[iMin] = bu[iMin + 1]
+
+            # Split iMax
+            m1 = iMin + 1 # Available from the merge.
+
+            wMax = bu[iMax] - bl[iMax]
+            bl[m1] = bl[iMax]
+            bu[m1] = bl[iMax] + wMax/2
+
+            bl[iMax] = bu[m1] # bu[iMax] is unchanged.
+
+            # Sorting the bins again. Possible to avoid the shuffling if we are smarter
+            # with how we do the splitting and merging above.
+
+            idx = np.argsort(bl)
+            bl  = bl[idx]
+            bu  = bu[idx]
+            f   = f[idx]
+
+        self.f  = f
+        self.bl = bl
+        self.bu = bu
+
+
+
+#======================================================================================
 
 A = 0
 K = 1
@@ -178,6 +255,20 @@ class Histogram():
         print(self.F[:,A].sum())
         # print(self.bins)
         self._printBins()
+
+## dfd--
+
+
+class ECHAP():
+    def __init__(self, nBins=16):
+        assert nBins % 4 == 0
+        self.nBins = nBins
+
+    def fit(self, data):
+        minP = data.min()
+        maxP = data.max()
+
+        self.bins = np.linspace(minP, maxP, self.nBins)
 
 
 
