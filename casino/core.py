@@ -217,3 +217,91 @@ class Empirical(RandomVariable):
             idx = np.argsort(self.k)
             self.w = self.w[idx]
             self.k = self.k[idx]        
+
+
+
+#======================================================================================
+@numba.njit
+def _frequency(bl, bu, data):
+    n = len(bl)
+    f = np.zeros(bl.shape)
+
+    for di in data:
+        for i in range(n):
+            if bl[i] <= di < bu[i]:
+                f[i] += 1
+                break
+        else:
+            f[-1] += 1
+
+    return f
+
+
+class ECHAP(RandomVariable):
+    """
+    Vermorel and Bronnimann, ‘Greedy Online Histograms Applied to Deterministic Sampling’.
+    """
+    def __init__(self, nBins=16):
+        self.nBins = nBins
+
+        self.bl = np.zeros(nBins)
+        self.bu = np.zeros(nBins)
+        self.f  = np.zeros(nBins)
+
+    def lowerBound(self):
+        return self.bl[0]
+
+    def upperBound(self):
+        return self.bu[-1]
+
+    def pmf(self, k):
+        i = np.where(self.bl >= k)[0][0]
+        w = self.bu[i] - self.bl[i]
+        p = self.f[i] / (self.f.sum() * w)
+        return
+
+
+    def fit(self, data):
+        data = np.sort(data)
+        minD = data.min()
+        maxD = data.max()
+        bins = np.linspace(minD, maxD, self.nBins + 1)
+
+        bl = bins[:-1].copy()
+        bu = bins[1:].copy()
+
+        while True:
+            f  = _frequency(bl, bu, data)
+            c  = (bu - bl) * f
+            cc = c[:-1] + c[1:]
+
+            iMax = np.argmax(c)
+            iMin = np.argmin(cc)
+
+            if c[iMax] <= 2*cc[iMin]:
+                break
+
+            # Merge (iMin) and (iMin + 1)
+            bu[iMin] = bu[iMin + 1]
+
+            # Split iMax
+            m1 = iMin + 1 # Available from the merge.
+
+            wMax = bu[iMax] - bl[iMax]
+            bl[m1] = bl[iMax]
+            bu[m1] = bl[iMax] + wMax/2
+
+            bl[iMax] = bu[m1] # bu[iMax] is unchanged.
+
+            # Sorting the bins again. Possible to avoid the shuffling if we are smarter
+            # with how we do the splitting and merging above.
+
+            idx = np.argsort(bl)
+            bl  = bl[idx]
+            bu  = bu[idx]
+            f   = f[idx]
+
+        self.f  = f
+        self.bl = bl
+        self.bu = bu
+
