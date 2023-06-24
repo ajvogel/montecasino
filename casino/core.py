@@ -9,7 +9,7 @@ __MUL__ = 1
 __MAX__ = 2
 __MIN__ = 3
 __SUB__ = 4
-
+__POW__ = 5
 
 #===================================================================================================
 
@@ -34,7 +34,7 @@ def _bisection(kk, k):
 
         if (u - l) <= 1:
             return None
-
+        
 #===================================================================================================
 
 class RandomVariable():
@@ -97,6 +97,8 @@ class RandomVariable():
                     fk = ok  if ok < sk else sk
                 elif func == __SUB__:
                     fk = sk - ok
+                elif func == __POW__:
+                    fk = sk**ok
 
                 out.add(fk, fp)
 
@@ -118,6 +120,9 @@ class RandomVariable():
       
     def __min__(self, other):
         return self.__conv__(other, __MIN__)      
+
+    def __pow__(self, other):
+        return self.__conv__(other, __POW__)
 
 
 #===================================================================================================
