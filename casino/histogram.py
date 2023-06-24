@@ -1,6 +1,6 @@
 import numpy as np
 import numba
-
+from .core import RandomVariable
 
 #======================================================================================
 @numba.njit
@@ -19,7 +19,7 @@ def _frequency(bl, bu, data):
     return f
 
 
-class ECHAP():
+class ECHAP(RandomVariable):
     """
     Vermorel and Bronnimann, ‘Greedy Online Histograms Applied to Deterministic Sampling’.
     """
@@ -29,6 +29,19 @@ class ECHAP():
         self.bl = np.zeros(nBins)
         self.bu = np.zeros(nBins)
         self.f  = np.zeros(nBins)
+
+    def lowerBound(self):
+        return self.bl[0]
+
+    def upperBound(self):
+        return self.bu[-1]
+
+    def pmf(self, k):
+        i = np.where(self.bl >= k)[0][0]
+        w = self.bu[i] - self.bl[i]
+        p = self.f[i] / (self.f.sum() * w)
+        return p
+
 
     def fit(self, data):
         minD = data.min()
