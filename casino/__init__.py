@@ -1,4 +1,4 @@
-from .discrete import *
+from .distributions import *
 from .core import *
 import builtins
 
