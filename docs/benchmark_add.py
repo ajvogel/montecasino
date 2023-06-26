@@ -13,7 +13,7 @@ tri1 = cs.Triangular(10, 50, 30)
 
 bla = tri1
 
-for i in range(15):
+for i in range(250):
     bla = bla + cs.Triangular(10, 50, 30)
 
 toc = time.time()

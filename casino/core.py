@@ -68,6 +68,7 @@ class RandomVariable():
 
     def __conv__(self, other, func):
         out = Empirical()
+        # out = SECHAP()
         # We extract the probability array once in the beginning of the loop
         # so that we don't have to regenerate it everytime. We are essentially
         # iterating over the same array more than once.
@@ -310,7 +311,7 @@ class ECHAP(RandomVariable):
 #======================================================================================
 
 class SECHAP(RandomVariable):
-    def __init__(self, nBins):
+    def __init__(self, nBins=16):
         self.nBins = nBins
 
         self.bl = np.zeros(nBins)
@@ -321,6 +322,9 @@ class SECHAP(RandomVariable):
 
         self.activeBins = 0
 
+    def compress(self):
+        pass
+
     def lowerBound(self):
         return self.bl[0]
 
@@ -328,9 +332,11 @@ class SECHAP(RandomVariable):
         return self.bu[-1]
 
     def pmf(self, k):
-        i = np.where(self.bl >= k)[0][0]
+        # print(f'pmf({k})')
+        # print(np.where(self.bl <= k))
+        i = np.where(self.bl <= k)[0][-1]
         w = self.bu[i] - self.bl[i]
-        p = self.f[i] / (self.fa.sum() * w)
+        p = self.fa[i] / (self.fa.sum() * w)
         return p
 
 
@@ -365,8 +371,8 @@ class SECHAP(RandomVariable):
                 self.bu[:-1] = self.bl[1:]
                 self.bu[-1]  = self.bl[-1] + 1
 
-                for ll, uu, ff in zip(self.bl, self.bu, self.fa):
-                    print(f'{ll}..{uu} -> {ff}') 
+                # for ll, uu, ff in zip(self.bl, self.bu, self.fa):
+                #     print(f'{ll}..{uu} -> {ff}') 
 
     def _addPointToBin(self, k, w):
         if k < self.bl[0]:
