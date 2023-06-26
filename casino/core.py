@@ -258,7 +258,7 @@ class ECHAP(RandomVariable):
         i = np.where(self.bl >= k)[0][0]
         w = self.bu[i] - self.bl[i]
         p = self.f[i] / (self.f.sum() * w)
-        return
+        return p
 
 
     def fit(self, data):
@@ -305,3 +305,148 @@ class ECHAP(RandomVariable):
         self.bl = bl
         self.bu = bu
 
+
+
+#======================================================================================
+
+class SECHAP(RandomVariable):
+    def __init__(self, nBins):
+        self.nBins = nBins
+
+        self.bl = np.zeros(nBins)
+        self.bu = np.zeros(nBins)
+        self.fa = np.zeros(nBins)        
+        self.fk = np.zeros(nBins)        
+        self.fu = np.zeros(nBins)        
+
+        self.activeBins = 0
+
+    def lowerBound(self):
+        return self.bl[0]
+
+    def upperBound(self):
+        return self.bu[-1]
+
+    def pmf(self, k):
+        i = np.where(self.bl >= k)[0][0]
+        w = self.bu[i] - self.bl[i]
+        p = self.f[i] / (self.fa.sum() * w)
+        return p
+
+
+    def _addPhaseOne(self, k, w):
+        """
+
+        """
+        for i in range(self.activeBins):
+            if self.bl[i] == k:
+                self.fa[i]  += w
+                self.fk[i] += w
+                break
+        else:
+            
+            i = self.activeBins
+            self.bl[i] = k
+            self.fa[i] = w
+            self.fk[i] = w
+            self.activeBins += 1
+
+            if self.activeBins == self.nBins:
+                # We've filled all the bins now. Clean up before going to
+                # phase 2.
+                idx = np.argsort(self.bl)
+                self.bl = self.bl[idx]
+                self.fa = self.fa[idx]
+                self.fk = self.fk[idx]
+
+                # No need to sort the others because by this point they shouldn't
+                # have any values in.
+
+                self.bu[:-1] = self.bl[1:]
+                self.bu[-1]  = self.bl[-1] + 1
+
+                for ll, uu, ff in zip(self.bl, self.bu, self.fa):
+                    print(f'{ll}..{uu} -> {ff}') 
+
+    def _addPointToBin(self, k, w):
+        if k < self.bl[0]:
+            # We need to stretch the lower in.
+            self.bl[0]  = k
+            self.fa[0]  += w
+            self.fk[0] += w
+        elif k > self.bu[-1]:
+            # We need to stretch the upper bin.
+            self.bu[-1]  = k
+            self.fa[-1]  += w
+            self.fk[-1] += w
+        else:
+            i = np.where(self.bl <= k)[0][-1]
+            self.fa[i]  += w
+            self.fk[i] += w
+
+    def fit(self, data):
+        for d in data:
+            self.add(d)
+
+    def add(self, k, weight=1):
+        k = int(np.round(k))
+        if self.activeBins < self.nBins:
+            self._addPhaseOne(k, weight)
+            return
+
+        self._addPointToBin(k,weight)
+
+        bl, bu, fa, fk, fu = (self.bl, self.bu, self.fa, self.fk, self.fu)
+
+        c_n = (bu - bl)*(fk - fu)
+        c_p = (bu - bl)*(fk + fu)
+
+        cc_p = c_p[:-1] + c_p[1:]
+
+        if c_n.max() > 2*cc_p.min():
+            iMax = np.argmax(c_n)
+            iMin = np.argmin(cc_p)
+
+            # Merge (iMin) and (iMin + 1)
+            bu[iMin] = bu[iMin + 1]
+            fk[iMin] = fk[iMin] + fk[iMin + 1]
+            fu[iMin] = fu[iMin] + fu[iMin + 1]
+            fa[iMin] = fa[iMin] + fa[iMin + 1]
+
+            # Split iMax
+            m1 = iMin + 1 # Available from the merge.
+
+            # Saving these values because the change in lower ops.
+            wMax  = bu[iMax] - bl[iMax]
+            fkMax = fk[iMax]
+            fuMax = fu[iMax]
+            faMax = fa[iMax]
+
+            bl[m1] = bl[iMax]
+            bu[m1] = bl[iMax] + wMax/2
+
+            bl[iMax] = bu[m1] # bu[iMax] is unchanged.           
+
+            fk[iMax] = 0
+            fk[m1]   = 0
+
+            fu[iMax] = fkMax + fuMax
+            fu[m1]   = fkMax + fuMax
+            fa[iMax] = faMax / 2
+            fa[m1]   = faMax / 2
+
+            # Sorting the bins again. Possible to avoid the shuffling if we are smarter
+            # with how we do the splitting and merging above.
+
+            idx = np.argsort(bl)
+            bl  = bl[idx]
+            bu  = bu[idx]
+            fa  = fa[idx]            
+            fk  = fk[idx]            
+            fu  = fu[idx]            
+
+        self.bl = bl
+        self.bu = bu
+        self.fa = fa
+        self.fk = fk
+        self.fu = fu
