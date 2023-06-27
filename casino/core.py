@@ -69,6 +69,7 @@ class RandomVariable():
     def __conv__(self, other, func):
         out = Empirical()
         # out = SECHAP()
+        # out = ECHAP()
         # We extract the probability array once in the beginning of the loop
         # so that we don't have to regenerate it everytime. We are essentially
         # iterating over the same array more than once.
@@ -310,6 +311,111 @@ class ECHAP(RandomVariable):
 
 #======================================================================================
 
+@numba.njit
+def _addPointToBin(k, w, bl, bu, fa, fk):
+    if k < bl[0]:
+        # We need to stretch the lower in.
+        bl[0]  = k
+        fa[0]  += w
+        fk[0] += w
+    elif k > bu[-1]:
+        # We need to stretch the upper bin.
+        bu[-1]  = k
+        fa[-1]  += w
+        fk[-1] += w
+    else:
+        # i = np.where(bl <= k)[0][-1]
+        i = _findBin(bl, bu, k)
+        # fa[i] = fa[i] + w
+        fa[i] += w
+        fk[i] += w    
+
+    return bl, bu, fa, fk
+
+@numba.njit
+def _argmax(vec):
+    maxVal = -99999999
+    maxI   = -1
+    for i in range(len(vec)):
+        if vec[i] > maxVal:
+            maxVal = vec[i]
+            maxI   = i
+
+    return maxI
+
+@numba.njit
+def _argmin(vec):
+    maxVal = 99999999
+    minI   = -1
+    for i in range(len(vec)):
+        if vec[i] < maxVal:
+            maxVal = vec[i]
+            minI   = i
+
+    return minI    
+
+@numba.njit
+def _findBin(bl, bu, k: int) -> numba.int64:
+    for i in range(len(bl)):
+        if bl[i] <= k < bu[i]:
+            return i
+    return -1
+
+
+@numba.njit
+def _add(bl, bu, fa, fk, fu):
+    c_n = (bu - bl)*(fk - fu)
+    c_p = (bu - bl)*(fk + fu)
+
+    cc_p = c_p[:-1] + c_p[1:]
+
+    # iMax = np.argmax(c_n)
+    # iMin = np.argmin(cc_p)
+
+    iMax = _argmax(c_n)
+    iMin = _argmin(cc_p)
+
+    if c_n[iMax] > 2*cc_p[iMin]:
+
+        # Merge (iMin) and (iMin + 1)
+        bu[iMin] = bu[iMin + 1]
+        fk[iMin] = fk[iMin] + fk[iMin + 1]
+        fu[iMin] = fu[iMin] + fu[iMin + 1]
+        fa[iMin] = fa[iMin] + fa[iMin + 1]
+
+        # Split iMax
+        m1 = iMin + 1 # Available from the merge.
+
+        # Saving these values because the change in lower ops.
+        wMax  = bu[iMax] - bl[iMax]
+        fkMax = fk[iMax]
+        fuMax = fu[iMax]
+        faMax = fa[iMax]
+
+        bl[m1] = bl[iMax]
+        bu[m1] = bl[iMax] + wMax/2
+
+        bl[iMax] = bu[m1] # bu[iMax] is unchanged.           
+
+        fk[iMax] = 0
+        fk[m1]   = 0
+
+        fu[iMax] = fkMax + fuMax
+        fu[m1]   = fkMax + fuMax
+        fa[iMax] = faMax / 2
+        fa[m1]   = faMax / 2
+
+        # Sorting the bins again. Possible to avoid the shuffling if we are smarter
+        # with how we do the splitting and merging above.
+
+        idx = np.argsort(bl)
+        bl  = bl[idx]
+        bu  = bu[idx]
+        fa  = fa[idx]            
+        fk  = fk[idx]            
+        fu  = fu[idx]                
+    return bl, bu, fa, fk, fu
+
 class SECHAP(RandomVariable):
     def __init__(self, nBins=16):
         self.nBins = nBins
@@ -334,7 +440,8 @@ class SECHAP(RandomVariable):
     def pmf(self, k):
         # print(f'pmf({k})')
         # print(np.where(self.bl <= k))
-        i = np.where(self.bl <= k)[0][-1]
+        i = _findBin(self.bl, self.bu, k)
+        # i = np.where(self.bl <= k)[0][-1]
         w = self.bu[i] - self.bl[i]
         p = self.fa[i] / (self.fa.sum() * w)
         return p
@@ -375,6 +482,8 @@ class SECHAP(RandomVariable):
                 #     print(f'{ll}..{uu} -> {ff}') 
 
     def _addPointToBin(self, k, w):
+        # bl, bu, fa, fk = (self.bl, self.bu, self.fa, self.fk)
+        # self.bl, self.bu, self.fa, self.fk = _addPointToBin(k, w, bl, bu, fa, fk)
         if k < self.bl[0]:
             # We need to stretch the lower in.
             self.bl[0]  = k
@@ -386,7 +495,8 @@ class SECHAP(RandomVariable):
             self.fa[-1]  += w
             self.fk[-1] += w
         else:
-            i = np.where(self.bl <= k)[0][-1]
+            # i = np.where(self.bl <= k)[0][-1]
+            i = _findBin(self.bl, self.bu, k)
             self.fa[i]  += w
             self.fk[i] += w
 
@@ -395,7 +505,7 @@ class SECHAP(RandomVariable):
             self.add(d)
 
     def add(self, k, weight=1):
-        k = int(np.round(k))
+        k = round(k) 
         if self.activeBins < self.nBins:
             self._addPhaseOne(k, weight)
             return
@@ -404,14 +514,23 @@ class SECHAP(RandomVariable):
 
         bl, bu, fa, fk, fu = (self.bl, self.bu, self.fa, self.fk, self.fu)
 
+        # bl, bu, fa, fk = _addPointToBin(k, weight, bl, bu, fa, fk)
+
+        # self.bl, self.bu, self.fa, self.fk, self.fu = _add(bl, bu, fa, fk, fu)
+
+
         c_n = (bu - bl)*(fk - fu)
         c_p = (bu - bl)*(fk + fu)
 
         cc_p = c_p[:-1] + c_p[1:]
 
-        if c_n.max() > 2*cc_p.min():
-            iMax = np.argmax(c_n)
-            iMin = np.argmin(cc_p)
+        # iMax = np.argmax(c_n)
+        # iMin = np.argmin(cc_p)
+
+        iMax = _argmax(c_n)
+        iMin = _argmin(cc_p)
+
+        if c_n[iMax] > 2*cc_p[iMin]:
 
             # Merge (iMin) and (iMin + 1)
             bu[iMin] = bu[iMin + 1]

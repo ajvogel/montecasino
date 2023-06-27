@@ -12,7 +12,6 @@ numpy = "^1.24.3"
 numba = "^0.57.0"
 cython = "^0.29.35"
 
-
 [tool.poetry.group.dev.dependencies]
 ipython = "^8.14.0"
 pyinstrument = "^4.4.0"
