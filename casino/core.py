@@ -11,6 +11,129 @@ __MIN__ = 3
 __SUB__ = 4
 __POW__ = 5
 
+DEFAULTS = {
+    'maxBins':64
+}
+
+#===================================================================================================
+
+class RandomVariable():
+    def __init__(self, maxBins=None):
+        if maxBins is None:
+            maxBins = DEFAULTS['maxBins']
+
+        self.lower   = np.zeros(maxBins)
+        self.upper   = np.zeros(maxBins)
+        self.freq    = np.zeros(maxBins)
+        self.known   = np.zeros(maxBins)
+        self.unknown = np.zeros(maxBins)
+
+        self.nActive = 0
+        self.maxBins = maxBins
+
+    def lowerBound(self):
+        return self.lower[0]
+
+    def upperBound(self):
+        return self.upper[-1]
+
+    def pmf(self, k):
+        for i in range(len(self.upper)):
+            if self.lower[i] <= k < self.upper[i]:
+                # Each point in the bin has the same probability.
+                w = self.upper[i] - self.lower[i]
+                p = self.freq[i] / (self.freq.sum() * w)
+                return p
+        else:
+            return -1
+
+    def _sortBins(self):
+        idx = np.argsort(self.lower)
+
+        self.lower   = self.lower[idx]
+        self.upper   = self.upper[idx]
+        self.known   = self.known[idx]
+        self.unknown = self.unknown[idx]
+
+    def _addPhaseOne(self, k, weight):
+        """
+        Adds a point when we haven't already filled all the different histograms.
+        """
+        for i in range(self.nActive):
+            if self.lower[i] <= k < self.upper[i]:
+                self.freq[i]  += weight
+                self.known[i] += weight
+                break
+        else:
+            i = self.nActive
+
+            self.lower[i] = k
+            self.upper[i] = k + 1
+            self.freq[i]  = weight
+            self.known[i] = weight
+
+            self.nActive += 1
+
+            if self.nActive == self.maxBins:
+                self._sortBins()
+
+    def _merge(self, iMin):
+        # Stretches the iMin bin to encompass the iMin+1 bin as well. This clears
+        # up the iMin+1 bin to use for splitting.
+        self.upper[iMin] = self.upper[iMin + 1]
+
+        self.freq[iMin]    = self.freq[iMin]    + self.freq[iMin + 1]
+        self.known[iMin]   = self.known[iMin]   + self.known[iMin + 1]
+        self.unknown[iMin] = self.unknown[iMin] + self.unknown[iMin + 1]
+
+    def _split(self, iMax, m1):
+        # Splits iMax into two bins and stores the one in m1.
+        l = self.lower[iMax]
+        u = self.upper[iMax]
+        w = u - l
+
+        fa = self.freq[iMax]
+        fk = self.known[iMax]
+        fu = self.unknown[iMax]
+
+        m2 = iMax
+
+        self.lower[m1] = l
+        self.upper[m1] = l + w/2
+        self.known[m1] = 0
+        self.unknown[m1] = fk + fu
+        self.freq[m1] = fa / 2
+
+
+        self.lower[m2] = l + w/2
+        self.upper[m2] = u
+        self.known[m2] = 0
+        self.unknown[m2] = fk + fu        
+        self.freq[m2] = fa / 2        
+
+
+    def add(self, k, weight=1):
+
+        if self.nActive < self.maxBins:
+            self._addPhaseOne(k, weight=weight)
+        else:
+
+            costLower = (self.upper - self.lower) * (self.known - self.unknown)
+            costUpper = (self.upper - self.lower) * (self.known + self.unknown)
+
+            adjCostUpper = costUpper[:-1] + costUpper[1:]
+
+            iMaxLower = np.argmax(costLower)
+            iMinUpper = np.argmin(adjCostUpper)
+
+            if costLower[iMaxLower] > 2*costUpper[iMinUpper]:
+                self._merge(iMinUpper)
+                self._split(iMaxLower, iMinUpper + 1)
+                self._sortBins()
+
+
+
+
 #===================================================================================================
 
 @numba.njit
