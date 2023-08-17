@@ -1,5 +1,5 @@
 import numpy as np
-from .core import RandomVariable, Empirical
+from .core import RandomVariable
 
 
 #---------------------------------------------------------------------------------------------------
