@@ -37,6 +37,26 @@ class RandomVariable():
     def upperBound(self):
         return self.upper[-1]
 
+    def cdf(self, k):
+        out = 0
+        for i in range(self.nActive):
+            if self.upper[i] <= k:
+                # K is higher than the current bin.
+                out += self.freq[i] / self.freq.sum()
+
+            elif self.lower[i] <= k < self.upper[i]:
+                #  k is within the bin.
+                w = self.upper[i] - self.lower[i]
+                p = self.freq[i] / (self.freq.sum() * w)
+                out += p*(k - self.lower[i])
+
+            else:
+                # k is under the bin.
+                break
+
+        return out
+
+
     def pmf(self, k):
         for i in range(len(self.upper)):
             if self.lower[i] <= k < self.upper[i]:
