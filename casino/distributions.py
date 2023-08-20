@@ -48,7 +48,7 @@ class Triangular(RandomVariable):
             return 2*(k - self.left) / ((self.right - self.left)*(self.mode - self.left))
         elif k == self.mode:
             return 2/(self.right - self.left)
-        elif self.c < k <= self.right:
+        elif self.mode < k <= self.right:
             return 2*(self.right - k) / ((self.right - self.left)*(self.right - self.mode))
         else:
             return 0
