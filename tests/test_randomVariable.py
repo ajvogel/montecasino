@@ -36,9 +36,9 @@ def test_binConnectivity():
     np.random.seed(300)
     std = 100
     mu  = 1000
-    N   = 10
+    N   = 100
     data = np.random.randn(N)*std + mu    
-    x = cs.RandomVariable(maxBins=4)
+    x = cs.RandomVariable(maxBins=16)
     for e, d in enumerate(data):
         print()
         print(f'Adding {d} as point {e+1}...')
@@ -46,19 +46,19 @@ def test_binConnectivity():
 
     x._assertConnected()
 
-# def test_freqAddsUp():
-#     """Tests that the frequency column adds up to the number of points added"""
-#     std = 100
-#     mu  = 100
-#     N   = 10
-#     data = np.random.randn(N)*std + mu    
-#     x = cs.RandomVariable(maxBins=4)
-#     for d in data:
-#         x.add(d)
+def test_freqAddsUp():
+    """Tests that the frequency column adds up to the number of points added"""
+    std = 100
+    mu  = 100
+    N   = 100
+    data = np.random.randn(N)*std + mu    
+    x = cs.RandomVariable(maxBins=16)
+    for d in data:
+        x.add(d)
 
-#     print(sum(x.freq))
+    print(sum(x.freq))
 
-#     assert (sum(x.freq) == N)
+    assert (sum(x.freq) == N)
     
 
 # def test_normalApprox():
