@@ -12,7 +12,7 @@ __SUB__ = 4
 __POW__ = 5
 
 DEFAULTS = {
-    'maxBins':64
+    'maxBins':16
 }
 
 #===================================================================================================
@@ -147,23 +147,21 @@ class RandomVariable():
     def _addPhaseTwo(self, k, weight):
         """
         """
-        print(f'Before adding {k} with {weight} weight in Phase2',self.freq, sum(self.freq))
-
         if k < self.lower[0]:
             # We need to stretch the lower bin to accomodate the new point.
-            print('Stretching lower')
+            # print('-> Stretching lower')
             self.lower[0]  = k
             self.freq[0]  += weight
             self.known[0] += weight
 
         elif k >= self.upper[-1]:
             # We need to stretch the upper bin to accomodate the new point.
-            print('Stretching upper')
+            # print('-> Stretching upper')
             self.upper[-1]  = k + 1
             self.freq[-1]  += weight
             self.known[-1] += weight
         else:
-            print('Adding to existing')
+            # print('-> Adding to existing')
             # Update an existing bin.
             # print(self.lower)
             # print(self.upper)
@@ -173,15 +171,13 @@ class RandomVariable():
             self.freq[i]  += weight
             self.known[i] += weight  
 
-        print(f'After adding {k} in Phase2',self.freq, sum(self.freq))
-        print(self.lower)
-        print(self.upper)
+        
 
     def _merge(self, iMin):
         # Stretches the iMin bin to encompass the iMin+1 bin as well. This clears
         # up the iMin+1 bin to use for splitting.
 
-        print(f'Merging [{self.lower[iMin]}, {self.upper[iMin]}) and [{self.lower[iMin+1]}, {self.upper[iMin+1]})')
+        # print(f'Merging [{self.lower[iMin]}, {self.upper[iMin]}) and [{self.lower[iMin+1]}, {self.upper[iMin+1]})')
 
         self.upper[iMin] = self.upper[iMin + 1]
 
@@ -194,7 +190,7 @@ class RandomVariable():
         l = self.lower[iMax]
         u = self.upper[iMax]
 
-        print(f'Splitting [{l}, {u})')
+        # print(f'Splitting [{l}, {u})')
 
         w = u - l
 
@@ -220,6 +216,8 @@ class RandomVariable():
 
     def add(self, k, weight=1):
         k = round(k)
+        # print()
+        # print(f'=> add({k},{weight})')
 
         if self.nActive < self.maxBins:
             self._addPhaseOne(k, weight=weight)
@@ -239,11 +237,16 @@ class RandomVariable():
 
             iCond = (iMinUpper == iMaxLower) or (iMinUpper + 1 == iMaxLower)
 
-            if (costLower[iMaxLower] > 2*costUpper[iMinUpper]) and not iCond:
+            wMax = self.upper[iMaxLower] - self.lower[iMaxLower]
+
+            if (costLower[iMaxLower] > 2*costUpper[iMinUpper]) and (not iCond) and (wMax > 1):
                 self._merge(iMinUpper)
                 self._split(iMaxLower, iMinUpper + 1)
                 self._sortBins()
                 self._assertConnected()
+
+        # print(self.lower)
+        # print(self.upper)
 
     def toArray(self):
         outW = []
@@ -295,7 +298,8 @@ class RandomVariable():
                 pF = pS[s] * pO[o]
                 kF = self._applyFunc(kS[s], kO[o], func)
 
-                final.add(kF, pF)
+                if pF > 0:
+                    final.add(kF, pF)
 
         return final
 
