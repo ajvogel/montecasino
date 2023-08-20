@@ -235,11 +235,11 @@ class RandomVariable():
             iMaxLower = np.argmax(costLower)
             iMinUpper = np.argmin(adjCostUpper)
 
-            iCond = (iMinUpper == iMaxLower) or (iMinUpper + 1 == iMaxLower)
+            overlap = (iMinUpper == iMaxLower) or (iMinUpper + 1 == iMaxLower)
 
             wMax = self.upper[iMaxLower] - self.lower[iMaxLower]
 
-            if (costLower[iMaxLower] > 2*costUpper[iMinUpper]) and (not iCond) and (wMax > 1):
+            if (costLower[iMaxLower] > 2*costUpper[iMinUpper]) and (not overlap) and (wMax > 1):
                 self._merge(iMinUpper)
                 self._split(iMaxLower, iMinUpper + 1)
                 self._sortBins()
