@@ -67,6 +67,10 @@ class RandomVariable():
         else:
             return -1
 
+    def _assertConnected(self):
+        for i in range(self.nActive - 1):
+            assert self.upper[i] == self.lower[i + 1]        
+
     def _sortBins(self):
         idx = np.argsort(self.lower)
 
@@ -79,11 +83,9 @@ class RandomVariable():
         """
         Adds a point when we haven't already filled all the different histograms.
         """
-        for i in range(self.nActive):
-            if self.lower[i] <= k < self.upper[i]:
-                self.freq[i]  += weight
-                self.known[i] += weight
-                break
+        if i := self._findBin(k):
+            self.freq[i]  += weight
+            self.known[i] += weight
         else:
             i = self.nActive
 
@@ -97,9 +99,90 @@ class RandomVariable():
             if self.nActive == self.maxBins:
                 self._sortBins()
 
+                # During phase 1 bins are created "unconnected". We need to connect 
+                # them before we continue. This could break down when we don't have
+                # all the bins filled.
+
+                for i in range(self.nActive - 1):
+                    self.upper[i] = self.lower[i + 1]
+
+
+
+
+        # for i in range(self.nActive):
+        #     if i := self._findBin(k):
+
+
+
+        #     if self.lower[i] <= k < self.upper[i]:
+        #         self.freq[i]  += weight
+        #         self.known[i] += weight
+        #         break
+        # else:
+        #     i = self.nActive
+
+        #     self.lower[i] = k
+        #     self.upper[i] = k + 1
+        #     self.freq[i]  = weight
+        #     self.known[i] = weight
+
+        #     self.nActive += 1
+
+        #     if self.nActive == self.maxBins:
+        #         self._sortBins()
+
+    def _findBin(self,k):
+        # print('')
+        # print(f'_findBin {k}')
+        # print(self.lower)
+        # print(self.upper)
+        for i in range(self.nActive):
+            if self.lower[i] <= k < self.upper[i]:
+                # print(f'Returning {i}')
+                return i
+        else:
+            # print(f'Returning None')
+            return None
+
+    def _addPhaseTwo(self, k, weight):
+        """
+        """
+        print(f'Before adding {k} with {weight} weight in Phase2',self.freq, sum(self.freq))
+
+        if k < self.lower[0]:
+            # We need to stretch the lower bin to accomodate the new point.
+            print('Stretching lower')
+            self.lower[0]  = k
+            self.freq[0]  += weight
+            self.known[0] += weight
+
+        elif k >= self.upper[-1]:
+            # We need to stretch the upper bin to accomodate the new point.
+            print('Stretching upper')
+            self.upper[-1]  = k + 1
+            self.freq[-1]  += weight
+            self.known[-1] += weight
+        else:
+            print('Adding to existing')
+            # Update an existing bin.
+            # print(self.lower)
+            # print(self.upper)
+            i = self._findBin(k)
+            # print('')
+            # print('')
+            self.freq[i]  += weight
+            self.known[i] += weight  
+
+        print(f'After adding {k} in Phase2',self.freq, sum(self.freq))
+        print(self.lower)
+        print(self.upper)
+
     def _merge(self, iMin):
         # Stretches the iMin bin to encompass the iMin+1 bin as well. This clears
         # up the iMin+1 bin to use for splitting.
+
+        print(f'Merging [{self.lower[iMin]}, {self.upper[iMin]}) and [{self.lower[iMin+1]}, {self.upper[iMin+1]})')
+
         self.upper[iMin] = self.upper[iMin + 1]
 
         self.freq[iMin]    = self.freq[iMin]    + self.freq[iMin + 1]
@@ -110,6 +193,9 @@ class RandomVariable():
         # Splits iMax into two bins and stores the one in m1.
         l = self.lower[iMax]
         u = self.upper[iMax]
+
+        print(f'Splitting [{l}, {u})')
+
         w = u - l
 
         fa = self.freq[iMax]
@@ -119,13 +205,13 @@ class RandomVariable():
         m2 = iMax
 
         self.lower[m1] = l
-        self.upper[m1] = l + w/2
+        self.upper[m1] = l + round(w/2)
         self.known[m1] = 0
         self.unknown[m1] = fk + fu
         self.freq[m1] = fa / 2
 
 
-        self.lower[m2] = l + w/2
+        self.lower[m2] = l + round(w/2)
         self.upper[m2] = u
         self.known[m2] = 0
         self.unknown[m2] = fk + fu        
@@ -133,10 +219,17 @@ class RandomVariable():
 
 
     def add(self, k, weight=1):
+        k = round(k)
 
         if self.nActive < self.maxBins:
             self._addPhaseOne(k, weight=weight)
+            # print('After _addPhaseOne.')
+            # self._assertConnected()            
         else:
+            self._addPhaseTwo(k, weight=weight)
+            print('After _addPhaseTwo.')
+            self._assertConnected()              
+
 
             costLower = (self.upper - self.lower) * (self.known - self.unknown)
             costUpper = (self.upper - self.lower) * (self.known + self.unknown)
@@ -146,10 +239,32 @@ class RandomVariable():
             iMaxLower = np.argmax(costLower)
             iMinUpper = np.argmin(adjCostUpper)
 
-            if costLower[iMaxLower] > 2*costUpper[iMinUpper]:
+            print(f'iMaxLower = {iMaxLower}')
+            print(f'iMinUpper = {iMinUpper}; iMinUpper+1 = {iMinUpper+1}')
+
+            iCond = (iMinUpper == iMaxLower) or (iMinUpper + 1 == iMaxLower)
+
+            if (costLower[iMaxLower] > 2*costUpper[iMinUpper]) and not iCond:
+                print('Before _merge()')
+                print(self.lower)
+                print(self.upper)                      
+                self._assertConnected()
                 self._merge(iMinUpper)
+                print('After _merge()')
+                print(self.lower)
+                print(self.upper)                
                 self._split(iMaxLower, iMinUpper + 1)
+                print('After _split() and _merge()')
+                print(self.lower)
+                print(self.upper)
                 self._sortBins()
+                print('After Sort.')                
+                print(self.lower)
+                print(self.upper)                
+                self._assertConnected()
+
+        print(self.lower)
+        print(self.upper)
 
     def toArray(self):
         outW = []
