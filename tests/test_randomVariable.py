@@ -16,19 +16,19 @@ def test_addTwoUniform():
     assert abs(x.pmf(11) - 0.0555) <= 1e-4
     assert abs(x.pmf(12) - 0.0277) <= 1e-4    
 
-# def test_nActiveCount():
-#     """Tests that the frequency column adds up to the number of points added"""
-#     std = 100
-#     mu  = 100
-#     N   = 100
-#     data = np.random.randn(N)*std + mu    
-#     x = cs.RandomVariable(maxBins=16)
-#     for d in data:
-#         x.add(d)
+def test_nActiveCount():
+    """Tests that the frequency column adds up to the number of points added"""
+    std = 100
+    mu  = 100
+    N   = 100
+    data = np.random.randn(N)*std + mu    
+    x = cs.RandomVariable(maxBins=16)
+    for d in data:
+        x.add(d)
 
-#     print(x.nActive)
+    print(x.nActive)
 
-#     assert x.nActive == 16
+    assert x.nActive == 16
 
 
 def test_binConnectivity():
@@ -71,14 +71,15 @@ def test_normalApprox():
         x.add(d)
 
 
-    prob = x.cdf(mu + std*2) - x.cdf(mu - std*2)
+    prob1 = x.cdf(mu + std*1) - x.cdf(mu - std*1)
+    prob2 = x.cdf(mu + std*2) - x.cdf(mu - std*2)
+    prob3 = x.cdf(mu + std*3) - x.cdf(mu - std*3)
 
-    print(x.lower)
-    print(x.upper)
-    print(x.freq)
+    # We are not using a lot of samples and keeping the accuracy bar low, otherwise
+    # running the tests will take to long. In practice increasing the number of 
+    # sample points will increase the accuracy.
 
-    print(prob)
-    print(abs(0.95 - prob))
-
-    assert abs(0.95 - prob) <= 5e-3
+    assert abs(0.6827 - prob1) <= 1e-1
+    assert abs(0.9545 - prob2) <= 1e-2
+    assert abs(0.9973 - prob3) <= 1e-3  
 
