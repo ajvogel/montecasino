@@ -9,12 +9,12 @@ import casino as cs
 
 print('Running...')
 tic = time.time()
-tri1 = cs.Triangular(10, 50, 30)
+tri1 = cs.Triangular(10, 30, 50)
 
 bla = tri1
 
 for i in range(250):
-    bla = bla + cs.Triangular(10, 50, 30)
+    bla = bla + cs.Triangular(10, 30, 50)
 
 toc = time.time()
 

@@ -9,16 +9,13 @@ import casino as cs
 
 print('Running...')
 tic = time.time()
-tri1 = cs.Triangular(10, 50, 30, endpoints=True)
+tri1 = cs.Triangular(10, 30, 50, endpoints=True)
 
-tris = [tri1]*2
+tris = [tri1]*5
 
 # out = tri1
 
-out = cs.max(*tris) + cs.Triangular(5, 20, 15, endpoints=True)
-
-# for i in range(5):
-#     out = cs.max(out,cs.Triangular(10, 50, 30))
+out = cs.max(*tris)
 
 
 toc = time.time()
@@ -28,10 +25,6 @@ print('Done. Printing')
 
 cs.printPMF(out)
 
-
-A = np.array([out.k, out.w])
-print(A.T)
-print(A.shape)
 
 print(f'Took {(toc - tic) * 1000} milliseconds')
 
