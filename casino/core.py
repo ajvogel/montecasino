@@ -227,9 +227,7 @@ class RandomVariable():
             # self._assertConnected()            
         else:
             self._addPhaseTwo(k, weight=weight)
-            print('After _addPhaseTwo.')
             self._assertConnected()              
-
 
             costLower = (self.upper - self.lower) * (self.known - self.unknown)
             costUpper = (self.upper - self.lower) * (self.known + self.unknown)
@@ -239,32 +237,13 @@ class RandomVariable():
             iMaxLower = np.argmax(costLower)
             iMinUpper = np.argmin(adjCostUpper)
 
-            print(f'iMaxLower = {iMaxLower}')
-            print(f'iMinUpper = {iMinUpper}; iMinUpper+1 = {iMinUpper+1}')
-
             iCond = (iMinUpper == iMaxLower) or (iMinUpper + 1 == iMaxLower)
 
             if (costLower[iMaxLower] > 2*costUpper[iMinUpper]) and not iCond:
-                print('Before _merge()')
-                print(self.lower)
-                print(self.upper)                      
-                self._assertConnected()
                 self._merge(iMinUpper)
-                print('After _merge()')
-                print(self.lower)
-                print(self.upper)                
                 self._split(iMaxLower, iMinUpper + 1)
-                print('After _split() and _merge()')
-                print(self.lower)
-                print(self.upper)
                 self._sortBins()
-                print('After Sort.')                
-                print(self.lower)
-                print(self.upper)                
                 self._assertConnected()
-
-        print(self.lower)
-        print(self.upper)
 
     def toArray(self):
         outW = []
