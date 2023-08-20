@@ -61,23 +61,24 @@ def test_freqAddsUp():
     assert (sum(x.freq) == N)
     
 
-# def test_normalApprox():
-#     """"""
-#     std = 100
-#     mu  = 100
-#     data = np.random.randn(1000000)*std + mu
-#     x = cs.RandomVariable(maxBins=16)
-#     for d in data:
-#         x.add(d)
+def test_normalApprox():
+    """"""
+    std = 100
+    mu  = 100
+    data = np.random.randn(1000)*std + mu
+    x = cs.RandomVariable(maxBins=32)
+    for d in data:
+        x.add(d)
 
 
-#     prob = x.cdf(mu)
+    prob = x.cdf(mu + std*2) - x.cdf(mu - std*2)
 
-#     print(x.lower)
-#     print(x.upper)
-#     print(x.freq)
+    print(x.lower)
+    print(x.upper)
+    print(x.freq)
 
-#     print(prob)
+    print(prob)
+    print(abs(0.95 - prob))
 
-#     assert abs(0.5 - prob) <= 1e-4
+    assert abs(0.95 - prob) <= 5e-3
 
