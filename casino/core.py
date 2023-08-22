@@ -1,5 +1,10 @@
 import numpy as np
-import numba
+import cython
+
+if cython.compiled:
+    print('Running through Cython!')
+else:
+    print('Running in Python')
 
 LOWER = 0.001
 UPPER = 1 - LOWER

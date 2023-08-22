@@ -1,11 +1,48 @@
-from distutils.dist import Distribution
-from distutils.core import Extension
+from setuptools import Extension, Distribution
+import shutil, os
 from pathlib import Path
 from Cython.Build import cythonize
+from Cython.Distutils.build_ext import build_ext as cython_build_ext
+
 
 
 def build(setup_kwds):
-    print('Put build code here!')
+    """
+
+    https://github.com/aotuai/example-cython-poetry-pypi/blob/main/build.py
+    https://github.com/python-poetry/poetry/issues/2740
+    """
+
+    # extMod = Extension(
+    #     name="casino.core",
+    #     sources=["casino/core.py"]
+    # )
+
+    cythonized = cythonize("casino/core.py", annotate=True, force=True)
+
+    dist = Distribution({
+        "ext_modules":cythonized,
+        "cmdclass": {
+            "build_ext": cython_build_ext,
+        },        
+    })
+
+
+    dist.run_command("build_ext")
+    cmd = dist.get_command_obj("build_ext")
+
+
+    for output in cmd.get_outputs():
+        relative_extension = os.path.relpath(output, cmd.build_lib)
+        shutil.copyfile(output, relative_extension)
+        mode = os.stat(relative_extension).st_mode
+        mode |= (mode & 0o444) >> 2
+        os.chmod(relative_extension, mode)
+    
+    # breakpoint()          
+    # build_ext_cmd.copy_extensions_to_source() 
+    
+
 
 
 # fib_source = Path('casino/core.py')

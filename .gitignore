@@ -9,3 +9,4 @@ __pycache__/
 /dist/
 /casino.sublime-project
 /casino.sublime-workspace
+*.c
