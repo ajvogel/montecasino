@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+/build/
+/dist/
+/casino.sublime-project
+/casino.sublime-workspace

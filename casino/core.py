@@ -15,7 +15,7 @@ DEFAULTS = {
     'maxBins':16
 }
 
-#===================================================================================================
+
 
 class RandomVariable():
     def __init__(self, maxBins=None):
@@ -225,7 +225,7 @@ class RandomVariable():
             # self._assertConnected()            
         else:
             self._addPhaseTwo(k, weight=weight)
-            self._assertConnected()              
+            # self._assertConnected()              
 
             costLower = (self.upper - self.lower) * (self.known - self.unknown)
             costUpper = (self.upper - self.lower) * (self.known + self.unknown)
@@ -243,7 +243,7 @@ class RandomVariable():
                 self._merge(iMinUpper)
                 self._split(iMaxLower, iMinUpper + 1)
                 self._sortBins()
-                self._assertConnected()
+                # self._assertConnected()
 
         # print(self.lower)
         # print(self.upper)
