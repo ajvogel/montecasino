@@ -1,7 +1,7 @@
 import numpy as np
-import cython
+import cython as pyx
 
-if cython.compiled:
+if pyx.compiled:
     print('Running through Cython!')
 else:
     print('Running in Python')
@@ -88,7 +88,8 @@ class RandomVariable():
         """
         Adds a point when we haven't already filled all the different histograms.
         """
-        if i := self._findBin(k):
+        i = self._findBin(k)
+        if i >= 0:
             self.freq[i]  += weight
             self.known[i] += weight
         else:
@@ -136,18 +137,21 @@ class RandomVariable():
         #     if self.nActive == self.maxBins:
         #         self._sortBins()
 
-    def _findBin(self,k):
-        # print('')
-        # print(f'_findBin {k}')
-        # print(self.lower)
-        # print(self.upper)
-        for i in range(self.nActive):
-            if self.lower[i] <= k < self.upper[i]:
+        
+
+    def _findBin(self,k:pyx.int) -> pyx.int:
+
+        nActive: pyx.int       = self.nActive
+        lower:   pyx.double[:] = self.lower
+        upper:   pyx.double[:] = self.upper
+
+        for i in range(nActive):
+            if lower[i] <= k < upper[i]:
                 # print(f'Returning {i}')
                 return i
         else:
             # print(f'Returning None')
-            return None
+            return -1
 
     def _addPhaseTwo(self, k, weight):
         """
