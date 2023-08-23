@@ -10,3 +10,5 @@ __pycache__/
 /casino.sublime-project
 /casino.sublime-workspace
 *.c
+/casino/*.html
+/setup.py
