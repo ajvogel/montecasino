@@ -124,25 +124,30 @@ class RandomVariable():
         else:
             return -1
 
-    def _addPhaseTwo(self, k, weight):
+    def _addPhaseTwo(self, k: pyx.int, weight: pyx.double):
         """
         """
-        if k < self.lower[0]:
+        lower:   pyx.double[:] = self.lower
+        upper:   pyx.double[:] = self.upper
+        freq:    pyx.double[:] = self.freq
+        known:   pyx.double[:] = self.known
+        
+        if k < lower[0]:
             # We need to stretch the lower bin to accomodate the new point.
-            self.lower[0]  = k
-            self.freq[0]  += weight
-            self.known[0] += weight
+            lower[0]  = k
+            freq[0]  += weight
+            known[0] += weight
 
-        elif k >= self.upper[-1]:
+        elif k >= upper[-1]:
             # We need to stretch the upper bin to accomodate the new point.
-            self.upper[-1]  = k + 1
-            self.freq[-1]  += weight
-            self.known[-1] += weight
+            upper[-1]  = k + 1
+            freq[-1]  += weight
+            known[-1] += weight
         else:
-            i = self._findBin(k)
+            i: pyx.int = self._findBin(k)
 
-            self.freq[i]  += weight
-            self.known[i] += weight  
+            freq[i]  += weight
+            known[i] += weight  
 
         
 
