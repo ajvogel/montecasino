@@ -1,4 +1,5 @@
 import numpy as np
+
 import cython as pyx
 
 if pyx.compiled:
@@ -9,12 +10,12 @@ else:
 LOWER = 0.001
 UPPER = 1 - LOWER
 
-__ADD__ = 0
-__MUL__ = 1
-__MAX__ = 2
-__MIN__ = 3
-__SUB__ = 4
-__POW__ = 5
+__ADD__:pyx.int = 0
+__MUL__:pyx.int = 1
+__MAX__:pyx.int = 2
+__MIN__:pyx.int = 3
+__SUB__:pyx.int = 4
+__POW__:pyx.int = 5
 
 DEFAULTS = {
     'maxBins':16
@@ -145,7 +146,7 @@ class RandomVariable():
             known[-1] += weight
         else:
             i: pyx.int = self._findBin(k)
-
+            
             freq[i]  += weight
             known[i] += weight  
 
@@ -231,7 +232,14 @@ class RandomVariable():
         return np.array(outK), np.array(outW)
 
 
-    def _applyFunc(self, iS, iO, func):
+    def _applyFunc(self, iS: pyx.int, iO:pyx.int, func:pyx.int) -> pyx.int:
+        __ADD__:pyx.int = 0
+        __MUL__:pyx.int = 1
+        __MAX__:pyx.int = 2
+        __MIN__:pyx.int = 3
+        __SUB__:pyx.int = 4
+        __POW__:pyx.int = 5        
+        iF: pyx.int = 0
         if func == __ADD__:
             iF = iS + iO
         elif func == __MUL__:
