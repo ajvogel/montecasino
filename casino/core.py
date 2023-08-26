@@ -23,7 +23,17 @@ DEFAULTS = {
 
 
 
+# @pyx.cclass                     
 class RandomVariable():
+    # lower:   pyx.double[:]
+    # upper:   pyx.double[:]
+    # known:   pyx.double[:]
+    # unknown: pyx.double[:]
+    # freq:    pyx.double[:]
+
+    # maxBins: pyx.int
+    # nActive: pyx.int
+    
     def __init__(self, maxBins=None):
         if maxBins is None:
             maxBins = DEFAULTS['maxBins']
@@ -78,7 +88,7 @@ class RandomVariable():
             assert self.upper[i] == self.lower[i + 1]        
 
     def _sortBins(self):
-        idx = np.argsort(self.lower)
+        idx: pyx.long[:] = np.argsort(self.lower)
 
         self.lower   = self.lower[idx]
         self.upper   = self.upper[idx]
@@ -112,6 +122,7 @@ class RandomVariable():
 
                 for i in range(self.nActive - 1):
                     self.upper[i] = self.lower[i + 1]
+
 
     def _findBin(self,k:pyx.int) -> pyx.int:
 
@@ -189,25 +200,30 @@ class RandomVariable():
         self.freq[m2] = fa / 2        
 
 
-    def add(self, k, weight=1):
+    def add(self, k:pyx.int, weight:pyx.double=1):
         k = round(k)
 
+        lower = self.lower
+        upper = self.upper
+        known = self.known
+        unknown = self.unknown
+        
         if self.nActive < self.maxBins:
             self._addPhaseOne(k, weight=weight)
         else:
             self._addPhaseTwo(k, weight=weight)
 
-            costLower = (self.upper - self.lower) * (self.known - self.unknown)
-            costUpper = (self.upper - self.lower) * (self.known + self.unknown)
+            costLower = (upper - lower) * (known - unknown)
+            costUpper = (upper - lower) * (known + unknown)
 
             adjCostUpper = costUpper[:-1] + costUpper[1:]
 
-            iMaxLower = np.argmax(costLower)
-            iMinUpper = np.argmin(adjCostUpper)
+            iMaxLower: pyx.int = np.argmax(costLower)
+            iMinUpper: pyx.int = np.argmin(adjCostUpper)
 
             overlap = (iMinUpper == iMaxLower) or (iMinUpper + 1 == iMaxLower)
 
-            wMax = self.upper[iMaxLower] - self.lower[iMaxLower]
+            wMax: pyx.int = upper[iMaxLower] - lower[iMaxLower]
 
             if (costLower[iMaxLower] > 2*costUpper[iMinUpper]) and (not overlap) and (wMax > 1):
                 self._merge(iMinUpper)
