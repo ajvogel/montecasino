@@ -23,16 +23,22 @@ DEFAULTS = {
 
 
 
-# @pyx.cclass                     
+@pyx.cclass                     
 class RandomVariable():
-    # lower:   pyx.double[:]
-    # upper:   pyx.double[:]
-    # known:   pyx.double[:]
-    # unknown: pyx.double[:]
-    # freq:    pyx.double[:]
+    # _lower:   pyx.double[:]
+    # _upper:   pyx.double[:]
+    # _known:   pyx.double[:]
+    # _unknown: pyx.double[:]
+    # _freq:    pyx.double[:]
 
-    # maxBins: pyx.int
-    # nActive: pyx.int
+    lower:   np.ndarray
+    upper:   np.ndarray
+    known:   np.ndarray
+    unknown: np.ndarray
+    freq:    np.ndarray
+
+    maxBins: pyx.int
+    nActive: pyx.int
     
     def __init__(self, maxBins=None):
         if maxBins is None:
@@ -43,6 +49,12 @@ class RandomVariable():
         self.freq    = np.zeros(maxBins)
         self.known   = np.zeros(maxBins)
         self.unknown = np.zeros(maxBins)
+
+        # self._lower   = self.lower
+        # self._upper   = self.upper
+        # self._freq    = self.freq
+        # self._known   = self.known
+        # self._unknown = self.unknown
 
         self.nActive = 0
         self.maxBins = maxBins
@@ -87,7 +99,9 @@ class RandomVariable():
         for i in range(self.nActive - 1):
             assert self.upper[i] == self.lower[i + 1]        
 
+    @pyx.cfunc
     def _sortBins(self):
+        
         idx: pyx.long[:] = np.argsort(self.lower)
 
         self.lower   = self.lower[idx]
@@ -95,11 +109,12 @@ class RandomVariable():
         self.known   = self.known[idx]
         self.unknown = self.unknown[idx]
 
-    def _addPhaseOne(self, k, weight):
+    @pyx.cfunc
+    def _addPhaseOne(self, k:pyx.int, weight:pyx.double):
         """
         Adds a point when we haven't already filled all the different histograms.
         """
-        i = self._findBin(k)
+        i: pyx.int = self._findBin(k)
         if i >= 0:
             self.freq[i]  += weight
             self.known[i] += weight
@@ -124,6 +139,7 @@ class RandomVariable():
                     self.upper[i] = self.lower[i + 1]
 
 
+    @pyx.cfunc
     def _findBin(self,k:pyx.int) -> pyx.int:
 
         nActive: pyx.int       = self.nActive
@@ -136,6 +152,7 @@ class RandomVariable():
         else:
             return -1
 
+    @pyx.cfunc
     def _addPhaseTwo(self, k: pyx.int, weight: pyx.double):
         """
         """
@@ -162,18 +179,18 @@ class RandomVariable():
             known[i] += weight  
 
         
-
-    def _merge(self, iMin):
+    @pyx.cfunc
+    def _merge(self, iMin: pyx.int):
         # Stretches the iMin bin to encompass the iMin+1 bin as well. This clears
         # up the iMin+1 bin to use for splitting.
 
         self.upper[iMin] = self.upper[iMin + 1]
-
         self.freq[iMin]    = self.freq[iMin]    + self.freq[iMin + 1]
         self.known[iMin]   = self.known[iMin]   + self.known[iMin + 1]
         self.unknown[iMin] = self.unknown[iMin] + self.unknown[iMin + 1]
 
-    def _split(self, iMax, m1):
+    @pyx.cfunc
+    def _split(self, iMax: pyx.int, m1: pyx.int):
         # Splits iMax into two bins and stores the one in m1.
         l = self.lower[iMax]
         u = self.upper[iMax]
@@ -199,7 +216,7 @@ class RandomVariable():
         self.unknown[m2] = fk + fu        
         self.freq[m2] = fa / 2        
 
-
+    @pyx.ccall
     def add(self, k:pyx.int, weight:pyx.double=1):
         k = round(k)
 
@@ -247,7 +264,8 @@ class RandomVariable():
 
         return np.array(outK), np.array(outW)
 
-
+    
+    @pyx.cfunc
     def _applyFunc(self, iS: pyx.int, iO:pyx.int, func:pyx.int) -> pyx.int:
         __ADD__:pyx.int = 0
         __MUL__:pyx.int = 1
@@ -278,7 +296,11 @@ class RandomVariable():
         kS, pS = self.toArray()
         kO, pO = other.toArray()
 
-        nS, nO = len(kS), len(kO)
+        nS: pyx.long = len(kS)
+        nO: pyx.long = len(kO)
+
+        s: pyx.int
+        o: pyx.int
 
         for s in range(nS):
             for o in range(nO):
