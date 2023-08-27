@@ -385,12 +385,20 @@ class RandomVariable():
 
         return iF
 
-    def __conv__(self, other, func):
+    @pyx.ccall
+    @pyx.boundscheck(False)
+    def __conv__(self, other, func: pyx.int):
         
         final = RandomVariable()
 
-        kS, pS = self.toArray()
-        kO, pO = other.toArray()
+        _kS, _pS = self.toArray()
+        _kO, _pO = other.toArray()
+
+        kS: pyx.long[:] = _kS
+        pS: pyx.double[:] = _pS
+
+        kO: pyx.long[:] = _kO
+        pO: pyx.double[:] = _pO
 
         nS: pyx.int = len(kS)
         nO: pyx.int = len(kO)
@@ -400,8 +408,8 @@ class RandomVariable():
 
         for s in range(nS):
             for o in range(nO):
-                pF = pS[s] * pO[o]
-                kF = self._applyFunc(kS[s], kO[o], func)
+                pF: pyx.double = pS[s] * pO[o]
+                kF: pyx.int = self._applyFunc(kS[s], kO[o], func)
 
                 if pF > 0:
                     final.add(kF, pF)
