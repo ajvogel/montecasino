@@ -40,6 +40,11 @@ class RandomVariable():
 
     maxBins: pyx.int
     nActive: pyx.int
+
+    iMinUpper: pyx.int
+    iMaxLower: pyx.int
+    costLowerMax: pyx.double
+    costUpperMin: pyx.double
     
     def __init__(self, maxBins=None):
         if maxBins is None:
@@ -283,15 +288,21 @@ class RandomVariable():
                     costUpperMin = adjCostUpper
 
 
-        return iMinUpper, costUpperMin, iMaxLower, costLowerMax
+        self.iMinUpper = iMinUpper
+        self.iMaxLower = iMaxLower
+        self.costLowerMax = costLowerMax
+        self.costUpperMin = costUpperMin
+
+
+
                     
 
     @pyx.ccall
     def add(self, k:pyx.int, weight:pyx.double=1):
         k = pyx.cast(pyx.int, round(k))
 
-        lower = self.lower
-        upper = self.upper
+        lower: pyx.int[:] = self.lower
+        upper: pyx.int[:] = self.upper
         # known = self.known      
         # unknown = self.unknown
 
@@ -305,7 +316,8 @@ class RandomVariable():
         else:
             self._addPhaseTwo(k, weight=weight)
 
-            iMinUpper, costUpperMin, iMaxLower, costLowerMax = self._findMinMax()
+            self._findMinMax()
+            # iMinUpper, costUpperMin, iMaxLower, costLowerMax = self._findMinMax() 
             # costLower = (upper - lower) * (known - unknown)
             # costUpper = (upper - lower) * (known + unknown)
 
@@ -314,13 +326,13 @@ class RandomVariable():
             # iMaxLower: pyx.int = np.argmax(costLower)
             # iMinUpper: pyx.int = np.argmin(adjCostUpper)
 
-            overlap = (iMinUpper == iMaxLower) or (iMinUpper + 1 == iMaxLower)
+            overlap = (self.iMinUpper == self.iMaxLower) or (self.iMinUpper + 1 == self.iMaxLower)
 
-            wMax: pyx.int = upper[iMaxLower] - lower[iMaxLower]
+            wMax: pyx.int = upper[self.iMaxLower] - lower[self.iMaxLower]
 
-            if (costLowerMax > 2*costUpperMin) and (not overlap) and (wMax > 1):
-                self._merge(iMinUpper)
-                self._split(iMaxLower, iMinUpper + 1)
+            if (self.costLowerMax > 2*self.costUpperMin) and (not overlap) and (wMax > 1):
+                self._merge(self.iMinUpper)
+                self._split(self.iMaxLower, self.iMinUpper + 1)
                 self._sortBins()
 
 
