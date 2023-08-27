@@ -326,7 +326,7 @@ class RandomVariable():
             # iMaxLower: pyx.int = np.argmax(costLower)
             # iMinUpper: pyx.int = np.argmin(adjCostUpper)
 
-            overlap = (self.iMinUpper == self.iMaxLower) or (self.iMinUpper + 1 == self.iMaxLower)
+            overlap: pyx.int = (self.iMinUpper == self.iMaxLower) or (self.iMinUpper + 1 == self.iMaxLower)
 
             wMax: pyx.int = upper[self.iMaxLower] - lower[self.iMaxLower]
 
