@@ -120,17 +120,24 @@ class RandomVariable():
         """
         Adds a point when we haven't already filled all the different histograms.
         """
+        lower:   pyx.int[:] = self.lower
+        upper:   pyx.int[:] = self.upper
+        known:   pyx.double[:] = self.known
+        unknown: pyx.double[:] = self.unknown
+        freq: pyx.double[:] = self.freq
+
+        
         i: pyx.int = self._findBin(k)
         if i >= 0:
-            self.freq[i]  += weight
-            self.known[i] += weight
+            freq[i]  += weight
+            known[i] += weight
         else:
             i = self.nActive
 
-            self.lower[i] = k
-            self.upper[i] = k + 1
-            self.freq[i]  = weight
-            self.known[i] = weight
+            lower[i] = k
+            upper[i] = k + 1
+            freq[i]  = weight
+            known[i] = weight
 
             self.nActive += 1
 
@@ -142,7 +149,7 @@ class RandomVariable():
                 # all the bins filled.
 
                 for i in range(self.nActive - 1):
-                    self.upper[i] = self.lower[i + 1]
+                    upper[i] = lower[i + 1]
 
 
     @pyx.cfunc
@@ -298,6 +305,7 @@ class RandomVariable():
                     
 
     @pyx.ccall
+    @pyx.boundscheck(False)
     def add(self, k:pyx.int, weight:pyx.double=1):
         k = pyx.cast(pyx.int, round(k))
 
