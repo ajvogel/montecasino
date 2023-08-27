@@ -154,6 +154,7 @@ class RandomVariable():
             return -1
 
     @pyx.cfunc
+    @pyx.boundscheck(False) 
     def _addPhaseTwo(self, k: pyx.int, weight: pyx.double):
         """
         """
@@ -181,41 +182,56 @@ class RandomVariable():
 
         
     @pyx.cfunc
+    @pyx.boundscheck(False)    
     def _merge(self, iMin: pyx.int):
         # Stretches the iMin bin to encompass the iMin+1 bin as well. This clears
         # up the iMin+1 bin to use for splitting.
 
-        self.upper[iMin] = self.upper[iMin + 1]
-        self.freq[iMin]    = self.freq[iMin]    + self.freq[iMin + 1]
-        self.known[iMin]   = self.known[iMin]   + self.known[iMin + 1]
-        self.unknown[iMin] = self.unknown[iMin] + self.unknown[iMin + 1]
+        lower: pyx.int[:]   = self.lower
+        upper: pyx.int[:]   = self.upper
+        freq: pyx.double[:] = self.freq
+        known: pyx.double[:] = self.known
+        unknown: pyx.double[:] = self.unknown        
+
+        upper[iMin] = upper[iMin + 1]
+        freq[iMin]    = freq[iMin]    + freq[iMin + 1]
+        known[iMin]   = known[iMin]   + known[iMin + 1]
+        unknown[iMin] = unknown[iMin] + unknown[iMin + 1]
 
     @pyx.cfunc
+    @pyx.boundscheck(False)
     def _split(self, iMax: pyx.int, m1: pyx.int):
         # Splits iMax into two bins and stores the one in m1.
-        l = self.lower[iMax]
-        u = self.upper[iMax]
 
-        w = u - l
+        lower: pyx.int[:]   = self.lower
+        upper: pyx.int[:]   = self.upper
+        freq: pyx.double[:] = self.freq
+        known: pyx.double[:] = self.known
+        unknown: pyx.double[:] = self.unknown
+        
+        l:pyx.int = lower[iMax]
+        u:pyx.int = upper[iMax]
 
-        fa = self.freq[iMax]
-        fk = self.known[iMax]
-        fu = self.unknown[iMax]
+        w: pyx.int = u - l
 
-        m2 = iMax
+        fa: pyx.double = freq[iMax]
+        fk: pyx.double = known[iMax]
+        fu: pyx.double = unknown[iMax]
 
-        self.lower[m1] = l
-        self.upper[m1] = l + round(w/2)
-        self.known[m1] = 0
-        self.unknown[m1] = fk + fu
-        self.freq[m1] = fa / 2
+        m2: pyx.int = iMax
+
+        lower[m1] = l
+        upper[m1] = l + pyx.cast(pyx.int, round(w/2))
+        known[m1] = 0
+        unknown[m1] = fk + fu
+        freq[m1] = fa / 2
 
 
-        self.lower[m2] = l + round(w/2)
-        self.upper[m2] = u
-        self.known[m2] = 0
-        self.unknown[m2] = fk + fu        
-        self.freq[m2] = fa / 2        
+        lower[m2] = l + pyx.cast(pyx.int, round(w/2))
+        upper[m2] = u
+        known[m2] = 0
+        unknown[m2] = fk + fu        
+        freq[m2] = fa / 2        
 
     @pyx.ccall
     def add(self, k:pyx.int, weight:pyx.double=1):
