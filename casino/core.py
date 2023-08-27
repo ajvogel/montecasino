@@ -1,6 +1,7 @@
 import numpy as np
-
 import cython as pyx
+
+from cython.cimports.libc.math import round as round
 
 if pyx.compiled:
     print('Running through Cython!')
@@ -44,11 +45,11 @@ class RandomVariable():
         if maxBins is None:
             maxBins = DEFAULTS['maxBins']
 
-        self.lower   = np.zeros(maxBins)
-        self.upper   = np.zeros(maxBins)
-        self.freq    = np.zeros(maxBins)
-        self.known   = np.zeros(maxBins)
-        self.unknown = np.zeros(maxBins)
+        self.lower   = np.zeros(maxBins, dtype=np.intc)
+        self.upper   = np.zeros(maxBins, dtype=np.intc)
+        self.freq    = np.zeros(maxBins, dtype=np.float64)
+        self.known   = np.zeros(maxBins, dtype=np.float64)
+        self.unknown = np.zeros(maxBins, dtype=np.float64)
 
         # self._lower   = self.lower
         # self._upper   = self.upper
@@ -142,9 +143,9 @@ class RandomVariable():
     @pyx.cfunc
     def _findBin(self,k:pyx.int) -> pyx.int:
 
-        nActive: pyx.int       = self.nActive
-        lower:   pyx.double[:] = self.lower
-        upper:   pyx.double[:] = self.upper
+        nActive: pyx.int    = self.nActive
+        lower:   pyx.int[:] = self.lower
+        upper:   pyx.int[:] = self.upper
 
         for i in range(nActive):
             if lower[i] <= k < upper[i]:
@@ -156,8 +157,8 @@ class RandomVariable():
     def _addPhaseTwo(self, k: pyx.int, weight: pyx.double):
         """
         """
-        lower:   pyx.double[:] = self.lower
-        upper:   pyx.double[:] = self.upper
+        lower:   pyx.int[:] = self.lower
+        upper:   pyx.int[:] = self.upper
         freq:    pyx.double[:] = self.freq
         known:   pyx.double[:] = self.known
         
@@ -218,7 +219,7 @@ class RandomVariable():
 
     @pyx.ccall
     def add(self, k:pyx.int, weight:pyx.double=1):
-        k = round(k)
+        k = pyx.cast(pyx.int, round(k))
 
         lower = self.lower
         upper = self.upper
@@ -296,8 +297,8 @@ class RandomVariable():
         kS, pS = self.toArray()
         kO, pO = other.toArray()
 
-        nS: pyx.long = len(kS)
-        nO: pyx.long = len(kO)
+        nS: pyx.int = len(kS)
+        nO: pyx.int = len(kO)
 
         s: pyx.int
         o: pyx.int
