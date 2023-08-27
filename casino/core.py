@@ -231,7 +231,60 @@ class RandomVariable():
         upper[m2] = u
         known[m2] = 0
         unknown[m2] = fk + fu        
-        freq[m2] = fa / 2        
+        freq[m2] = fa / 2
+
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    def _findMinMax(self):
+        """
+        Performs the following operations but does so in a single pass.
+        
+        costLower = (upper - lower) * (known - unknown)
+        costUpper = (upper - lower) * (known + unknown)
+
+        adjCostUpper = costUpper[:-1] + costUpper[1:]
+
+        iMaxLower: pyx.int = np.argmax(costLower)
+        iMinUpper: pyx.int = np.argmin(adjCostUpper)
+
+        """
+        lower: pyx.int[:]      = self.lower
+        upper: pyx.int[:]      = self.upper
+        known: pyx.double[:]   = self.known
+        unknown: pyx.double[:] = self.unknown
+
+        iMinUpper: pyx.int = -1
+        iMaxLower: pyx.int = -1
+
+        costLowerMax: pyx.double = -9e9
+        costUpperMin: pyx.double = 9e9
+
+
+        k: pyx.int
+
+
+        for k in range(self.nActive):
+            costLower: pyx.double = (upper[k] - lower[k]) * (known[k] - unknown[k])
+
+            if costLower > costLowerMax:
+                iMaxLower = k
+                costLowerMax = costLower
+
+
+            if k < self.nActive - 2:
+                # We use -2 here because it is zero based indexing and we want to
+                # stop one before the last value.
+                adjCostUpper: pyx.double
+                adjCostUpper  = (upper[k] - lower[k]) * (known[k] + unknown[k])
+                adjCostUpper += (upper[k+1] - lower[k+1]) * (known[k+1] + unknown[k+1])
+
+                if adjCostUpper < costUpperMin:
+                    iMinUpper = k
+                    costUpperMin = adjCostUpper
+
+
+        return iMinUpper, costUpperMin, iMaxLower, costLowerMax
+                    
 
     @pyx.ccall
     def add(self, k:pyx.int, weight:pyx.double=1):
@@ -239,27 +292,33 @@ class RandomVariable():
 
         lower = self.lower
         upper = self.upper
-        known = self.known
-        unknown = self.unknown
+        # known = self.known      
+        # unknown = self.unknown
+
+        iMinUpper: pyx.int
+        iMaxLower: pyx.int
+        costUpperMin: pyx.double
+        costLowerMax: pyx.double
         
         if self.nActive < self.maxBins:
             self._addPhaseOne(k, weight=weight)
         else:
             self._addPhaseTwo(k, weight=weight)
 
-            costLower = (upper - lower) * (known - unknown)
-            costUpper = (upper - lower) * (known + unknown)
+            iMinUpper, costUpperMin, iMaxLower, costLowerMax = self._findMinMax()
+            # costLower = (upper - lower) * (known - unknown)
+            # costUpper = (upper - lower) * (known + unknown)
 
-            adjCostUpper = costUpper[:-1] + costUpper[1:]
+            # adjCostUpper = costUpper[:-1] + costUpper[1:]
 
-            iMaxLower: pyx.int = np.argmax(costLower)
-            iMinUpper: pyx.int = np.argmin(adjCostUpper)
+            # iMaxLower: pyx.int = np.argmax(costLower)
+            # iMinUpper: pyx.int = np.argmin(adjCostUpper)
 
             overlap = (iMinUpper == iMaxLower) or (iMinUpper + 1 == iMaxLower)
 
             wMax: pyx.int = upper[iMaxLower] - lower[iMaxLower]
 
-            if (costLower[iMaxLower] > 2*costUpper[iMinUpper]) and (not overlap) and (wMax > 1):
+            if (costLowerMax > 2*costUpperMin) and (not overlap) and (wMax > 1):
                 self._merge(iMinUpper)
                 self._split(iMaxLower, iMinUpper + 1)
                 self._sortBins()
