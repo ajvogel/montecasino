@@ -41,8 +41,11 @@ def test_binConnectivity():
     x = cs.RandomVariable(maxBins=16)
     for e, d in enumerate(data):
         # print()
-        # print(f'Adding {d} as point {e+1}...')
+        print(f'Adding {d} as point {e+1}...')
         x.add(d)
+        if e >= 16:
+            x._assertConnected()
+            assert False
 
     x._assertConnected()
 

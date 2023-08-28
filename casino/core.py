@@ -108,7 +108,7 @@ class RandomVariable():
             return -1
 
     def _assertConnected(self):
-        for i in range(self.nActive - 1):
+        for i in range(self.nActive):
             print(self.lower[i], self.upper[i])
         
         for i in range(self.nActive - 1):
@@ -120,21 +120,27 @@ class RandomVariable():
         
         idx: pyx.long[:] = np.argsort(self.lower)
 
+        print(self.lower.ctypes.data)        
+
+        # WARNING: This creates a copy of the array, which means that buffer views
+        #          point to an older version of the array and become out of sync.
         self.lower   = self.lower[idx]
         self.upper   = self.upper[idx]
         self.known   = self.known[idx]
         self.unknown = self.unknown[idx]
+
+        print(self.lower.ctypes.data)
 
     @pyx.cfunc
     def _addPhaseOne(self, k:pyx.int, weight:pyx.double):
         """
         Adds a point when we haven't already filled all the different histograms.
         """
-        # lower:   pyx.int[:] = self.lower
-        # upper:   pyx.int[:] = self.upper
+        lower:   pyx.int[:] = self.lower
+        upper:   pyx.int[:] = self.upper
         known:   pyx.double[:] = self.known
         #unknown: pyx.double[:] = self.unknown
-        freq: pyx.double[:] = self.freq
+        freq: pyx.double[:] = self.freq #
 
         
         i: pyx.int = self._findBin(k)
@@ -144,22 +150,39 @@ class RandomVariable():
         else:
             i = self.nActive
 
-            self.lower[i] = k
-            self.upper[i] = k + 1
+            # self.lower[i] = k
+            # self.upper[i] = k + 1
+            lower[i] = k
+            upper[i] = k + 1            
             freq[i]  = weight
             known[i] = weight
 
             self.nActive += 1
 
             if self.nActive == self.maxBins:
+                print('Inflating bins...')
+                print('Before Sorting:')
+                for i in range(self.nActive):
+                    print(self.lower[i],'<->',lower[i],'; ', end='')
+                
                 self._sortBins()
 
                 # During phase 1 bins are created "unconnected". We need to connect 
                 # them before we continue. This could break down when we don't have
                 # all the bins filled.
+                print()
+                print('After Sorting:')
+                for i in range(self.nActive):
+                    print(self.lower[i],'<->',lower[i],'; ', end='')
+
+                print()
 
                 for i in range(self.nActive - 1):
-                    self.upper[i] = self.lower[i + 1]
+                    # self.upper[i] = self.lower[i + 1]
+                    # print('->',self.upper[i], self.lower[i+1])
+                    
+                    upper[i] = lower[i + 1]
+                    print('->',upper[i], lower[i+1])
 
 
     @pyx.cfunc
