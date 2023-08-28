@@ -65,6 +65,12 @@ class RandomVariable():
         self.nActive = 0
         self.maxBins = maxBins
 
+    def activeBins(self):
+        return self.nActive
+
+    def getFrequencies(self):
+        return self.freq
+
     def lowerBound(self):
         return self.lower[0]
 
@@ -103,6 +109,10 @@ class RandomVariable():
 
     def _assertConnected(self):
         for i in range(self.nActive - 1):
+            print(self.lower[i], self.upper[i])
+        
+        for i in range(self.nActive - 1):
+
             assert self.upper[i] == self.lower[i + 1]        
 
     @pyx.cfunc
@@ -309,30 +319,36 @@ class RandomVariable():
     def add(self, k:pyx.int, weight:pyx.double=1):
         k = pyx.cast(pyx.int, round(k))
 
-        lower: pyx.int[:] = self.lower
-        upper: pyx.int[:] = self.upper
-        # known = self.known      
-        # unknown = self.unknown
+        lower = self.lower
+        upper = self.upper
+        known = self.known      
+        unknown = self.unknown
 
-        iMinUpper: pyx.int
-        iMaxLower: pyx.int
-        costUpperMin: pyx.double
-        costLowerMax: pyx.double
+        # iMinUpper: pyx.int
+        # iMaxLower: pyx.int
+        # costUpperMin: pyx.double
+        # costLowerMax: pyx.double
         
         if self.nActive < self.maxBins:
             self._addPhaseOne(k, weight=weight)
         else:
             self._addPhaseTwo(k, weight=weight)
 
-            self._findMinMax()
+            # self._findMinMax()
             # iMinUpper, costUpperMin, iMaxLower, costLowerMax = self._findMinMax() 
-            # costLower = (upper - lower) * (known - unknown)
-            # costUpper = (upper - lower) * (known + unknown)
+            costLower = (upper - lower) * (known - unknown)
+            costUpper = (upper - lower) * (known + unknown)
 
-            # adjCostUpper = costUpper[:-1] + costUpper[1:]
+            adjCostUpper = costUpper[:-1] + costUpper[1:]
 
-            # iMaxLower: pyx.int = np.argmax(costLower)
-            # iMinUpper: pyx.int = np.argmin(adjCostUpper)
+            iMaxLower: pyx.int = np.argmax(costLower)
+            iMinUpper: pyx.int = np.argmin(adjCostUpper)
+
+            self.iMaxLower = iMaxLower
+            self.iMinUpper = iMinUpper
+
+            self.costLowerMax = costLower[self.iMaxLower]
+            self.costUpperMin = costUpper[self.iMinUpper]
 
             overlap: pyx.int = (self.iMinUpper == self.iMaxLower) or (self.iMinUpper + 1 == self.iMaxLower)
 

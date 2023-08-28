@@ -26,9 +26,9 @@ def test_nActiveCount():
     for d in data:
         x.add(d)
 
-    print(x.nActive)
+    # print(x.nAc-tive)           
 
-    assert x.nActive == 16
+    assert x.activeBins() == 16
 
 
 def test_binConnectivity():
@@ -40,8 +40,8 @@ def test_binConnectivity():
     data = np.random.randn(N)*std + mu    
     x = cs.RandomVariable(maxBins=16)
     for e, d in enumerate(data):
-        print()
-        print(f'Adding {d} as point {e+1}...')
+        # print()
+        # print(f'Adding {d} as point {e+1}...')
         x.add(d)
 
     x._assertConnected()
@@ -56,9 +56,9 @@ def test_freqAddsUp():
     for d in data:
         x.add(d)
 
-    print(sum(x.freq))
+    # print(sum(x.freq))
 
-    assert (sum(x.freq) == N)
+    assert (sum(x.getFrequencies()) == N)
     
 
 def test_normalApprox():
