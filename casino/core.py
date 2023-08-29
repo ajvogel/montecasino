@@ -356,6 +356,7 @@ class RandomVariable():
 
     @pyx.ccall
     @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)    
     def add(self, k:pyx.int, weight:pyx.double=1):
         k = pyx.cast(pyx.int, round(k))
 
