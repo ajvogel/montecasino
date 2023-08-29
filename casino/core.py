@@ -26,11 +26,11 @@ DEFAULTS = {
 
 @pyx.cclass                     
 class RandomVariable():
-    # _lower:   pyx.double[:]
-    # _upper:   pyx.double[:]
-    # _known:   pyx.double[:]
-    # _vague: pyx.double[:]
-    # _count:    pyx.double[:]
+    _lower: pyx.int[:]
+    _upper: pyx.int[:]
+    _known: pyx.double[:]
+    _vague: pyx.double[:]
+    _count: pyx.double[:]
 
     lower:   np.ndarray
     upper:   np.ndarray
@@ -50,17 +50,17 @@ class RandomVariable():
         if maxBins is None:
             maxBins = DEFAULTS['maxBins']
 
-        self.lower   = np.zeros(maxBins, dtype=np.intc)
-        self.upper   = np.zeros(maxBins, dtype=np.intc)
-        self.count    = np.zeros(maxBins, dtype=np.float64)
-        self.known   = np.zeros(maxBins, dtype=np.float64)
+        self.lower = np.zeros(maxBins, dtype=np.intc)
+        self.upper = np.zeros(maxBins, dtype=np.intc)
+        self.count = np.zeros(maxBins, dtype=np.float64)
+        self.known = np.zeros(maxBins, dtype=np.float64)
         self.vague = np.zeros(maxBins, dtype=np.float64)
 
-        # self._lower   = self.lower
-        # self._upper   = self.upper
-        # self._count    = self.count
-        # self._known   = self.known
-        # self._vague = self.vague
+        self._lower = self.lower
+        self._upper = self.upper
+        self._count = self.count
+        self._known = self.known
+        self._vague = self.vague
 
         self.nActive = 0
         self.maxBins = maxBins
