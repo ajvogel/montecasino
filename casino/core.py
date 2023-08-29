@@ -115,21 +115,54 @@ class RandomVariable():
 
             assert self.upper[i] == self.lower[i + 1]        
 
-    @pyx.cfunc
     def _sortBins(self):
+        """
+        We implement our own sorting algorithm here for two reasons. We need
+        to sort more than one array using the same indexes and reindexing
+        arrays create a copy in numpy. This breaks memoryviews in calling
+        functions who still refer to the original copy. Secondly, because
+        we know that the array will be partially sorted using insertion
+        sort will theoretically be faster.
+        """
         
-        idx: pyx.long[:] = np.argsort(self.lower)
+        # idx: pyx.long[:] = np.argsort(self.lower)
 
-        print(self.lower.ctypes.data)        
+        # self.lower   = self.lower[idx]
+        # self.upper   = self.upper[idx]
+        # self.known   = self.known[idx]
+        # self.unknown = self.unknown[idx]
+        # self.freq    = self.freq[idx]
 
-        # WARNING: This creates a copy of the array, which means that buffer views
-        #          point to an older version of the array and become out of sync.
-        self.lower   = self.lower[idx]
-        self.upper   = self.upper[idx]
-        self.known   = self.known[idx]
-        self.unknown = self.unknown[idx]
+        lowerKey: pyx.int
+        upperKey: pyx.int
+        knownKey: pyx.double
+        unknownKey: pyx.double
+        freqKey: pyx.double
+        i: pyx.int
+        j: pyx.int
 
-        print(self.lower.ctypes.data)
+        for i in range(1, self.nActive):
+            lowerKey   = self.lower[i]
+            upperKey   = self.upper[i]
+            knownKey   = self.known[i]
+            unknownKey = self.unknown[i]
+            freqKey    = self.freq[i]
+
+            j = i - 1
+
+            while j >= 0 and lowerKey < self.lower[j]:
+                self.lower[j+1]   = self.lower[j]
+                self.upper[j+1]   = self.upper[j]
+                self.known[j+1]   = self.known[j]
+                self.unknown[j+1] = self.unknown[j]
+                self.freq[j+1]    = self.freq[j]
+                j -= 1
+
+            self.lower[j+1]   = lowerKey
+            self.upper[j+1]   = upperKey
+            self.known[j+1]   = knownKey
+            self.unknown[j+1] = unknownKey
+            self.freq[j+1]    = freqKey
 
     @pyx.cfunc
     def _addPhaseOne(self, k:pyx.int, weight:pyx.double):

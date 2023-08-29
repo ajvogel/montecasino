@@ -45,7 +45,7 @@ def test_binConnectivity():
         x.add(d)
         if e >= 16:
             x._assertConnected()
-            assert False
+            # assert False        
 
     x._assertConnected()
 
