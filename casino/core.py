@@ -115,6 +115,8 @@ class RandomVariable():
 
             assert self.upper[i] == self.lower[i + 1]        
 
+    @pyx.cfunc
+    @pyx.boundscheck(False)
     def _sortBins(self):
         """
         We implement our own sorting algorithm here for two reasons. We need
@@ -124,15 +126,6 @@ class RandomVariable():
         we know that the array will be partially sorted using insertion
         sort will theoretically be faster.
         """
-        
-        # idx: pyx.long[:] = np.argsort(self.lower)
-
-        # self.lower   = self.lower[idx]
-        # self.upper   = self.upper[idx]
-        # self.known   = self.known[idx]
-        # self.vague = self.vague[idx]
-        # self.count    = self.count[idx]
-
         lowerKey: pyx.int
         upperKey: pyx.int
         knownKey: pyx.double
@@ -142,27 +135,27 @@ class RandomVariable():
         j: pyx.int
 
         for i in range(1, self.nActive):
-            lowerKey   = self.lower[i]
-            upperKey   = self.upper[i]
-            knownKey   = self.known[i]
-            vagueKey = self.vague[i]
-            countKey    = self.count[i]
+            lowerKey = self._lower[i]
+            upperKey = self._upper[i]
+            knownKey = self._known[i]
+            vagueKey = self._vague[i]
+            countKey = self._count[i]
 
             j = i - 1
 
-            while j >= 0 and lowerKey < self.lower[j]:
-                self.lower[j+1]   = self.lower[j]
-                self.upper[j+1]   = self.upper[j]
-                self.known[j+1]   = self.known[j]
-                self.vague[j+1] = self.vague[j]
-                self.count[j+1]    = self.count[j]
+            while j >= 0 and lowerKey < self._lower[j]:
+                self._lower[j+1] = self._lower[j]
+                self._upper[j+1] = self._upper[j]
+                self._known[j+1] = self._known[j]
+                self._vague[j+1] = self._vague[j]
+                self._count[j+1] = self._count[j]
                 j -= 1
 
-            self.lower[j+1]   = lowerKey
-            self.upper[j+1]   = upperKey
-            self.known[j+1]   = knownKey
-            self.vague[j+1] = vagueKey
-            self.count[j+1]    = countKey
+            self._lower[j+1] = lowerKey
+            self._upper[j+1] = upperKey
+            self._known[j+1] = knownKey
+            self._vague[j+1] = vagueKey
+            self._count[j+1] = countKey
 
     @pyx.cfunc
     def _addPhaseOne(self, k:pyx.int, weight:pyx.double):
