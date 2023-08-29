@@ -359,40 +359,16 @@ class RandomVariable():
     def add(self, k:pyx.int, weight:pyx.double=1):
         k = pyx.cast(pyx.int, round(k))
 
-        lower = self.lower
-        upper = self.upper
-        known = self.known      
-        vague = self.vague
-
-        # iMinUpper: pyx.int
-        # iMaxLower: pyx.int
-        # costUpperMin: pyx.double
-        # costLowerMax: pyx.double
-        
         if self.nActive < self.maxBins:
             self._addPhaseOne(k, weight=weight)
         else:
             self._addPhaseTwo(k, weight=weight)
 
-            # self._findMinMax()
-            # iMinUpper, costUpperMin, iMaxLower, costLowerMax = self._findMinMax() 
-            costLower = (upper - lower) * (known - vague)
-            costUpper = (upper - lower) * (known + vague)
-
-            adjCostUpper = costUpper[:-1] + costUpper[1:]
-
-            iMaxLower: pyx.int = np.argmax(costLower)
-            iMinUpper: pyx.int = np.argmin(adjCostUpper)
-
-            self.iMaxLower = iMaxLower
-            self.iMinUpper = iMinUpper
-
-            self.costLowerMax = costLower[self.iMaxLower]
-            self.costUpperMin = costUpper[self.iMinUpper]
+            self._findMinMax()
 
             overlap: pyx.int = (self.iMinUpper == self.iMaxLower) or (self.iMinUpper + 1 == self.iMaxLower)
 
-            wMax: pyx.int = upper[self.iMaxLower] - lower[self.iMaxLower]
+            wMax: pyx.int = self._upper[self.iMaxLower] - self._lower[self.iMaxLower]
 
             if (self.costLowerMax > 2*self.costUpperMin) and (not overlap) and (wMax > 1):
                 self._merge(self.iMinUpper)
