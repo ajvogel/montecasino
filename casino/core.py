@@ -117,6 +117,7 @@ class RandomVariable():
 
     @pyx.cfunc
     @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)    
     def _sortBins(self):
         """
         We implement our own sorting algorithm here for two reasons. We need
@@ -260,6 +261,7 @@ class RandomVariable():
 
     @pyx.cfunc
     @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)
     def _split(self, iMax: pyx.int, m1: pyx.int):
         # Splits iMax into two bins and stores the one in m1.
 
