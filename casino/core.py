@@ -193,29 +193,18 @@ class RandomVariable():
             self.nActive += 1
 
             if self.nActive == self.maxBins:
-                print('Inflating bins...')
-                print('Before Sorting:')
-                for i in range(self.nActive):
-                    print(self.lower[i],'<->',lower[i],'; ', end='')
-                
                 self._sortBins()
 
                 # During phase 1 bins are created "unconnected". We need to connect 
                 # them before we continue. This could break down when we don't have
                 # all the bins filled.
-                print()
-                print('After Sorting:')
-                for i in range(self.nActive):
-                    print(self.lower[i],'<->',lower[i],'; ', end='')
-
-                print()
 
                 for i in range(self.nActive - 1):
                     # self.upper[i] = self.lower[i + 1]
                     # print('->',self.upper[i], self.lower[i+1])
                     
                     upper[i] = lower[i + 1]
-                    print('->',upper[i], lower[i+1])
+
 
 
     @pyx.cfunc
