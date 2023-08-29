@@ -29,14 +29,14 @@ class RandomVariable():
     # _lower:   pyx.double[:]
     # _upper:   pyx.double[:]
     # _known:   pyx.double[:]
-    # _unknown: pyx.double[:]
-    # _freq:    pyx.double[:]
+    # _vague: pyx.double[:]
+    # _count:    pyx.double[:]
 
     lower:   np.ndarray
     upper:   np.ndarray
     known:   np.ndarray
-    unknown: np.ndarray
-    freq:    np.ndarray
+    vague: np.ndarray
+    count:    np.ndarray
 
     maxBins: pyx.int
     nActive: pyx.int
@@ -52,15 +52,15 @@ class RandomVariable():
 
         self.lower   = np.zeros(maxBins, dtype=np.intc)
         self.upper   = np.zeros(maxBins, dtype=np.intc)
-        self.freq    = np.zeros(maxBins, dtype=np.float64)
+        self.count    = np.zeros(maxBins, dtype=np.float64)
         self.known   = np.zeros(maxBins, dtype=np.float64)
-        self.unknown = np.zeros(maxBins, dtype=np.float64)
+        self.vague = np.zeros(maxBins, dtype=np.float64)
 
         # self._lower   = self.lower
         # self._upper   = self.upper
-        # self._freq    = self.freq
+        # self._count    = self.count
         # self._known   = self.known
-        # self._unknown = self.unknown
+        # self._vague = self.vague
 
         self.nActive = 0
         self.maxBins = maxBins
@@ -68,8 +68,8 @@ class RandomVariable():
     def activeBins(self):
         return self.nActive
 
-    def getFrequencies(self):
-        return self.freq
+    def getCountArray(self):
+        return self.count
 
     def lowerBound(self):
         return self.lower[0]
@@ -82,12 +82,12 @@ class RandomVariable():
         for i in range(self.nActive):
             if self.upper[i] <= k:
                 # K is higher than the current bin.
-                out += self.freq[i] / self.freq.sum()
+                out += self.count[i] / self.count.sum()
 
             elif self.lower[i] <= k < self.upper[i]:
                 #  k is within the bin.
                 w = self.upper[i] - self.lower[i]
-                p = self.freq[i] / (self.freq.sum() * w)
+                p = self.count[i] / (self.count.sum() * w)
                 out += p*(k - self.lower[i])
 
             else:
@@ -102,7 +102,7 @@ class RandomVariable():
             if self.lower[i] <= k < self.upper[i]:
                 # Each point in the bin has the same probability.
                 w = self.upper[i] - self.lower[i]
-                p = self.freq[i] / (self.freq.sum() * w)
+                p = self.count[i] / (self.count.sum() * w)
                 return p
         else:
             return -1
@@ -130,14 +130,14 @@ class RandomVariable():
         # self.lower   = self.lower[idx]
         # self.upper   = self.upper[idx]
         # self.known   = self.known[idx]
-        # self.unknown = self.unknown[idx]
-        # self.freq    = self.freq[idx]
+        # self.vague = self.vague[idx]
+        # self.count    = self.count[idx]
 
         lowerKey: pyx.int
         upperKey: pyx.int
         knownKey: pyx.double
-        unknownKey: pyx.double
-        freqKey: pyx.double
+        vagueKey: pyx.double
+        countKey: pyx.double
         i: pyx.int
         j: pyx.int
 
@@ -145,8 +145,8 @@ class RandomVariable():
             lowerKey   = self.lower[i]
             upperKey   = self.upper[i]
             knownKey   = self.known[i]
-            unknownKey = self.unknown[i]
-            freqKey    = self.freq[i]
+            vagueKey = self.vague[i]
+            countKey    = self.count[i]
 
             j = i - 1
 
@@ -154,15 +154,15 @@ class RandomVariable():
                 self.lower[j+1]   = self.lower[j]
                 self.upper[j+1]   = self.upper[j]
                 self.known[j+1]   = self.known[j]
-                self.unknown[j+1] = self.unknown[j]
-                self.freq[j+1]    = self.freq[j]
+                self.vague[j+1] = self.vague[j]
+                self.count[j+1]    = self.count[j]
                 j -= 1
 
             self.lower[j+1]   = lowerKey
             self.upper[j+1]   = upperKey
             self.known[j+1]   = knownKey
-            self.unknown[j+1] = unknownKey
-            self.freq[j+1]    = freqKey
+            self.vague[j+1] = vagueKey
+            self.count[j+1]    = countKey
 
     @pyx.cfunc
     def _addPhaseOne(self, k:pyx.int, weight:pyx.double):
@@ -172,13 +172,13 @@ class RandomVariable():
         lower:   pyx.int[:] = self.lower
         upper:   pyx.int[:] = self.upper
         known:   pyx.double[:] = self.known
-        #unknown: pyx.double[:] = self.unknown
-        freq: pyx.double[:] = self.freq #
+        #vague: pyx.double[:] = self.vague
+        count: pyx.double[:] = self.count #
 
         
         i: pyx.int = self._findBin(k)
         if i >= 0:
-            freq[i]  += weight
+            count[i]  += weight
             known[i] += weight
         else:
             i = self.nActive
@@ -187,7 +187,7 @@ class RandomVariable():
             # self.upper[i] = k + 1
             lower[i] = k
             upper[i] = k + 1            
-            freq[i]  = weight
+            count[i]  = weight
             known[i] = weight
 
             self.nActive += 1
@@ -227,24 +227,24 @@ class RandomVariable():
         """
         lower:   pyx.int[:] = self.lower
         upper:   pyx.int[:] = self.upper
-        freq:    pyx.double[:] = self.freq
+        count:    pyx.double[:] = self.count
         known:   pyx.double[:] = self.known
         
         if k < lower[0]:
             # We need to stretch the lower bin to accomodate the new point.
             lower[0]  = k
-            freq[0]  += weight
+            count[0]  += weight
             known[0] += weight
 
         elif k >= upper[-1]:
             # We need to stretch the upper bin to accomodate the new point.
             upper[-1]  = k + 1
-            freq[-1]  += weight
+            count[-1]  += weight
             known[-1] += weight
         else:
             i: pyx.int = self._findBin(k)
             
-            freq[i]  += weight
+            count[i]  += weight
             known[i] += weight  
 
         
@@ -256,14 +256,14 @@ class RandomVariable():
 
         lower: pyx.int[:]   = self.lower
         upper: pyx.int[:]   = self.upper
-        freq: pyx.double[:] = self.freq
+        count: pyx.double[:] = self.count
         known: pyx.double[:] = self.known
-        unknown: pyx.double[:] = self.unknown        
+        vague: pyx.double[:] = self.vague        
 
         upper[iMin] = upper[iMin + 1]
-        freq[iMin]    = freq[iMin]    + freq[iMin + 1]
+        count[iMin]    = count[iMin]    + count[iMin + 1]
         known[iMin]   = known[iMin]   + known[iMin + 1]
-        unknown[iMin] = unknown[iMin] + unknown[iMin + 1]
+        vague[iMin] = vague[iMin] + vague[iMin + 1]
 
     @pyx.cfunc
     @pyx.boundscheck(False)
@@ -272,33 +272,33 @@ class RandomVariable():
 
         lower: pyx.int[:]   = self.lower
         upper: pyx.int[:]   = self.upper
-        freq: pyx.double[:] = self.freq
+        count: pyx.double[:] = self.count
         known: pyx.double[:] = self.known
-        unknown: pyx.double[:] = self.unknown
+        vague: pyx.double[:] = self.vague
         
         l:pyx.int = lower[iMax]
         u:pyx.int = upper[iMax]
 
         w: pyx.int = u - l
 
-        fa: pyx.double = freq[iMax]
+        fa: pyx.double = count[iMax]
         fk: pyx.double = known[iMax]
-        fu: pyx.double = unknown[iMax]
+        fu: pyx.double = vague[iMax]
 
         m2: pyx.int = iMax
 
         lower[m1] = l
         upper[m1] = l + pyx.cast(pyx.int, round(w/2))
         known[m1] = 0
-        unknown[m1] = fk + fu
-        freq[m1] = fa / 2
+        vague[m1] = fk + fu
+        count[m1] = fa / 2
 
 
         lower[m2] = l + pyx.cast(pyx.int, round(w/2))
         upper[m2] = u
         known[m2] = 0
-        unknown[m2] = fk + fu        
-        freq[m2] = fa / 2
+        vague[m2] = fk + fu        
+        count[m2] = fa / 2
 
     @pyx.cfunc
     @pyx.boundscheck(False)
@@ -306,8 +306,8 @@ class RandomVariable():
         """
         Performs the following operations but does so in a single pass.
         
-        costLower = (upper - lower) * (known - unknown)
-        costUpper = (upper - lower) * (known + unknown)
+        costLower = (upper - lower) * (known - vague)
+        costUpper = (upper - lower) * (known + vague)
 
         adjCostUpper = costUpper[:-1] + costUpper[1:]
 
@@ -318,7 +318,7 @@ class RandomVariable():
         lower: pyx.int[:]      = self.lower
         upper: pyx.int[:]      = self.upper
         known: pyx.double[:]   = self.known
-        unknown: pyx.double[:] = self.unknown
+        vague: pyx.double[:] = self.vague
 
         iMinUpper: pyx.int = -1
         iMaxLower: pyx.int = -1
@@ -331,7 +331,7 @@ class RandomVariable():
 
 
         for k in range(self.nActive):
-            costLower: pyx.double = (upper[k] - lower[k]) * (known[k] - unknown[k])
+            costLower: pyx.double = (upper[k] - lower[k]) * (known[k] - vague[k])
 
             if costLower > costLowerMax:
                 iMaxLower = k
@@ -342,8 +342,8 @@ class RandomVariable():
                 # We use -2 here because it is zero based indexing and we want to
                 # stop one before the last value.
                 adjCostUpper: pyx.double
-                adjCostUpper  = (upper[k] - lower[k]) * (known[k] + unknown[k])
-                adjCostUpper += (upper[k+1] - lower[k+1]) * (known[k+1] + unknown[k+1])
+                adjCostUpper  = (upper[k] - lower[k]) * (known[k] + vague[k])
+                adjCostUpper += (upper[k+1] - lower[k+1]) * (known[k+1] + vague[k+1])
 
                 if adjCostUpper < costUpperMin:
                     iMinUpper = k
@@ -367,7 +367,7 @@ class RandomVariable():
         lower = self.lower
         upper = self.upper
         known = self.known      
-        unknown = self.unknown
+        vague = self.vague
 
         # iMinUpper: pyx.int
         # iMaxLower: pyx.int
@@ -381,8 +381,8 @@ class RandomVariable():
 
             # self._findMinMax()
             # iMinUpper, costUpperMin, iMaxLower, costLowerMax = self._findMinMax() 
-            costLower = (upper - lower) * (known - unknown)
-            costUpper = (upper - lower) * (known + unknown)
+            costLower = (upper - lower) * (known - vague)
+            costUpper = (upper - lower) * (known + vague)
 
             adjCostUpper = costUpper[:-1] + costUpper[1:]
 

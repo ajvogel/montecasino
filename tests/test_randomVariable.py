@@ -61,7 +61,7 @@ def test_freqAddsUp():
 
     # print(sum(x.freq))
 
-    assert (sum(x.getFrequencies()) == N)
+    assert (sum(x.getCountArray()) == N)
     
 
 def test_normalApprox():
