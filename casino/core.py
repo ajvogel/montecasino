@@ -8,7 +8,7 @@ if pyx.compiled:
 else:
     print('Running in Python')
 
-LOWER = 0.001
+LOWER = 0.000001
 UPPER = 1 - LOWER
 
 __ADD__:pyx.int = 0
@@ -19,7 +19,7 @@ __SUB__:pyx.int = 4
 __POW__:pyx.int = 5
 
 DEFAULTS = {
-    'maxBins':16
+    'maxBins':32
 }
 
 
@@ -70,6 +70,12 @@ class RandomVariable():
 
     def getCountArray(self):
         return self.count
+
+    def getLowerArray(self):
+        return self.lower
+
+    def getUpperArray(self):
+        return self.upper
 
     def lowerBound(self):
         return self.lower[0]
@@ -438,11 +444,13 @@ class RandomVariable():
 
         s: pyx.int
         o: pyx.int
-
+        print('==================================================')
         for s in range(nS):
             for o in range(nO):
                 pF: pyx.double = pS[s] * pO[o]
                 kF: pyx.int = self._applyFunc(kS[s], kO[o], func)
+
+                print(f'P[{kS[s]} + {kO[o]} = {kF}] => {pF} ')
 
                 if pF > 0:
                     final.add(kF, pF)
