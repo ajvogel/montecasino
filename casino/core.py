@@ -1,7 +1,8 @@
 import numpy as np
 import cython as pyx
 
-from cython.cimports.libc.math import round as round
+if pyx.compiled:
+    from cython.cimports.libc.math import round as round
 
 if pyx.compiled:
     print('Running through Cython!')
@@ -351,6 +352,9 @@ class RandomVariable():
                     costUpperMin = adjCostUpper
 
 
+        print(f'iMinUpper = {iMinUpper}, iMaxLower = {iMaxLower}')
+
+                    
         self.iMinUpper = iMinUpper
         self.iMaxLower = iMaxLower
         self.costLowerMax = costLowerMax
@@ -444,13 +448,13 @@ class RandomVariable():
 
         s: pyx.int
         o: pyx.int
-        print('==================================================')
+        # print('==================================================')
         for s in range(nS):
             for o in range(nO):
                 pF: pyx.double = pS[s] * pO[o]
                 kF: pyx.int = self._applyFunc(kS[s], kO[o], func)
 
-                print(f'P[{kS[s]} + {kO[o]} = {kF}] => {pF} ')
+                # print(f'P[{kS[s]} + {kO[o]} = {kF}] => {pF} ')
 
                 if pF > 0:
                     final.add(kF, pF)
