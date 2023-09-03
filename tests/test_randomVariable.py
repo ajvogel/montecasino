@@ -136,12 +136,12 @@ def test_sumDices():
         print(f'{k: >2} = {out2.pmf(k):1.9f} <-> {pp:1.9f} ==> {err:.15e}')
         
 
-        assert (out2.pmf(k) - pp) < 1e-4
+        assert (out2.pmf(k) - pp) < 1e-7
 
     cnts = out2.getCountArray()
     lwr  = out2.getLowerArray()
     upr  = out2.getUpperArray()
-
+    
     for l, u, c in zip(lwr, upr, cnts):
         print(f'[{l: >8d}; {u: >8d}): {u - l:>5d}: {c/cnts.sum():e}')        
 
