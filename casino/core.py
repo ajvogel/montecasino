@@ -376,18 +376,18 @@ class RandomVariable():
         self.costLowerMax = costLowerMax
         self.costUpperMin = costUpperMin
 
-
-    def _frequencyCount(self, data, counts):
-        n = len(self.lower)
-        f = np.zeros(n)
-
-
-        nD = len(data)
-
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)      
+    def _frequencyCount(self, data: pyx.int[:], counts: pyx.double[:]):
+        f: pyx.double[:] = np.zeros(self.maxBins)
+        nD: pyx.int = len(data)
+        d: pyx.int
+        i: pyx.int
 
         for d in range(nD):
             for i in range(self.nActive):
-                if self.lower[i] <= data[d] < self.upper[i]:
+                if self._lower[i] <= data[d] < self._upper[i]:
                     f[i] += counts[d]
                     break
             else:
@@ -395,18 +395,6 @@ class RandomVariable():
 
         return f
         
-
-        # for j, di in enumerate(data):
-        #     for i in range(n):
-        #         if self.lower[i] <= di < self.upper[i]:
-        #             f[i] += counts[j]
-        #             break
-        #         else:
-        #             # This should never happen??
-        #             f[-1] += counts[j]
-        # return f
-        
-
     def fit(self, data, counts):
         # TODO: Make this work as well.
 
@@ -600,7 +588,7 @@ class RandomVariable():
         o: pyx.int
         # print('==================================================')
 
-        data   = np.zeros(nS*nO)
+        data   = np.zeros(nS*nO, dtype=np.intc)
         counts = np.zeros(nS*nO)
         i = 0
 
