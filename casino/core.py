@@ -443,66 +443,34 @@ class RandomVariable():
             for di, ci in zip(data, counts):
                 self.add(di, ci)
 
-
-    def _presetBins(self, minK, maxK):
+    @pyx.cfunc
+    def _presetBins(self, minK: pyx.int, maxK: pyx.int):
         """
         This presets some of the bins so that we have a nice spreadout of bins for convolution,
         otherwise the bins are all clustered around the left point.
         """
-        nK = maxK - minK + 1
+        nK: pyx.int = maxK - minK + 1
         if nK > self.maxBins:
-            # Only do something if the number of points will exceed the number of bins that we are going to use.
-            bins = np.zeros(self.maxBins + 1)
+            # Only do something if the number of points will exceed the number of
+            # bins that we are going to use.
+            bins: pyx.int[:] = np.zeros(self.maxBins + 1, dtype=np.intc)
             bins[0] = minK
-            
+
+            stp: pyx.int
             for stp in range(self.maxBins):
-                rK_remain = maxK - bins[stp]
-                nB_remain = self.maxBins - stp
+                rK_remain: pyx.int = maxK - bins[stp]
+                nB_remain: pyx.int = self.maxBins - stp
+                dK_remain: pyx.int = int(np.ceil(rK_remain / nB_remain))
 
-                dK_remain = int(np.ceil(rK_remain / nB_remain))
-
-                # print(f"dK = {rK_remain / nB_remain:.5f} | {dK_remain}") 
                 bins[stp+1] = bins[stp] + dK_remain
-
-
-            # print("binList = ",binList) 
 
             bins[-1] = bins[-1] + 1
 
-            # print("maxK  = ", maxK)
-            # print("minK = ", minK)
-            # print("self.maxBins = ",self.maxBins)
-            # dK = int(np.floor((maxK - minK) / self.maxBins))
-            # dKCeil = int(np.ceil((maxK - minK) / self.maxBins))
-
-            # print("dK_float = ",(maxK - minK) / self.maxBins)
-
-            # nBins = int(np.ceil((maxK - minK) / dKCeil))
-
-            # maxKAdj = minK + dK*nBins
-            # print("maxKAdj = ", maxKAdj)
-
-            # print("nBins = ",nBins)
-            
-            # print("dK = ", dK)
-
-
-
-            
-            # bins = np.linspace(minK, maxKAdj, nBins+1)
-
-            # shift = int((maxK - bins[-1]) // 2)
-            # print("shift = ", shift)
-
-            # bins = bins + shift
-            # print("bins = ", bins)
-            # print("len(bins) = ", len(bins))
             self.setLower(bins[:-1].copy())
             self.setUpper(bins[1:].copy())
 
-            nBins = bins[:-1].shape[0]
-            self.nActive = nBins
-            # assert False
+            # nBins = bins[:-1].shape[0]
+            self.nActive = bins[:-1].shape[0]
 
         
     @pyx.ccall
