@@ -25,6 +25,8 @@ DEFAULTS = {
 
 
 
+
+
 @pyx.cclass                     
 class RandomVariable():
     _lower: pyx.int[:]
@@ -78,6 +80,22 @@ class RandomVariable():
     def getUpperArray(self):
         return self.upper
 
+    def setLower(self, lower):
+        for i in range(lower.shape[0]):
+            self.lower[i] = lower[i]
+
+    def setUpper(self, upper):
+        for i in range(upper.shape[0]):
+            self.upper[i] = upper[i]
+
+    def setCount(self, count):
+        for i in range(count.shape[0]):
+            self.count[i] = count[i]
+
+    def setKnown(self, known):
+        for i in range(known.shape[0]):
+            self.known[i] = known[i]
+
     def lowerBound(self):
         return self.lower[0]
 
@@ -112,7 +130,7 @@ class RandomVariable():
                 p = self.count[i] / (self.count.sum() * w)
                 return p
         else:
-            return -1
+            return 0
 
     def _assertConnected(self):
         for i in range(self.nActive):
@@ -164,6 +182,8 @@ class RandomVariable():
             self._known[j+1] = knownKey
             self._vague[j+1] = vagueKey
             self._count[j+1] = countKey
+
+
 
     @pyx.cfunc
     def _addPhaseOne(self, k:pyx.int, weight:pyx.double):
@@ -262,8 +282,8 @@ class RandomVariable():
         vague: pyx.double[:] = self.vague        
 
         upper[iMin] = upper[iMin + 1]
-        count[iMin]    = count[iMin]    + count[iMin + 1]
-        known[iMin]   = known[iMin]   + known[iMin + 1]
+        count[iMin] = count[iMin]    + count[iMin + 1]
+        known[iMin] = known[iMin]   + known[iMin + 1]
         vague[iMin] = vague[iMin] + vague[iMin + 1]
 
     @pyx.cfunc
@@ -351,19 +371,149 @@ class RandomVariable():
                     iMinUpper = k
                     costUpperMin = adjCostUpper
 
-
-        print(f'iMinUpper = {iMinUpper}, iMaxLower = {iMaxLower}')
-
-                    
-        self.iMinUpper = iMinUpper
-        self.iMaxLower = iMaxLower
+        self.iMinUpper    = iMinUpper
+        self.iMaxLower    = iMaxLower
         self.costLowerMax = costLowerMax
         self.costUpperMin = costUpperMin
 
 
+    def _frequencyCount(self, data, counts):
+        n = len(self.lower)
+        f = np.zeros(n)
 
-                    
 
+        nD = len(data)
+
+
+        for d in range(nD):
+            for i in range(self.nActive):
+                if self.lower[i] <= data[d] < self.upper[i]:
+                    f[i] += counts[d]
+                    break
+            else:
+                f[-1] += counts[d]
+
+        return f
+        
+
+        # for j, di in enumerate(data):
+        #     for i in range(n):
+        #         if self.lower[i] <= di < self.upper[i]:
+        #             f[i] += counts[j]
+        #             break
+        #         else:
+        #             # This should never happen??
+        #             f[-1] += counts[j]
+        # return f
+        
+
+    def fit(self, data, counts):
+        # TODO: Make this work as well.
+
+        idx = np.argsort(data)
+        data = data[idx]
+        counts = counts[idx]
+
+        minD = data[ 0]
+        maxD = data[-1]
+
+        if maxD - minD > self.maxBins:
+            self._presetBins(minD, maxD)
+
+            # bins = np.linspace(minD, maxD, self.maxBins + 1)
+
+            # self.setLower(bins[:-1].copy())
+            # self.setUpper(bins[1:].copy())
+
+            ii = 0
+            while True:
+
+                f = self._frequencyCount(data, counts)
+
+                cost = (self.upper - self.lower) * f
+                cost_n = cost[:-1] + cost[1:]
+
+                iMax = np.argmax(cost)
+                iMin = np.argmin(cost_n)
+
+                if cost[iMax] <= 2*cost_n[iMin]:
+                    break
+
+                self._merge(iMin)
+                self._split(iMax, iMin + 1)
+                self._sortBins()
+                ii += 1
+                if ii >= 100:
+                    break
+
+            self.setCount(f.copy())
+            self.setKnown(f.copy())
+        else:
+            for di, ci in zip(data, counts):
+                self.add(di, ci)
+
+
+    def _presetBins(self, minK, maxK):
+        """
+        This presets some of the bins so that we have a nice spreadout of bins for convolution,
+        otherwise the bins are all clustered around the left point.
+        """
+        nK = maxK - minK + 1
+        if nK > self.maxBins:
+            # Only do something if the number of points will exceed the number of bins that we are going to use.
+            bins = np.zeros(self.maxBins + 1)
+            bins[0] = minK
+            
+            for stp in range(self.maxBins):
+                rK_remain = maxK - bins[stp]
+                nB_remain = self.maxBins - stp
+
+                dK_remain = int(np.ceil(rK_remain / nB_remain))
+
+                # print(f"dK = {rK_remain / nB_remain:.5f} | {dK_remain}") 
+                bins[stp+1] = bins[stp] + dK_remain
+
+
+            # print("binList = ",binList) 
+
+            bins[-1] = bins[-1] + 1
+
+            # print("maxK  = ", maxK)
+            # print("minK = ", minK)
+            # print("self.maxBins = ",self.maxBins)
+            # dK = int(np.floor((maxK - minK) / self.maxBins))
+            # dKCeil = int(np.ceil((maxK - minK) / self.maxBins))
+
+            # print("dK_float = ",(maxK - minK) / self.maxBins)
+
+            # nBins = int(np.ceil((maxK - minK) / dKCeil))
+
+            # maxKAdj = minK + dK*nBins
+            # print("maxKAdj = ", maxKAdj)
+
+            # print("nBins = ",nBins)
+            
+            # print("dK = ", dK)
+
+
+
+            
+            # bins = np.linspace(minK, maxKAdj, nBins+1)
+
+            # shift = int((maxK - bins[-1]) // 2)
+            # print("shift = ", shift)
+
+            # bins = bins + shift
+            # print("bins = ", bins)
+            # print("len(bins) = ", len(bins))
+            self.setLower(bins[:-1].copy())
+            self.setUpper(bins[1:].copy())
+
+            nBins = bins[:-1].shape[0]
+            self.nActive = nBins
+            # assert False
+
+        
     @pyx.ccall
     @pyx.boundscheck(False)
     @pyx.initializedcheck(False)    
@@ -449,6 +599,17 @@ class RandomVariable():
         s: pyx.int
         o: pyx.int
         # print('==================================================')
+
+        data   = np.zeros(nS*nO)
+        counts = np.zeros(nS*nO)
+        i = 0
+
+        minK = self._applyFunc(kS[0], kO[0], func)
+        maxK = self._applyFunc(kS[-1], kO[-1], func)
+        
+        final._presetBins(minK,maxK)
+
+        
         for s in range(nS):
             for o in range(nO):
                 pF: pyx.double = pS[s] * pO[o]
@@ -456,9 +617,17 @@ class RandomVariable():
 
                 # print(f'P[{kS[s]} + {kO[o]} = {kF}] => {pF} ')
 
-                if pF > 0:
-                    final.add(kF, pF)
+                data[i]   = kF
+                counts[i] = pF
+                i += 1
 
+                if pF > 0:
+                    pass
+                    # final.add(kF, pF) 
+
+        final.fit(data, counts)
+        # print(final.lower)
+        # print(final.upper)
         return final
 
     def __add__(self, other):
