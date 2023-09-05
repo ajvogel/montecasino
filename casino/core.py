@@ -380,20 +380,23 @@ class RandomVariable():
     @pyx.boundscheck(False)
     @pyx.initializedcheck(False)      
     def _frequencyCount(self, data: pyx.int[:], counts: pyx.double[:]):
-        f: pyx.double[:] = np.zeros(self.maxBins)
+        # f: pyx.double[:] = np.zeros(self.maxBins) 
         nD: pyx.int = len(data)
         d: pyx.int
         i: pyx.int
 
+        for i in range(self.nActive):
+            self._count[i] = 0
+
         for d in range(nD):
             for i in range(self.nActive):
                 if self._lower[i] <= data[d] < self._upper[i]:
-                    f[i] += counts[d]
+                    self._count[i] += counts[d]
                     break
             else:
-                f[-1] += counts[d]
+                self._count[-1] += counts[d]
 
-        return f
+        return self._count
         
     def fit(self, data, counts):
         # TODO: Make this work as well.
@@ -416,9 +419,9 @@ class RandomVariable():
             ii = 0
             while True:
 
-                f = self._frequencyCount(data, counts)
+                self._frequencyCount(data, counts)
 
-                cost = (self.upper - self.lower) * f
+                cost = (self.upper - self.lower) * self.count
                 cost_n = cost[:-1] + cost[1:]
 
                 iMax = np.argmax(cost)
@@ -434,8 +437,8 @@ class RandomVariable():
                 if ii >= 100:
                     break
 
-            self.setCount(f.copy())
-            self.setKnown(f.copy())
+            # self.setCount(f.copy()) 
+            self.setKnown(self.count)
         else:
             for di, ci in zip(data, counts):
                 self.add(di, ci)
