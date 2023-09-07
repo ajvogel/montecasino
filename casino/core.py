@@ -397,12 +397,11 @@ class RandomVariable():
                 self._count[-1] += counts[d]
 
         return self._count
-        
-    def fit(self, data, counts):
-        # TODO: Make this work as well.
 
-        idx = np.argsort(data)
-        data = data[idx]
+    @pyx.ccall
+    def fit(self, data, counts):
+        idx    = np.argsort(data)
+        data   = data[idx]
         counts = counts[idx]
 
         minD = data[ 0]
@@ -411,14 +410,8 @@ class RandomVariable():
         if maxD - minD > self.maxBins:
             self._presetBins(minD, maxD)
 
-            # bins = np.linspace(minD, maxD, self.maxBins + 1)
-
-            # self.setLower(bins[:-1].copy())
-            # self.setUpper(bins[1:].copy())
-
             ii = 0
             while True:
-
                 self._frequencyCount(data, counts)
 
                 cost = (self.upper - self.lower) * self.count
@@ -437,7 +430,6 @@ class RandomVariable():
                 if ii >= 100:
                     break
 
-            # self.setCount(f.copy()) 
             self.setKnown(self.count)
         else:
             for di, ci in zip(data, counts):
