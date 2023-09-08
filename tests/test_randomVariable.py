@@ -14,7 +14,13 @@ def test_addTwoUniform():
     assert abs(x.pmf(9) - 0.1111) <= 1e-4
     assert abs(x.pmf(10) - 0.0833) <= 1e-4    
     assert abs(x.pmf(11) - 0.0555) <= 1e-4
-    assert abs(x.pmf(12) - 0.0277) <= 1e-4    
+    assert abs(x.pmf(12) - 0.0277) <= 1e-4
+
+
+def test_lowerBound_and_upperBound():
+    x = cs.Uniform(1,6) + cs.Uniform(1,6)
+    assert x.lowerBound() == 2
+    assert x.upperBound() == 12
 
 def test_nActiveCount():
     """Tests that the frequency column adds up to the number of points added"""
