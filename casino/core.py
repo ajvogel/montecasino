@@ -92,6 +92,7 @@ class RandomVariable():
         for i in range(count.shape[0]):
             self.count[i] = count[i]
 
+    @pyx.ccall
     def setKnown(self, known):
         for i in range(known.shape[0]):
             self.known[i] = known[i]
@@ -416,21 +417,21 @@ class RandomVariable():
         data   = data[idx]
         counts = counts[idx]
 
-        minD = data[ 0]
-        maxD = data[-1]
+        minD: pyx.int = data[ 0]
+        maxD: pyx.int = data[-1]
 
         if maxD - minD > self.maxBins:
             self._presetBins(minD, maxD)
 
-            ii = 0
+            ii:pyx.int = 0
             while True:
                 self._frequencyCount(data, counts)
 
                 cost = (self.upper - self.lower) * self.count
                 cost_n = cost[:-1] + cost[1:]
 
-                iMax = np.argmax(cost)
-                iMin = np.argmin(cost_n)
+                iMax: pyx.int = np.argmax(cost)
+                iMin: pyx.int = np.argmin(cost_n)
 
                 if cost[iMax] <= 2*cost_n[iMin]:
                     break
@@ -443,6 +444,7 @@ class RandomVariable():
                     break
 
             self.setKnown(self.count)
+            self.nActive = self.maxBins
         else:
             for di, ci in zip(data, counts):
                 self.add(di, ci)
