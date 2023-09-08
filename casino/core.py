@@ -96,11 +96,14 @@ class RandomVariable():
         for i in range(known.shape[0]):
             self.known[i] = known[i]
 
-    def lowerBound(self):
-        return self.lower[0]
+    @pyx.ccall
+    def lowerBound(self) -> pyx.int:
+        return self._lower[0]
 
-    def upperBound(self):
-        return self.upper[-1]
+    @pyx.ccall
+    def upperBound(self) -> pyx.int:
+        # Because the upper bound is not inclusive we need to subtract one.
+        return self._upper[self.nActive - 1] - 1
 
     def cdf(self, k):
         out = 0
@@ -121,13 +124,22 @@ class RandomVariable():
 
         return out
 
+    @pyx.ccall
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)        
+    def pmf(self, k: pyx.int) -> pyx.double:
+        i: pyx.int
+        countSum: pyx.double = 0
 
-    def pmf(self, k):
-        for i in range(len(self.upper)):
-            if self.lower[i] <= k < self.upper[i]:
+        for i in range(self.nActive):
+            countSum += self._count[i]
+        
+        
+        for i in range(self.nActive):
+            if self._lower[i] <= k < self._upper[i]:
                 # Each point in the bin has the same probability.
-                w = self.upper[i] - self.lower[i]
-                p = self.count[i] / (self.count.sum() * w)
+                w: pyx.int    = self._upper[i] - self._lower[i]
+                p: pyx.double = self._count[i] / (countSum * w)
                 return p
         else:
             return 0
@@ -488,21 +500,41 @@ class RandomVariable():
                 self._sortBins()
 
 
+    @pyx.ccall
+    # @pyx.boundscheck(False)
+    # @pyx.initializedcheck(False)                
     def toArray(self):
-        outW = []
-        outK = []
 
-        som = 0
-        k = self.lowerBound()
-        while som < UPPER:
-            pk = self.pmf(k)
-            som += pk
-            outW.append(pk)
-            outK.append(k)            
-            k   += 1
+        lowerK: pyx.int = self.lowerBound()
+        upperK: pyx.int = self.upperBound()
+
+        nK: pyx.int = upperK - lowerK + 1
+
+        # print(f'{upperK} - {lowerK} = {nK}')
+        
+        outW = np.zeros(nK)
+        outK = np.zeros(nK, dtype=np.intc)
+
+        _outW: pyx.double[:] = outW
+        _outK: pyx.int[:]    = outK
+
+        k: pyx.int
+
+        for k in range(lowerK, upperK+1):
+            _outK[k - lowerK] = k
+            _outW[k - lowerK] = self.pmf(k)
+
+        # som = 0
+        # k = self.lowerBound()
+        # while som < UPPER:
+        #     pk = self.pmf(k)
+        #     som += pk
+        #     outW.append(pk)
+        #     outK.append(k)            
+        #     k   += 1
 
 
-        return np.array(outK), np.array(outW)
+        return outK, outW
 
     
     @pyx.cfunc
@@ -538,10 +570,10 @@ class RandomVariable():
         _kS, _pS = self.toArray()
         _kO, _pO = other.toArray()
 
-        kS: pyx.long[:] = _kS
+        kS: pyx.int[:] = _kS
         pS: pyx.double[:] = _pS
 
-        kO: pyx.long[:] = _kO
+        kO: pyx.int[:] = _kO
         pO: pyx.double[:] = _pO
 
         nS: pyx.int = len(kS)
@@ -553,7 +585,9 @@ class RandomVariable():
 
         data   = np.zeros(nS*nO, dtype=np.intc)
         counts = np.zeros(nS*nO)
-        i = 0
+        _data: pyx.int[:]      = data
+        _counts: pyx.double[:] = counts
+        i: pyx.int = 0
 
         minK = self._applyFunc(kS[0], kO[0], func)
         maxK = self._applyFunc(kS[-1], kO[-1], func)
@@ -568,8 +602,8 @@ class RandomVariable():
 
                 # print(f'P[{kS[s]} + {kO[o]} = {kF}] => {pF} ')
 
-                data[i]   = kF
-                counts[i] = pF
+                _data[i]   = kF
+                _counts[i] = pF
                 i += 1
 
                 if pF > 0:
