@@ -20,7 +20,9 @@ __SUB__:pyx.int = 4
 __POW__:pyx.int = 5
 
 DEFAULTS = {
-    'maxBins':32
+    'maxBins':32,
+    'compress':True,
+    'tolerance':1e-3
 }
 
 
@@ -105,6 +107,17 @@ class RandomVariable():
     def upperBound(self) -> pyx.int:
         # Because the upper bound is not inclusive we need to subtract one.
         return self._upper[self.nActive - 1] - 1
+
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)     
+    def _countSum(self) -> pyx.double:
+        i: pyx.int
+        som: pyx.double = 0
+        for i in range(self.nActive):
+            som += self._count[i]
+
+        return som
 
     def cdf(self, k):
         out = 0
@@ -613,9 +626,40 @@ class RandomVariable():
                     # final.add(kF, pF) 
 
         final.fit(data, counts)
+        final.compress()
         # print(final.lower)
         # print(final.upper)
         return final
+
+    @pyx.ccall
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)     
+    def compress(self):
+        """
+        Peforms lossy compression on the RandomVariable histogram by compressing
+        the first and last bin.
+        """
+        if self._count[0]/self._countSum() <= 1e-3:
+            w: pyx.int    = self._upper[0] - self._lower[0]
+            f: pyx.double = self._count[0]
+            k: pyx.double = self._known[0]
+
+            self._lower[0] = self._upper[0] - 1
+            self._count[0] = f / w
+            self._known[0] = k / w
+
+        if self._count[-1]/self._countSum() <= 1e-3:
+            w: pyx.int    = self._upper[-1] - self._lower[-1]
+            f: pyx.double = self._count[-1]
+            k: pyx.double = self._known[-1]
+
+            self._lower[-1] = self._upper[-1] - 1
+            self._count[-1] = f / w
+            self._known[-1] = k / w            
+            
+            
+            
+        
 
     def __add__(self, other):
         return self.__conv__(other, __ADD__)
