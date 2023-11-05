@@ -10,7 +10,7 @@ if pyx.compiled:
 else:
     print('Running in Python')
 
-LOWER = 0.000001
+LOWER = (1 - 0.9999) / 2
 UPPER = 1 - LOWER
 
 __ADD__:pyx.int = 0
