@@ -1,4 +1,5 @@
 from .distributions import *
+from . import nbinom
 from .core import *
 import builtins
 

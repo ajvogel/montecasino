@@ -1,5 +1,7 @@
 import numpy as np
-from .core import RandomVariable
+import scipy as sp
+from .core import RandomVariable, UPPER, LOWER
+import statsmodels.api as sm
 
 
 #---------------------------------------------------------------------------------------------------
@@ -59,9 +61,85 @@ class Triangular(RandomVariable):
     def upperBound(self):
         return self.right
 
+
+
 #---------------------------------------------------------------------------------------------------
 
+class NegativeBinomial(RandomVariable):
+    def __init__(self, mean=None, dispersion=None, n=None, p=None):
+        if mean is not None:
+            var = mean + dispersion*mean**2
+            p = mean / var
+            n = mean**2 / (var - mean)            
 
+        self.p = p
+        self.n = n
+
+    def pmf(self, k):
+        return sp.stats.nbinom.pmf(k, self.n, self.p)
+
+    @classmethod
+    def fit(Cls, data):
+        mu  = data.mean()
+        var = data.var()
+
+        alpha = (var - mu) / mu**2
+
+        X = np.ones_like(data)
+
+        res = sm.NegativeBinomial(data, X).fit(
+            start_params=[
+                np.log(mu),
+                alpha
+            ]
+        )
+
+        mean = np.exp(res.params[0])
+        var  = mean + res.params[1]*mean**2
+        
+        p = mean / var
+        n = mean**2 / (var - mean)
+
+        return Cls(n=n, p=p)
+
+    def lowerBound(self):
+        return 0
+
+    def upperBound(self):
+        som = 0
+        k = self.lowerBound()
+        while som < UPPER:
+            pk = self.pmf(k)
+            som += pk
+            k   += 1
+
+        return k
+
+        
+    def toArray(self):
+        outW = []
+        outK = []
+        som = 0
+        k = self.lowerBound()
+        while som < UPPER:
+            pk = self.pmf(k)
+            som += pk
+
+            if som > LOWER:
+                outW.append(pk)
+                outK.append(k)            
+            k   += 1
+
+        outW = np.array(outW)
+        outK = np.array(outK, dtype=np.intc)
+
+        return outK, outW
+
+    def toRanVar(self):
+        k, cnts = self.toArray()
+        rv = RandomVariable()
+        rv.fit(k, cnts)
+        return rv
 
 if __name__ == '__main__':
 
