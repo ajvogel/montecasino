@@ -79,7 +79,7 @@ class NegativeBinomial(RandomVariable):
         return sp.stats.nbinom.pmf(k, self.n, self.p)
 
     @classmethod
-    def fit(Cls, data):
+    def fit(cls, data):
         mu  = data.mean()
         var = data.var()
 
@@ -100,7 +100,7 @@ class NegativeBinomial(RandomVariable):
         p = mean / var
         n = mean**2 / (var - mean)
 
-        return Cls(n=n, p=p)
+        return cls(n=n, p=p)
 
     def lowerBound(self):
         return 0
