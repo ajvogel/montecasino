@@ -238,7 +238,7 @@ class RandomVariable():
             # self.upper[i] = k + 1
             lower[i] = k
             upper[i] = k + 1            
-            count[i]  = weight
+            count[i] = weight
             known[i] = weight
 
             self.nActive += 1
@@ -255,6 +255,21 @@ class RandomVariable():
                     # print('->',self.upper[i], self.lower[i+1])
                     
                     upper[i] = lower[i + 1]
+
+    @pyx.cfunc
+    def _fillBinGaps(self):
+        """
+        From time to time it happens that the bins are not connected because we didn't
+        fill maxBins but the data points are not close to each other. In these cases
+        we need to make sure that the bins are connected.
+        """
+        self._sortBins()
+
+        for i in range(1, self.nActive):
+            if self.lower[i] != self.upper[i-1]:
+                self.lower[i] = self.upper[i-1]
+
+        
 
 
 
@@ -278,7 +293,7 @@ class RandomVariable():
         """
         lower:   pyx.int[:] = self.lower
         upper:   pyx.int[:] = self.upper
-        count:    pyx.double[:] = self.count
+        count:   pyx.double[:] = self.count
         known:   pyx.double[:] = self.known
         
         if k < lower[0]:
@@ -430,6 +445,7 @@ class RandomVariable():
 
     @pyx.ccall
     def fit(self, data, counts):
+        print('TEST!!')
         idx    = np.argsort(data)
         data   = data[idx]
         counts = counts[idx]
@@ -463,8 +479,11 @@ class RandomVariable():
             self.setKnown(self.count)
             self.nActive = self.maxBins
         else:
+            # self._presetBins(minD, maxD)
             for di, ci in zip(data, counts):
                 self.add(di, ci)
+
+            self._fillBinGaps()
 
     @pyx.cfunc
     def _presetBins(self, minK: pyx.int, maxK: pyx.int):
@@ -472,6 +491,7 @@ class RandomVariable():
         This presets some of the bins so that we have a nice spreadout of bins for convolution,
         otherwise the bins are all clustered around the left point.
         """
+        print('_presetBins()')
         nK: pyx.int = maxK - minK + 1
         if nK > self.maxBins:
             # Only do something if the number of points will exceed the number of
