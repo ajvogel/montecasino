@@ -8,7 +8,7 @@ if pyx.compiled:
 if pyx.compiled:
     print('Running through Cython!')
 else:
-    print('Running in Python')
+    print('WARNING: Not Compiled.')
 
 LOWER = (1 - 0.9999) / 2
 UPPER = 1 - LOWER
@@ -52,7 +52,7 @@ class RandomVariable():
     costLowerMax: pyx.double
     costUpperMin: pyx.double
     
-    def __init__(self, maxBins=None):
+    def __init__(self, maxBins=None, data=None, counts=None):
         if maxBins is None:
             maxBins = DEFAULTS['maxBins']
 
@@ -70,6 +70,9 @@ class RandomVariable():
 
         self.nActive = 0
         self.maxBins = maxBins
+
+        if (data is not None) and (counts is not None):
+            self.fit(data, counts)
 
     def activeBins(self):
         return self.nActive
@@ -627,9 +630,12 @@ class RandomVariable():
                     # final.add(kF, pF) 
 
         final.fit(data, counts)
-        final.compress()
-        # print(final.lower)
-        # print(final.upper)
+        print(final.lower)
+        print(final.upper)
+        print(final.known)
+        print(final.count)
+        # final.compress()
+
         return final
 
     @pyx.ccall

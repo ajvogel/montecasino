@@ -4,6 +4,11 @@ import numpy as np
 def test_addTwoUniform():
     """addUniform"""
     x = cs.Uniform(1,6) + cs.Uniform(1,6)
+    # print(x.lower)
+    # print(x.upper)
+    # print(x.count)
+    # print(x.known)
+    # assert x._assertConnected()
     assert abs(x.pmf(2) - 0.0277) <= 1e-4
     assert abs(x.pmf(3) - 0.0555) <= 1e-4
     assert abs(x.pmf(4) - 0.0833) <= 1e-4

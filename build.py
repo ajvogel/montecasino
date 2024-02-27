@@ -42,7 +42,8 @@ def build(setup_kwds):
     # breakpoint()          
     # build_ext_cmd.copy_extensions_to_source() 
     
-
+if __name__ == "__main__":
+    build(None)
 
 
 # fib_source = Path('casino/core.py')
