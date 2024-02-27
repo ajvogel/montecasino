@@ -3,6 +3,8 @@ from . import nbinom
 from .core import *
 import builtins
 
+__version__ = '0.0.0.post95.dev0+71fcba5'
+
 # def max(val1, val2):
 #     """
 #     Returns the distribution of the max of one or more distributions.

@@ -38,11 +38,11 @@ class RandomVariable():
     _vague: pyx.double[:]
     _count: pyx.double[:]
 
-    lower:   np.ndarray
-    upper:   np.ndarray
-    known:   np.ndarray
+    lower: np.ndarray
+    upper: np.ndarray
+    known: np.ndarray
     vague: np.ndarray
-    count:    np.ndarray
+    count: np.ndarray
 
     maxBins: pyx.int
     nActive: pyx.int

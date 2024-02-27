@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "casino"
-version = "0.2.0"
+version = "0.0.0.post95.dev0+71fcba5"
 description = "Casino enables fast probabilistic modelling"
 authors = ["Adolph Vogel <ajvogel@gmail.com>"]
 license = "MIT"
@@ -24,9 +24,16 @@ scipy = "^1.10.1"
 matplotlib = "^3.7.1"
 cython = "^3.0.0"
 
+# [build-system]
+# requires = ["poetry-core", "setuptools", "cython"]
+# build-backend = "poetry.core.masonry.api"
+
 [build-system]
-requires = ["poetry-core", "setuptools", "cython"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core", "poetry-dynamic-versioning", "cython"]
+build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.poetry.build]
 script = "build.py"
+
+[tool.poetry-dynamic-versioning]
+enable = true

@@ -22,10 +22,10 @@ def test_fillBinGap():
     counts = np.ones_like(data)
     rv.fit(data, counts)
 
-    print(rv.lower)
-    print(rv.upper)
-    print(rv.count)
-    print(rv.known)
+    # print(rv.lower)
+    # print(rv.upper)
+    # print(rv.count)
+    # print(rv.known)
 
     rv._assertConnected()
     # print(x.lower)
