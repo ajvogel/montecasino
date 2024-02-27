@@ -74,6 +74,10 @@ class RandomVariable():
         if (data is not None) and (counts is not None):
             self.fit(data, counts)
 
+    def _assertCompiled(self):
+        assert pyx.compiled
+        
+
     def activeBins(self):
         return self.nActive
 
