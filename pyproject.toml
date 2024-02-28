@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "casino"
-version = "0.0.0.post95.dev0+71fcba5"
+version = "0.2.0"
 description = "Casino enables fast probabilistic modelling"
 authors = ["Adolph Vogel <ajvogel@gmail.com>"]
 license = "MIT"
@@ -29,7 +29,7 @@ cython = "^3.0.0"
 # build-backend = "poetry.core.masonry.api"
 
 [build-system]
-requires = ["poetry-core", "poetry-dynamic-versioning", "cython"]
+requires = ["poetry-core", "poetry-dynamic-versioning", "cython", "setuptools"]
 build-backend = "poetry_dynamic_versioning.backend"
 
 [tool.poetry.build]

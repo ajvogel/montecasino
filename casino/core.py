@@ -449,7 +449,9 @@ class RandomVariable():
 
     @pyx.ccall
     def fit(self, data, counts):
-        print('TEST!!')
+        data   = data.astype(np.intc)
+        counts = counts.astype(np.double)
+        
         idx    = np.argsort(data)
         data   = data[idx]
         counts = counts[idx]
@@ -470,7 +472,10 @@ class RandomVariable():
                 iMax: pyx.int = np.argmax(cost)
                 iMin: pyx.int = np.argmin(cost_n)
 
-                if cost[iMax] <= 2*cost_n[iMin]:
+                wMax: pyx.int = self.upper[iMax] - self.lower[iMax]
+                overlap: pyx.int = (self.upper[iMin] == self.lower[iMax]) or (self.upper[iMin + 1] == self.lower[iMax])
+
+                if (cost[iMax] <= 2*cost_n[iMin]) or (wMax == 1) or (overlap):
                     break
 
                 self._merge(iMin)
@@ -495,7 +500,6 @@ class RandomVariable():
         This presets some of the bins so that we have a nice spreadout of bins for convolution,
         otherwise the bins are all clustered around the left point.
         """
-        print('_presetBins()')
         nK: pyx.int = maxK - minK + 1
         if nK > self.maxBins:
             # Only do something if the number of points will exceed the number of
