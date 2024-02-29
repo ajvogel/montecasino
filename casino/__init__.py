@@ -3,7 +3,7 @@ from . import nbinom
 from .core import *
 import builtins
 
-__version__ = '0.2.0.post1.dev0+68d6cb9'
+__version__ = '0.2.0.post2.dev0+9737cc3'
 
 # def max(val1, val2):
 #     """

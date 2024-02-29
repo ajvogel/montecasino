@@ -1,10 +1,11 @@
 [tool.poetry]
 name = "casino"
-version = "0.2.0.post1.dev0+68d6cb9"
+version = "0.2.0.post2.dev0+9737cc3"
 description = "Casino enables fast probabilistic modelling"
 authors = ["Adolph Vogel <ajvogel@gmail.com>"]
 license = "MIT"
 readme = "README.md"
+include = ['casino/*.so']
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.12"
