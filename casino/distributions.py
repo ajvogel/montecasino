@@ -4,6 +4,23 @@ from .core import RandomVariable, UPPER, LOWER
 import statsmodels.api as sm
 
 
+class Constant(RandomVariable):
+    def __init__(self, value) -> None:
+        self.value = value
+
+    def pmf(self, k):
+        if k == self.value:
+            return 1.
+        else:
+            return 0
+
+    def lowerBound(self):
+        return self.value
+
+    def upperBound(self):
+        return self.value + 1
+        
+
 #---------------------------------------------------------------------------------------------------
 
 class Uniform(RandomVariable):
