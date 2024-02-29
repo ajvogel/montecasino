@@ -261,6 +261,8 @@ class RandomVariable():
                     upper[i] = lower[i + 1]
 
     @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)    
     def _fillBinGaps(self):
         """
         From time to time it happens that the bins are not connected because we didn't
@@ -269,9 +271,10 @@ class RandomVariable():
         """
         self._sortBins()
 
+        i: pyx.int
         for i in range(1, self.nActive):
-            if self.lower[i] != self.upper[i-1]:
-                self.lower[i] = self.upper[i-1]
+            if self._lower[i] != self._upper[i-1]:
+                self._lower[i] = self._upper[i-1]
 
         
 
@@ -658,11 +661,11 @@ class RandomVariable():
                     # final.add(kF, pF) 
 
         final.fit(data, counts)
-        print(final.lower)
-        print(final.upper)
-        print(final.known)
-        print(final.count)
-        # final.compress()
+        # print(final.lower)
+        # print(final.upper)
+        # print(final.known)
+        # print(final.count)
+        final.compress()
 
         return final
 
