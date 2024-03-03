@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "casino"
-version = "0.2.0.post4.dev0+150609a"
+version = "0.2.0.post6.dev0+f68d369"
 description = "Casino enables fast probabilistic modelling"
 authors = ["Adolph Vogel <ajvogel@gmail.com>"]
 license = "MIT"
