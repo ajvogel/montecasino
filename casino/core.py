@@ -629,6 +629,8 @@ class RandomVariable():
         _kS, _pS = self.toArray()
         _kO, _pO = other.toArray()
 
+        print(f'    {_kS[0]} -> {_kS[-1]} ({len(_kS)}); {_kO[0]} -> {_kO[-1]} ({len(_kO)})')
+
         kS: pyx.int[:] = _kS
         pS: pyx.double[:] = _pS
 
