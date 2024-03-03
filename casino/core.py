@@ -74,10 +74,128 @@ class RandomVariable():
         if (data is not None) and (counts is not None):
             self.fit(data, counts)
 
+    # ---[ Assertions ]-----------------------------------------------------------------------------
     def _assertCompiled(self):
         assert pyx.compiled
-        
 
+    def _assertConnected(self):
+        i: pyx.int
+        
+        for i in range(self.nActive - 1):
+            assert self._upper[i] == self._lower[i + 1]
+
+    # ---[ Utility Methods ]------------------------------------------------------------------------
+
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)     
+    def _countSum(self) -> pyx.double:
+        i: pyx.int
+        som: pyx.double = 0
+        for i in range(self.nActive):
+            som += self._count[i]
+
+        return som
+
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)    
+    def _sortBins(self):
+        """
+        We implement our own sorting algorithm here for two reasons. We need to sort more than one
+        array using the same indexes and reindexing arrays create a copy in numpy. This breaks
+        memoryviews in calling functions who still refer to the original copy. Secondly, because we
+        know that the array will be partially sorted using insertion sort will theoretically be faster.
+        """
+        lowerKey: pyx.int
+        upperKey: pyx.int
+        knownKey: pyx.double
+        vagueKey: pyx.double
+        countKey: pyx.double
+        i: pyx.int
+        j: pyx.int
+
+        for i in range(1, self.nActive):
+            lowerKey = self._lower[i]
+            upperKey = self._upper[i]
+            knownKey = self._known[i]
+            vagueKey = self._vague[i]
+            countKey = self._count[i]
+
+            j = i - 1
+
+            while j >= 0 and lowerKey < self._lower[j]:
+                self._lower[j+1] = self._lower[j]
+                self._upper[j+1] = self._upper[j]
+                self._known[j+1] = self._known[j]
+                self._vague[j+1] = self._vague[j]
+                self._count[j+1] = self._count[j]
+                j -= 1
+
+            self._lower[j+1] = lowerKey
+            self._upper[j+1] = upperKey
+            self._known[j+1] = knownKey
+            self._vague[j+1] = vagueKey
+            self._count[j+1] = countKey
+
+    @pyx.cfunc
+    def _addPhaseOne(self, k:pyx.int, weight:pyx.double):
+        """
+        Adds a point when we haven't already filled all the different histograms.
+        """
+        lower:   pyx.int[:] = self.lower
+        upper:   pyx.int[:] = self.upper
+        known:   pyx.double[:] = self.known
+        #vague: pyx.double[:] = self.vague
+        count: pyx.double[:] = self.count #
+
+        i: pyx.int = self._findBin(k)
+        if i >= 0:
+            count[i]  += weight
+            known[i] += weight
+        else:
+            i = self.nActive
+
+            # self.lower[i] = k
+            # self.upper[i] = k + 1
+            lower[i] = k
+            upper[i] = k + 1            
+            count[i] = weight
+            known[i] = weight
+
+            self.nActive += 1
+
+            if self.nActive == self.maxBins:
+                self._sortBins()
+
+                # During phase 1 bins are created "unconnected". We need to connect 
+                # them before we continue. This could break down when we don't have
+                # all the bins filled.
+
+                for i in range(self.nActive - 1):
+                    # self.upper[i] = self.lower[i + 1]
+                    # print('->',self.upper[i], self.lower[i+1])
+                    
+                    upper[i] = lower[i + 1]
+                    
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)    
+    def _fillBinGaps(self):
+        """
+        From time to time it happens that the bins are not connected because we didn't
+        fill maxBins but the data points are not close to each other. In these cases
+        we need to make sure that the bins are connected.
+        """
+        self._sortBins()
+
+        i: pyx.int
+        for i in range(1, self.nActive):
+            if self._lower[i] != self._upper[i-1]:
+                self._lower[i] = self._upper[i-1]
+                
+    # ---[ Getters / Setters ]----------------------------------------------------------------------
+            
     def activeBins(self):
         return self.nActive
 
@@ -116,16 +234,7 @@ class RandomVariable():
         # Because the upper bound is not inclusive we need to subtract one.
         return self._upper[self.nActive - 1] - 1
 
-    @pyx.cfunc
-    @pyx.boundscheck(False)
-    @pyx.initializedcheck(False)     
-    def _countSum(self) -> pyx.double:
-        i: pyx.int
-        som: pyx.double = 0
-        for i in range(self.nActive):
-            som += self._count[i]
 
-        return som
 
     def cdf(self, k):
         out = 0
@@ -166,115 +275,15 @@ class RandomVariable():
         else:
             return 0
 
-    def _assertConnected(self):
-        for i in range(self.nActive):
-            print(self.lower[i], self.upper[i])
-        
-        for i in range(self.nActive - 1):
-
-            assert self.upper[i] == self.lower[i + 1]        
-
-    @pyx.cfunc
-    @pyx.boundscheck(False)
-    @pyx.initializedcheck(False)    
-    def _sortBins(self):
-        """
-        We implement our own sorting algorithm here for two reasons. We need
-        to sort more than one array using the same indexes and reindexing
-        arrays create a copy in numpy. This breaks memoryviews in calling
-        functions who still refer to the original copy. Secondly, because
-        we know that the array will be partially sorted using insertion
-        sort will theoretically be faster.
-        """
-        lowerKey: pyx.int
-        upperKey: pyx.int
-        knownKey: pyx.double
-        vagueKey: pyx.double
-        countKey: pyx.double
-        i: pyx.int
-        j: pyx.int
-
-        for i in range(1, self.nActive):
-            lowerKey = self._lower[i]
-            upperKey = self._upper[i]
-            knownKey = self._known[i]
-            vagueKey = self._vague[i]
-            countKey = self._count[i]
-
-            j = i - 1
-
-            while j >= 0 and lowerKey < self._lower[j]:
-                self._lower[j+1] = self._lower[j]
-                self._upper[j+1] = self._upper[j]
-                self._known[j+1] = self._known[j]
-                self._vague[j+1] = self._vague[j]
-                self._count[j+1] = self._count[j]
-                j -= 1
-
-            self._lower[j+1] = lowerKey
-            self._upper[j+1] = upperKey
-            self._known[j+1] = knownKey
-            self._vague[j+1] = vagueKey
-            self._count[j+1] = countKey
 
 
 
-    @pyx.cfunc
-    def _addPhaseOne(self, k:pyx.int, weight:pyx.double):
-        """
-        Adds a point when we haven't already filled all the different histograms.
-        """
-        lower:   pyx.int[:] = self.lower
-        upper:   pyx.int[:] = self.upper
-        known:   pyx.double[:] = self.known
-        #vague: pyx.double[:] = self.vague
-        count: pyx.double[:] = self.count #
 
-        
-        i: pyx.int = self._findBin(k)
-        if i >= 0:
-            count[i]  += weight
-            known[i] += weight
-        else:
-            i = self.nActive
 
-            # self.lower[i] = k
-            # self.upper[i] = k + 1
-            lower[i] = k
-            upper[i] = k + 1            
-            count[i] = weight
-            known[i] = weight
 
-            self.nActive += 1
 
-            if self.nActive == self.maxBins:
-                self._sortBins()
 
-                # During phase 1 bins are created "unconnected". We need to connect 
-                # them before we continue. This could break down when we don't have
-                # all the bins filled.
 
-                for i in range(self.nActive - 1):
-                    # self.upper[i] = self.lower[i + 1]
-                    # print('->',self.upper[i], self.lower[i+1])
-                    
-                    upper[i] = lower[i + 1]
-
-    @pyx.cfunc
-    @pyx.boundscheck(False)
-    @pyx.initializedcheck(False)    
-    def _fillBinGaps(self):
-        """
-        From time to time it happens that the bins are not connected because we didn't
-        fill maxBins but the data points are not close to each other. In these cases
-        we need to make sure that the bins are connected.
-        """
-        self._sortBins()
-
-        i: pyx.int
-        for i in range(1, self.nActive):
-            if self._lower[i] != self._upper[i-1]:
-                self._lower[i] = self._upper[i-1]
 
         
 
@@ -665,7 +674,7 @@ class RandomVariable():
         # print(final.upper)
         # print(final.known)
         # print(final.count)
-        final.compress()
+        # final.compress()
 
         return final
 
