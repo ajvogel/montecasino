@@ -677,7 +677,7 @@ class RandomVariable():
         # print(final.upper)
         # print(final.known)
         # print(final.count)
-        # final.compress()
+        final.compress()
 
         return final
 
@@ -698,14 +698,14 @@ class RandomVariable():
             self._count[0] = f / w
             self._known[0] = k / w
 
-        if self._count[-1]/self._countSum() <= 1e-3:
-            w: pyx.int    = self._upper[-1] - self._lower[-1]
-            f: pyx.double = self._count[-1]
-            k: pyx.double = self._known[-1]
+        if self._count[self.nActive]/self._countSum() <= 1e-3:
+            w: pyx.int    = self._upper[self.nActive] - self._lower[self.nActive]
+            f: pyx.double = self._count[self.nActive]
+            k: pyx.double = self._known[self.nActive]
 
-            self._lower[-1] = self._upper[-1] - 1
-            self._count[-1] = f / w
-            self._known[-1] = k / w            
+            self._lower[self.nActive] = self._upper[self.nActive] - 1
+            self._count[self.nActive] = f / w
+            self._known[self.nActive] = k / w            
             
             
             
