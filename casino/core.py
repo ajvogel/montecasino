@@ -644,10 +644,10 @@ class RandomVariable():
         o: pyx.int
         # print('==================================================')
 
-        data   = np.zeros(nS*nO, dtype=np.intc)
-        counts = np.zeros(nS*nO)
-        _data: pyx.int[:]      = data
-        _counts: pyx.double[:] = counts
+        # data   = np.zeros(nS*nO, dtype=np.intc)
+        # counts = np.zeros(nS*nO)
+        # _data: pyx.int[:]      = data
+        # _counts: pyx.double[:] = counts
         i: pyx.int = 0
 
         minK = self._applyFunc(kS[0], kO[0], func)
@@ -663,15 +663,15 @@ class RandomVariable():
 
                 # print(f'P[{kS[s]} + {kO[o]} = {kF}] => {pF} ')
 
-                _data[i]   = kF
-                _counts[i] = pF
+                # _data[i]   = kF
+                # _counts[i] = pF
                 i += 1
 
                 if pF > 0:
                     pass
-                    # final.add(kF, pF) 
+                    final.add(kF, pF) 
 
-        final.fit(data, counts)
+        # final.fit(data, counts)
         # print(final.lower)
         # print(final.upper)
         # print(final.known)

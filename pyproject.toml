@@ -28,6 +28,7 @@ cython = "^3.0.0"
 # [build-system]
 # requires = ["poetry-core", "setuptools", "cython"]
 # build-backend = "poetry.core.masonry.api"
+pyarrow = "^15.0.0"
 
 [build-system]
 requires = ["poetry-core", "poetry-dynamic-versioning", "cython", "setuptools"]
