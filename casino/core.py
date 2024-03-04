@@ -605,6 +605,7 @@ class RandomVariable():
         __SUB__:pyx.int = 4
         __POW__:pyx.int = 5        
         iF: pyx.int = 0
+
         if func == __ADD__:
             iF = iS + iO
         elif func == __MUL__:
@@ -629,7 +630,7 @@ class RandomVariable():
         _kS, _pS = self.toArray()
         _kO, _pO = other.toArray()
 
-        print(f'    {_kS[0]} -> {_kS[-1]} ({len(_kS)}); {_kO[0]} -> {_kO[-1]} ({len(_kO)})')
+        # print(f'    {_kS[0]} -> {_kS[-1]} ({len(_kS)}); {_kO[0]} -> {_kO[-1]} ({len(_kO)})')
 
         kS: pyx.int[:] = _kS
         pS: pyx.double[:] = _pS
