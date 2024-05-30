@@ -96,6 +96,31 @@ class Histogram():
 
             self._shiftLeftAndOverride(k+1)
 
+    def cdf(self, k):
+        som = 0
+
+        m = self.cnts
+        b = self.bins
+
+        for i in range(self.nActive):
+
+            if b[i] <= k < b[i+1]:
+                mb  = m[i] + (m[i+1] - m[i])/(b[i+1] - b[i])*(k - b[i])
+
+                som += (m[i] + mb)/2 * (k - b[i])/(b[i+1] - b[i])
+                som += m[i]/2
+                break
+            else:
+                som += m[i]
+
+        return som / m.sum()
+
+    def pmf(self, k):
+        return self.cdf(k+1) - self.cdf(k)
+
+        
+        
+
 
 
 
