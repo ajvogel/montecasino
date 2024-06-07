@@ -26,6 +26,23 @@ def test_findLastLesserOrEqualIndex():
 
 
 def test_shiftRightAndInsert():
+    hist = cs.Histogram(maxBins=8)
+
+    #             0   1   2   3   4    5    6    7   8
+    x = np.array([0., 2., 4., 6., 8., 10., 12., 14., 0.])
+    y = np.array([1., 1., 1., 1., 1.,  1.,  1.,  1., 0.])
+    hist.bins    = x
+    hist.cnts    = y
+    hist.nActive = 8
+
+    hist._shiftRightAndInsert(2, 5, 1)
+
+    print(hist.bins)
+    print(hist.cnts)
+
+    np.testing.assert_array_equal(hist.bins, np.array([0., 2., 4., 5., 6., 8., 10., 12., 14.]))
+
+    
     hist = cs.Histogram(maxBins=7)
 
     #             0   1   2   3   4    5   6   7 
@@ -81,6 +98,20 @@ def test_LeftAndOverride():
 
     hist._shiftLeftAndOverride(4)
 
-    np.testing.assert_array_equal(hist.bins, np.array([0., 2., 4., 6., 10., 0., 0., 0.]))    
+    np.testing.assert_array_equal(hist.bins, np.array([0., 2., 4., 6., 10., 0., 0., 0.]))
+
+    hist = cs.Histogram(maxBins=6)
+
+    #             0   1   2   3   4   5   6 
+    x = np.array([1., 2., 3., 4., 5., 6., 7.])
+    y = np.array([0., 0., 0., 0., 0.,  0., 0.])
+    hist.bins    = x
+    hist.cnts    = y
+    hist.nActive = 7
+
+    hist._shiftLeftAndOverride(4)
+
+    np.testing.assert_array_equal(hist.bins, np.array([1., 2., 3., 4., 6., 7., 0.]))
+
 
 

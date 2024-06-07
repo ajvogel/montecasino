@@ -51,13 +51,17 @@ class Histogram():
         return idx
 
     def _shiftRightAndInsert(self, idx, point, count):
-        for j in range(self.nActive, idx, -1):
+        # print('_shiftRightAndInsert():...')
+        for j in range(self.nActive - 1, idx, -1):
             self.bins[j+1] = self.bins[j]
             self.cnts[j+1] = self.cnts[j]
 
         self.bins[idx+1] = point
         self.cnts[idx+1] = count
         self.nActive += 1
+
+        # print(self.bins)
+        # print(self.cnts)
 
     def _findMinimumDifference(self):
         minK    = -1
@@ -71,14 +75,26 @@ class Histogram():
         return minK
 
     def _shiftLeftAndOverride(self, idx):
-        for j in range(idx, self.nActive):
+        for j in range(idx, self.nActive-1):
             self.bins[j] = self.bins[j+1]
             self.cnts[j] = self.cnts[j+1]
 
-        self.nActive -= 1        
+        self.bins[self.nActive-1] = 0
+        self.cnts[self.nActive-1] = 0
+
+        self.nActive -= 1
+
+    def fit(self, x):
+        for xx in x:
+            # print()
+            # print(f'Addding {round(xx)}...')
+            self.add(xx)
+            # print(self.bins)
+            # print(self.cnts)
 
     def add(self, point, count=1):
         # Find the last index equal or smaller.
+        point = round(point)
         idx = self._findLastLesserOrEqualIndex(point)
                 
         if (idx >= 0) and self.bins[idx] == point:
@@ -92,6 +108,7 @@ class Histogram():
             sumC = self.cnts[k+1] + self.cnts[k]
             self.bins[k] = (self.bins[k]*self.cnts[k] + self.bins[k+1]*self.cnts[k+1])
             self.bins[k] = self.bins[k] / sumC
+            self.bins[k] = round(self.bins[k])
             self.cnts[k] = sumC
 
             self._shiftLeftAndOverride(k+1)
