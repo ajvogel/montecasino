@@ -119,6 +119,9 @@ class Histogram():
         m = self.cnts
         b = self.bins
 
+        if k < b[0]:
+            return 0
+
         for i in range(self.nActive):
 
             if b[i] <= k < b[i+1]:
