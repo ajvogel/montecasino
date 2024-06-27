@@ -40,6 +40,9 @@ class Histogram():
         self.bins = np.zeros(self.maxBins + 1)
         self.cnts = np.zeros(self.maxBins + 1)
 
+        self._lowerBound = 9e9
+        self._upperBound = -9e9
+
     def _findLastLesserOrEqualIndex(self, point):
         idx = -1
         while True:
@@ -94,7 +97,15 @@ class Histogram():
 
     def add(self, point, count=1):
         # Find the last index equal or smaller.
-        point = round(point)
+        #point = round(point)
+
+        if point < self._lowerBound:
+            self._lowerBound = point - 1
+
+        if point > self._upperBound:
+            self._upperBound = point + 1
+
+        
         idx = self._findLastLesserOrEqualIndex(point)
                 
         if (idx >= 0) and self.bins[idx] == point:
@@ -108,7 +119,8 @@ class Histogram():
             sumC = self.cnts[k+1] + self.cnts[k]
             self.bins[k] = (self.bins[k]*self.cnts[k] + self.bins[k+1]*self.cnts[k+1])
             self.bins[k] = self.bins[k] / sumC
-            self.bins[k] = round(self.bins[k])
+            # self.bins[k] = round(self.bins[k])
+
             self.cnts[k] = sumC
 
             self._shiftLeftAndOverride(k+1)
@@ -120,13 +132,19 @@ class Histogram():
         b = self.bins
 
         if k < b[0]:
-            return 0
+            mi   = 0
+            mi_n = m[0]
+            bi   = self._lowerBound
+            bi_n = b[0]
+            mb   = mi + (mi_n - mi)/(bi_n - bi)*(k - bi)
+            som += (mi + mb)/2 * (k - bi)/(bi_n - bi)
+            som += mi/2
+            return som / m.sum()
 
         for i in range(self.nActive):
 
             if b[i] <= k < b[i+1]:
-                mb  = m[i] + (m[i+1] - m[i])/(b[i+1] - b[i])*(k - b[i])
-
+                mb   = m[i] + (m[i+1] - m[i])/(b[i+1] - b[i])*(k - b[i])
                 som += (m[i] + mb)/2 * (k - b[i])/(b[i+1] - b[i])
                 som += m[i]/2
                 break
@@ -136,7 +154,7 @@ class Histogram():
         return som / m.sum()
 
     def pmf(self, k):
-        return self.cdf(k+1) - self.cdf(k)
+        return self.cdf(k+0.5) - self.cdf(k-0.5)
 
         
         
