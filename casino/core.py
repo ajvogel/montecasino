@@ -54,7 +54,7 @@ class Histogram():
         return idx
 
     def _shiftRightAndInsert(self, idx, point, count):
-        # print('_shiftRightAndInsert():...')
+
         for j in range(self.nActive - 1, idx, -1):
             self.bins[j+1] = self.bins[j]
             self.cnts[j+1] = self.cnts[j]
@@ -63,13 +63,13 @@ class Histogram():
         self.cnts[idx+1] = count
         self.nActive += 1
 
-        # print(self.bins)
-        # print(self.cnts)
-
     def _findMinimumDifference(self):
         minK    = -1
         minDiff = 9e9
-        for k in range(self.nActive - 1):
+        # We don't want to merge the first or last bin because we want to maintain the
+        # tails. It also solves the problem where we try and sample a point that is before
+        # the first centroid.
+        for k in range(1, self.nActive - 2):
             dB = self.bins[k+1] - self.bins[k]
             if dB < minDiff:
                 minDiff = dB
@@ -119,7 +119,6 @@ class Histogram():
             sumC = self.cnts[k+1] + self.cnts[k]
             self.bins[k] = (self.bins[k]*self.cnts[k] + self.bins[k+1]*self.cnts[k+1])
             self.bins[k] = self.bins[k] / sumC
-            # self.bins[k] = round(self.bins[k])
 
             self.cnts[k] = sumC
 
@@ -132,38 +131,22 @@ class Histogram():
         b = self.bins
 
         if k < b[0]:
-            mi   = 0
-            mi_n = m[0]
-            bi   = self._lowerBound
-            bi_n = b[0]
-            mb   = mi + (mi_n - mi)/(bi_n - bi)*(k - bi)
-            som += (mi + mb)/2 * (k - bi)/(bi_n - bi)
-            som += mi/2
-            return som / m.sum()
-        
-        # elif k > b[self.nActive]:
-        #     mi   = m[self.nActive]
-        #     mi_n = 0
-        #     bi   = b[self.nActive]
-        #     bi_n = self._upperBound
-        #     mb   = mi + (mi_n - mi)/(bi_n - bi)*(k - bi)
-        #     som += (mi + mb)/2 * (k - bi)/(bi_n - bi)
-        #     som += mi/2
-        #     som += self.cnts[:self.nActive-1].sum()
-        #     return som / m.sum()            
+            return 0
+        elif b[0] <= k <= b[self.nActive - 1]:
             
+            for i in range(self.nActive):
+                if b[i] <= k < b[i+1]:
+                    mb   = m[i] + (m[i+1] - m[i])/(b[i+1] - b[i])*(k - b[i])
+                    som += (m[i] + mb)/2 * (k - b[i])/(b[i+1] - b[i])
+                    som += m[i]/2
+                    break
+                else:
+                    som += m[i]
 
-        for i in range(self.nActive):
+            return som / m.sum()
 
-            if b[i] <= k < b[i+1]:
-                mb   = m[i] + (m[i+1] - m[i])/(b[i+1] - b[i])*(k - b[i])
-                som += (m[i] + mb)/2 * (k - b[i])/(b[i+1] - b[i])
-                som += m[i]/2
-                break
-            else:
-                som += m[i]
-
-        return som / m.sum()
+        else:
+            return 1
 
     def pmf(self, k):
         return self.cdf(k+0.5) - self.cdf(k-0.5)
