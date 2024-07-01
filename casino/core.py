@@ -140,6 +140,18 @@ class Histogram():
             som += (mi + mb)/2 * (k - bi)/(bi_n - bi)
             som += mi/2
             return som / m.sum()
+        
+        # elif k > b[self.nActive]:
+        #     mi   = m[self.nActive]
+        #     mi_n = 0
+        #     bi   = b[self.nActive]
+        #     bi_n = self._upperBound
+        #     mb   = mi + (mi_n - mi)/(bi_n - bi)*(k - bi)
+        #     som += (mi + mb)/2 * (k - bi)/(bi_n - bi)
+        #     som += mi/2
+        #     som += self.cnts[:self.nActive-1].sum()
+        #     return som / m.sum()            
+            
 
         for i in range(self.nActive):
 
