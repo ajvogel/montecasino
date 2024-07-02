@@ -101,6 +101,7 @@ class RandomVariable():
             k = self._findMinimumDifference()
 
             sumC = self.cnts[k+1] + self.cnts[k]
+
             self.bins[k] = (self.bins[k]*self.cnts[k] + self.bins[k+1]*self.cnts[k+1])
             self.bins[k] = self.bins[k] / sumC
             self.cnts[k] = sumC
@@ -222,7 +223,8 @@ class RandomVariable():
                 pF = self.pmf(s) * other.pmf(o)
                 kF = self._applyFunc(s, o, func)
 
-                final.add(kF, pF)
+                if pF > 0:
+                    final.add(kF, pF)
 
         final.compress()
         return final
