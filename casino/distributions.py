@@ -72,11 +72,11 @@ class Triangular(RandomVariable):
         else:
             return 0
 
-    def lowerBound(self):
-        return self.left
+    def lower(self):
+        return int(self.left)
 
-    def upperBound(self):
-        return self.right
+    def upper(self):
+        return int(self.right)
 
 
 

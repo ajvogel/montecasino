@@ -1,6 +1,7 @@
 # from .distributions import *
 from . import nbinom
 from .core import *
+from .distributions import *
 import builtins
 
 __version__ = '0.2.0.post7.dev0+3e6fe06'

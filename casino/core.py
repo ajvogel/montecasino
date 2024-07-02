@@ -153,10 +153,11 @@ class RandomVariable():
         return (fx / (2*W*S))*(w[i] + w[i+1])
 
     def lower(self):
-        return self.bins[0]
+        print(self.bins)
+        return int(self.bins[0])
 
     def upper(self):
-        return self.bins[self.nActive - 1]
+        return int(self.bins[self.nActive - 1])
 
     def sample(self, size=1):
         pass
@@ -169,7 +170,7 @@ class RandomVariable():
 
     # --- Convolution related functions....
     
-    @pyx.cfunc
+
     def _applyFunc(self, iS: pyx.int, iO:pyx.int, func:pyx.int) -> pyx.int:
 
         iF: pyx.int = 0
@@ -207,9 +208,6 @@ class RandomVariable():
     def __pow__(self, other):
         return self.__conv__(other, __POW__)                
         
-
-    @pyx.ccall
-    @pyx.boundscheck(False)
     def __conv__(self, other, func: pyx.int):
         
         final = RandomVariable()
