@@ -96,16 +96,7 @@ class Histogram():
             # print(self.cnts)
 
     def add(self, point, count=1):
-        # Find the last index equal or smaller.
-        #point = round(point)
 
-        if point < self._lowerBound:
-            self._lowerBound = point - 1
-
-        if point > self._upperBound:
-            self._upperBound = point + 1
-
-        
         idx = self._findLastLesserOrEqualIndex(point)
                 
         if (idx >= 0) and self.bins[idx] == point:
