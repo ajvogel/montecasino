@@ -37,10 +37,10 @@ class Uniform(RandomVariable):
         else:
             return 0
 
-    def lowerBound(self):
+    def lower(self):
         return self.left
 
-    def upperBound(self):
+    def upper(self):
         return self.right
 
 

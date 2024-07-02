@@ -9,6 +9,16 @@ def test_addTwoUniform():
     # print(x.count)
     # print(x.known)
     # assert x._assertConnected()
+
+    print(x.nActive)
+    print(x.maxBins)
+
+    for i in range(2, 13):
+        print(x.pmf(i))
+
+    print(x.bins)
+    print(x.cnts)
+    
     assert abs(x.pmf(2) - 0.0277) <= 1e-4
     assert abs(x.pmf(3) - 0.0555) <= 1e-4
     assert abs(x.pmf(4) - 0.0833) <= 1e-4
@@ -24,8 +34,12 @@ def test_addTwoUniform():
 
 def test_lowerBound_and_upperBound():
     x = cs.Uniform(1,6) + cs.Uniform(1,6)
-    assert x.lowerBound() == 2
-    assert x.upperBound() == 12
+    print(x.lower())
+    print(x.upper())
+    print(x.bins)
+    print(x.cnts)
+    assert x.lower() == 2
+    assert x.upper() == 12
 
 def test_nActiveCount():
     """Tests that the frequency column adds up to the number of points added"""
@@ -39,7 +53,7 @@ def test_nActiveCount():
 
     # print(x.nAc-tive)           
 
-    assert x.activeBins() == 16
+    assert x.nActive == 16
 
 
 def test_binConnectivity():

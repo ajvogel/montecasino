@@ -132,6 +132,12 @@ class RandomVariable():
             return 1
 
     def pmf(self, k):
+
+        if self.nActive < self.maxBins:
+            i = self._findLastLesserOrEqualIndex(k)
+            return self.cnts[i]
+
+        
         if (k < self.bins[0]) or (k > self.bins[self.nActive - 1]):
             return 0
 
@@ -153,7 +159,6 @@ class RandomVariable():
         return (fx / (2*W*S))*(w[i] + w[i+1])
 
     def lower(self):
-        print(self.bins)
         return int(self.bins[0])
 
     def upper(self):
