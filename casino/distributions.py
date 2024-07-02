@@ -1,7 +1,7 @@
 import numpy as np
 import scipy as sp
 from .core import RandomVariable, UPPER, LOWER
-import statsmodels.api as sm
+# import statsmodels.api as sm
 
 
 class Constant(RandomVariable):
