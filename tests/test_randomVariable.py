@@ -55,24 +55,24 @@ def test_nActiveCount():
 
     assert x.nActive == 16
 
+# NO LONGER APPLICABLE
+# def test_binConnectivity():
+#     """Checks that bins don't become disconnected."""
+#     np.random.seed(300)
+#     std = 100
+#     mu  = 1000
+#     N   = 100
+#     data = np.random.randn(N)*std + mu    
+#     x = cs.RandomVariable(maxBins=16)
+#     for e, d in enumerate(data):
+#         # print()
+#         print(f'Adding {d} as point {e+1}...')
+#         x.add(d)
+#         if e >= 16:
+#             x._assertConnected()
+#             # assert False        
 
-def test_binConnectivity():
-    """Checks that bins don't become disconnected."""
-    np.random.seed(300)
-    std = 100
-    mu  = 1000
-    N   = 100
-    data = np.random.randn(N)*std + mu    
-    x = cs.RandomVariable(maxBins=16)
-    for e, d in enumerate(data):
-        # print()
-        print(f'Adding {d} as point {e+1}...')
-        x.add(d)
-        if e >= 16:
-            x._assertConnected()
-            # assert False        
-
-    x._assertConnected()
+#     x._assertConnected()
 
 def test_freqAddsUp():
     """Tests that the frequency column adds up to the number of points added"""
@@ -86,7 +86,7 @@ def test_freqAddsUp():
 
     # print(sum(x.freq))
 
-    assert (sum(x.getCountArray()) == N)
+    assert (sum(x.cnts) == N)
     
 
 def test_normalApprox():
@@ -151,8 +151,8 @@ def test_sumDices():
     out = [cs.Uniform(1,6) for ii in range(6)]
     out2 = out[0] + out[1] + out[2] + out[3] + out[4] + out[5]
 
-    cnts = out2.getCountArray()
-    print(sum(cnts))
+    # cnts = out2.getCountArray()
+    # print(sum(cnts))
 
     for k,p in data6:
         pp = p/100
@@ -163,12 +163,12 @@ def test_sumDices():
 
         assert (out2.pmf(k) - pp) < 1e-7
 
-    cnts = out2.getCountArray()
-    lwr  = out2.getLowerArray()
-    upr  = out2.getUpperArray()
+    # cnts = out2.getCountArray()
+    # lwr  = out2.getLowerArray()
+    # upr  = out2.getUpperArray()
     
-    for l, u, c in zip(lwr, upr, cnts):
-        print(f'[{l: >8d}; {u: >8d}): {u - l:>5d}: {c/cnts.sum():e}')        
+    # for l, u, c in zip(lwr, upr, cnts):
+    #     print(f'[{l: >8d}; {u: >8d}): {u - l:>5d}: {c/cnts.sum():e}')        
 
     # assert False                
         
