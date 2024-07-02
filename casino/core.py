@@ -1,6 +1,6 @@
 
 from types import prepare_class
-from Cython.Shadow import index_type
+
 import numpy as np
 import cython as pyx
 
@@ -32,16 +32,13 @@ DEFAULTS = {
 
 
 
-class Histogram():
-    def __init__(self, maxBins=64, lower=0, upper=0):
+class RandomVariable():
+    def __init__(self, maxBins=32):
         self.maxBins = maxBins
         self.nActive = 0
 
         self.bins = np.zeros(self.maxBins + 1)
         self.cnts = np.zeros(self.maxBins + 1)
-
-        self._lowerBound = 9e9
-        self._upperBound = -9e9
 
     def _findLastLesserOrEqualIndex(self, point):
         idx = -1
@@ -89,11 +86,7 @@ class Histogram():
 
     def fit(self, x):
         for xx in x:
-            # print()
-            # print(f'Addding {round(xx)}...')
             self.add(xx)
-            # print(self.bins)
-            # print(self.cnts)
 
     def add(self, point, count=1):
 
@@ -110,7 +103,6 @@ class Histogram():
             sumC = self.cnts[k+1] + self.cnts[k]
             self.bins[k] = (self.bins[k]*self.cnts[k] + self.bins[k+1]*self.cnts[k+1])
             self.bins[k] = self.bins[k] / sumC
-
             self.cnts[k] = sumC
 
             self._shiftLeftAndOverride(k+1)
@@ -159,13 +151,139 @@ class Histogram():
 
 
         return (fx / (2*W*S))*(w[i] + w[i+1])
+
+    def lower(self):
+        return self.bins[0]
+
+    def upper(self):
+        return self.bins[self.nActive - 1]
+
+    def sample(self, size=1):
+        pass
+
+    def quantile(self, p):
+        pass
+
+    def compress(self):
+        pass
+
+    # --- Convolution related functions....
+    
+    @pyx.cfunc
+    def _applyFunc(self, iS: pyx.int, iO:pyx.int, func:pyx.int) -> pyx.int:
+
+        iF: pyx.int = 0
+
+        if func == __ADD__:
+            iF = iS + iO
+        elif func == __MUL__:
+            iF = iO*iS
+        elif func == __MAX__:
+            iF = iO if iO > iS else iS
+        elif func == __MIN__:
+            iF = iO  if iO < iS else iS
+        elif func == __SUB__:
+            iF = iS - iO
+        elif func == __POW__:
+            iF = iS**iO
+
+        return iF
+
+    def __add__(self, other):
+        return self.__conv__(other, __ADD__)
+
+    def __sub__(self, other):
+        return self.__conv__(other, __SUB__)
+
+    def __mul__(self, other):
+        return self.__conv__(other, __MUL__)
+
+    def __max__(self, other):
+        return self.__conv__(other, __MAX__)
+      
+    def __min__(self, other):
+        return self.__conv__(other, __MIN__)      
+
+    def __pow__(self, other):
+        return self.__conv__(other, __POW__)                
         
-        return self.cdf(k+0.5) - self.cdf(k-0.5)
+
+    @pyx.ccall
+    @pyx.boundscheck(False)
+    def __conv__(self, other, func: pyx.int):
+        
+        final = RandomVariable()
+
+        for s in range(self.lower(), self.upper() + 1):
+            for o in range(other.lower(), other.upper() + 1):
+                pF = self.pmf(s) * other.pmf(o)
+                kF = self._applyFunc(s, o, func)
+
+                final.add(kF, pF)
+
+        final.compress()
+        return final
+
+                
+
+
+
 
         
+
+        # _kS, _pS = self.toArray()
+        # _kO, _pO = other.toArray()
+
+        # # print(f'    {_kS[0]} -> {_kS[-1]} ({len(_kS)}); {_kO[0]} -> {_kO[-1]} ({len(_kO)})')
+
+        # kS: pyx.int[:] = _kS
+        # pS: pyx.double[:] = _pS
+
+        # kO: pyx.int[:] = _kO
+        # pO: pyx.double[:] = _pO
+
+        # nS: pyx.int = len(kS)
+        # nO: pyx.int = len(kO)
+
+        # s: pyx.int
+        # o: pyx.int
+        # # print('==================================================')
+
+        # data   = np.zeros(nS*nO, dtype=np.intc)
+        # counts = np.zeros(nS*nO)
+        # _data: pyx.int[:]      = data
+        # _counts: pyx.double[:] = counts
+        # i: pyx.int = 0
+
+        # minK = self._applyFunc(kS[0], kO[0], func)
+        # maxK = self._applyFunc(kS[-1], kO[-1], func)
         
+        # final._presetBins(minK,maxK)
 
+        
+        # for s in range(nS):
+        #     for o in range(nO):
+        #         pF: pyx.double = pS[s] * pO[o]
+        #         kF: pyx.int = self._applyFunc(kS[s], kO[o], func)
 
+        #         # print(f'P[{kS[s]} + {kO[o]} = {kF}] => {pF} ')
+
+        #         _data[i]   = kF
+        #         _counts[i] = pF
+        #         i += 1
+
+        #         # if pF > 0:
+        #         #     pass
+        #         #     final.add(kF, pF) 
+
+        # final.fit(data, counts)
+        # # print(final.lower)
+        # # print(final.upper)
+        # # print(final.known)
+        # # print(final.count)
+        # final.compress()
+
+        # return final
 
 
 
