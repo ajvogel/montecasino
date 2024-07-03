@@ -6,6 +6,13 @@ import cython as pyx
 
 if pyx.compiled:
     from cython.cimports.libc.math import round as round
+    from cython.cimports.libc.math import ceil as ceil
+    from cython.cimports.libc.math import floor as floor
+else:
+    ceil = np.ceil
+    floor = np.floor
+    
+    
 
 if pyx.compiled:
     print('Running through Cython!')
@@ -197,10 +204,10 @@ class RandomVariable():
         p = self._bins
         w = self._cnts
 
-        N = np.floor(p[i+1]) - np.ceil(p[i]) + 1
+        N = floor(p[i+1]) - ceil(p[i]) + 1
         m = (w[i+1] - w[i])/(p[i+1] - p[i])
 
-        y0 = m*(np.ceil(p[i]) - p[i]) + w[i]
+        y0 = m*(ceil(p[i]) - p[i]) + w[i]
 
         S = (N/2)*(2*y0 + m*(N-1))
         W = self.cnts.sum()
@@ -278,6 +285,8 @@ class RandomVariable():
     def __conv__(self, other: RandomVariable, func: pyx.int):
         s: pyx.int
         o: pyx.int
+        pF: pyx.double
+        kF: pyx.double
         final = RandomVariable()
 
         for s in range(self.lower(), self.upper() + 1):
