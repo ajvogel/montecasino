@@ -67,14 +67,18 @@ class RandomVariable():
 
         return idx
 
-    def _shiftRightAndInsert(self, idx, point, count):
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)            
+    def _shiftRightAndInsert(self, idx:pyx.int, point:pyx.int, count:pyx.double):
+        j: pyx.int
 
         for j in range(self.nActive - 1, idx, -1):
-            self.bins[j+1] = self.bins[j]
-            self.cnts[j+1] = self.cnts[j]
+            self._bins[j+1] = self._bins[j]
+            self._cnts[j+1] = self._cnts[j]
 
-        self.bins[idx+1] = point
-        self.cnts[idx+1] = count
+        self._bins[idx+1] = point
+        self._cnts[idx+1] = count
         self.nActive += 1
 
     @pyx.cfunc
