@@ -103,13 +103,17 @@ class RandomVariable():
 
         return minK
 
-    def _shiftLeftAndOverride(self, idx):
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)                
+    def _shiftLeftAndOverride(self, idx: pyx.int):
+        j: pyx.int
         for j in range(idx, self.nActive-1):
-            self.bins[j] = self.bins[j+1]
-            self.cnts[j] = self.cnts[j+1]
+            self._bins[j] = self._bins[j+1]
+            self._cnts[j] = self._cnts[j+1]
 
-        self.bins[self.nActive-1] = 0
-        self.cnts[self.nActive-1] = 0
+        self._bins[self.nActive-1] = 0
+        self._cnts[self.nActive-1] = 0
 
         self.nActive -= 1
 
