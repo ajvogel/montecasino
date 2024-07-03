@@ -93,7 +93,7 @@ def test_normalApprox():
     """"""
     std = 100
     mu  = 100
-    data = np.random.randn(1000)*std + mu
+    data = np.random.randn(10000)*std + mu
     x = cs.RandomVariable(maxBins=32)
     for d in data:
         x.add(d)
@@ -107,6 +107,10 @@ def test_normalApprox():
     # running the tests will take to long. In practice increasing the number of 
     # sample points will increase the accuracy.
 
+    print(prob1)
+    print(prob2)
+    print(prob3)
+    
     assert abs(0.6827 - prob1) <= 1e-1
     assert abs(0.9545 - prob2) <= 1e-2
     assert abs(0.9973 - prob3) <= 1e-3  
