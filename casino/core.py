@@ -168,19 +168,34 @@ class RandomVariable():
         else:
             return 1
 
-    def pmf(self, k):
+    @pyx.ccall
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)         
+    def pmf(self, kk: pyx.int) -> pyx.double:
+        i: pyx.int
+        p: pyx.double[:]
+        w: pyx.double[:]
+        k: pyx.double
+        N: pyx.double
+        m: pyx.double
+        S: pyx.double
+        W: pyx.double
+        fx: pyx.double
+
+        
+        k = pyx.cast(pyx.double, kk)
 
         if self.nActive < self.maxBins:
             i = self._findLastLesserOrEqualIndex(k)
-            return self.cnts[i]
+            return self._cnts[i]
 
         
-        if (k < self.bins[0]) or (k > self.bins[self.nActive - 1]):
+        if (k < self._bins[0]) or (k > self._bins[self.nActive - 1]):
             return 0
 
         i = self._findLastLesserOrEqualIndex(k)
-        p = self.bins
-        w = self.cnts
+        p = self._bins
+        w = self._cnts
 
         N = np.floor(p[i+1]) - np.ceil(p[i]) + 1
         m = (w[i+1] - w[i])/(p[i+1] - p[i])
@@ -188,18 +203,20 @@ class RandomVariable():
         y0 = m*(np.ceil(p[i]) - p[i]) + w[i]
 
         S = (N/2)*(2*y0 + m*(N-1))
-        W = w.sum()
+        W = self.cnts.sum()
 
         fx = m*(k - p[i]) + w[i]
 
 
         return (fx / (2*W*S))*(w[i] + w[i+1])
 
-    def lower(self):
-        return int(self.bins[0])
+    @pyx.ccall
+    def lower(self) -> pyx.int:
+        return int(self._bins[0])
 
-    def upper(self):
-        return int(self.bins[self.nActive - 1])
+    @pyx.ccall
+    def upper(self) -> pyx.int:
+        return int(self._bins[self.nActive - 1])
 
     def sample(self, size=1):
         pass
@@ -212,9 +229,17 @@ class RandomVariable():
 
     # --- Convolution related functions....
     
-
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)
     def _applyFunc(self, iS: pyx.int, iO:pyx.int, func:pyx.int) -> pyx.int:
-
+        __ADD__:pyx.int = 0
+        __MUL__:pyx.int = 1
+        __MAX__:pyx.int = 2
+        __MIN__:pyx.int = 3
+        __SUB__:pyx.int = 4
+        __POW__:pyx.int = 5
+        
         iF: pyx.int = 0
 
         if func == __ADD__:
@@ -250,8 +275,9 @@ class RandomVariable():
     def __pow__(self, other):
         return self.__conv__(other, __POW__)                
         
-    def __conv__(self, other, func: pyx.int):
-        
+    def __conv__(self, other: RandomVariable, func: pyx.int):
+        s: pyx.int
+        o: pyx.int
         final = RandomVariable()
 
         for s in range(self.lower(), self.upper() + 1):
