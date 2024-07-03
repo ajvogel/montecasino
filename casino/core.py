@@ -87,7 +87,7 @@ class RandomVariable():
         # tails. It also solves the problem where we try and sample a point that is before
         # the first centroid.
         for k in range(1, self.nActive - 2):
-            dB = self.bins[k+1] - self.bins[k]
+            dB = self._bins[k+1] - self._bins[k]
             if dB < minDiff:
                 minDiff = dB
                 minK    = k
