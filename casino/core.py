@@ -31,14 +31,26 @@ DEFAULTS = {
 
 
 
-
+@pyx.cclass
 class RandomVariable():
+    _bins: pyx.double[:]
+    _cnts: pyx.double[:]
+
+    bins: np.ndarray
+    cnts: np.ndarray
+
+    maxBins: pyx.int
+    nActive: pyx.int
+    
     def __init__(self, maxBins=32):
         self.maxBins = maxBins
         self.nActive = 0
 
-        self.bins = np.zeros(self.maxBins + 1)
-        self.cnts = np.zeros(self.maxBins + 1)
+        self.bins = np.zeros(self.maxBins + 1, dtype=np.float64)
+        self.cnts = np.zeros(self.maxBins + 1, dtype=np.float64)
+
+        self._bins = self.bins
+        self._cnts = self.cnts
 
     def _findLastLesserOrEqualIndex(self, point):
         idx = -1
@@ -60,7 +72,15 @@ class RandomVariable():
         self.cnts[idx+1] = count
         self.nActive += 1
 
-    def _findMinimumDifference(self):
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)
+    def _findMinimumDifference(self) -> pyx.int:
+        k: pyx.int
+        dB: pyx.double
+        minK: pyx.int
+        minDiff: pyx.double
+        
         minK    = -1
         minDiff = 9e9
         # We don't want to merge the first or last bin because we want to maintain the
