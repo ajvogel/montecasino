@@ -52,10 +52,15 @@ class RandomVariable():
         self._bins = self.bins
         self._cnts = self.cnts
 
-    def _findLastLesserOrEqualIndex(self, point):
-        idx = -1
+
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)        
+    def _findLastLesserOrEqualIndex(self, point:pyx.int) -> pyx.int:
+        
+        idx:pyx.int = -1
         while True:
-            if (self.bins[idx + 1] > point) or (idx + 1 == self.nActive):
+            if (self._bins[idx + 1] > point) or (idx + 1 == self.nActive):
                 break
             else:
                 idx += 1
