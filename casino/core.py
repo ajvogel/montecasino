@@ -56,7 +56,7 @@ class RandomVariable():
     @pyx.cfunc
     @pyx.boundscheck(False)
     @pyx.initializedcheck(False)        
-    def _findLastLesserOrEqualIndex(self, point:pyx.int) -> pyx.int:
+    def _findLastLesserOrEqualIndex(self, point:pyx.double) -> pyx.int:
         
         idx:pyx.int = -1
         while True:
@@ -70,7 +70,7 @@ class RandomVariable():
     @pyx.cfunc
     @pyx.boundscheck(False)
     @pyx.initializedcheck(False)            
-    def _shiftRightAndInsert(self, idx:pyx.int, point:pyx.int, count:pyx.double):
+    def _shiftRightAndInsert(self, idx:pyx.int, point:pyx.double, count:pyx.double):
         j: pyx.int
 
         for j in range(self.nActive - 1, idx, -1):
@@ -121,23 +121,26 @@ class RandomVariable():
         for xx in x:
             self.add(xx)
 
-    def add(self, point, count=1):
+    @pyx.ccall
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)                            
+    def add(self, point:pyx.double, count:pyx.double=1):
 
-        idx = self._findLastLesserOrEqualIndex(point)
+        idx:pyx.int = self._findLastLesserOrEqualIndex(point)
                 
-        if (idx >= 0) and self.bins[idx] == point:
-            self.cnts[idx] += count
+        if (idx >= 0) and self._bins[idx] == point:
+            self._cnts[idx] += count
         else:
             self._shiftRightAndInsert(idx, point, count)
 
         if self.nActive > self.maxBins:
-            k = self._findMinimumDifference()
+            k:pyx.int = self._findMinimumDifference()
 
-            sumC = self.cnts[k+1] + self.cnts[k]
+            sumC:pyx.double = self._cnts[k+1] + self._cnts[k]
 
-            self.bins[k] = (self.bins[k]*self.cnts[k] + self.bins[k+1]*self.cnts[k+1])
-            self.bins[k] = self.bins[k] / sumC
-            self.cnts[k] = sumC
+            self._bins[k] = (self._bins[k]*self._cnts[k] + self._bins[k+1]*self._cnts[k+1])
+            self._bins[k] = self._bins[k] / sumC
+            self._cnts[k] = sumC
 
             self._shiftLeftAndOverride(k+1)
 
