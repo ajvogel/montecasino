@@ -124,6 +124,18 @@ class RandomVariable():
 
         self.nActive -= 1
 
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.initializedcheck(False)
+    def _sumWeights(self) -> pyx.double:
+        som: pyx.double = 0
+        i: pyx.int
+
+        for i in range(self.nActive):
+            som = som + self._cnts[i]
+
+        return som
+
     def fit(self, x):
         for xx in x:
             self.add(xx)
@@ -210,7 +222,8 @@ class RandomVariable():
         y0 = m*(ceil(p[i]) - p[i]) + w[i]
 
         S = (N/2)*(2*y0 + m*(N-1))
-        W = self.cnts.sum()
+        # W = self.cnts.sum()
+        W = self._sumWeights()
 
         fx = m*(k - p[i]) + w[i]
 
