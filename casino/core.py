@@ -62,6 +62,7 @@ class RandomVariable():
 
     @pyx.cfunc
     @pyx.boundscheck(False)
+    @pyx.wraparound(False)    
     @pyx.initializedcheck(False)        
     def _findLastLesserOrEqualIndex(self, point:pyx.double) -> pyx.int:
         
@@ -76,8 +77,9 @@ class RandomVariable():
 
     @pyx.cfunc
     @pyx.boundscheck(False)
+    @pyx.wraparound(False)    
     @pyx.initializedcheck(False)            
-    def _shiftRightAndInsert(self, idx:pyx.int, point:pyx.double, count:pyx.double):
+    def _shiftRightAndInsert(self, idx:pyx.int, point:pyx.double, count:pyx.double) -> pyx.void:
         j: pyx.int
 
         for j in range(self.nActive - 1, idx, -1):
@@ -90,6 +92,7 @@ class RandomVariable():
 
     @pyx.cfunc
     @pyx.boundscheck(False)
+    @pyx.wraparound(False)    
     @pyx.initializedcheck(False)
     def _findMinimumDifference(self) -> pyx.int:
         k: pyx.int
@@ -112,8 +115,9 @@ class RandomVariable():
 
     @pyx.cfunc
     @pyx.boundscheck(False)
+    @pyx.wraparound(False)    
     @pyx.initializedcheck(False)                
-    def _shiftLeftAndOverride(self, idx: pyx.int):
+    def _shiftLeftAndOverride(self, idx: pyx.int) -> pyx.void:
         j: pyx.int
         for j in range(idx, self.nActive-1):
             self._bins[j] = self._bins[j+1]
@@ -126,6 +130,7 @@ class RandomVariable():
 
     @pyx.cfunc
     @pyx.boundscheck(False)
+    @pyx.wraparound(False)    
     @pyx.initializedcheck(False)
     def _sumWeights(self) -> pyx.double:
         som: pyx.double = 0
@@ -142,8 +147,10 @@ class RandomVariable():
 
     @pyx.ccall
     @pyx.boundscheck(False)
+    @pyx.wraparound(False)
+    @pyx.cdivision(True)        
     @pyx.initializedcheck(False)                            
-    def add(self, point:pyx.double, count:pyx.double=1):
+    def _add(self, point:pyx.double, count:pyx.double) -> pyx.void:
 
         idx:pyx.int = self._findLastLesserOrEqualIndex(point)
                 
@@ -162,6 +169,9 @@ class RandomVariable():
             self._cnts[k] = sumC
 
             self._shiftLeftAndOverride(k+1)
+
+    def add(self, point, count=1):
+        self._add(point, count)
 
     def cdf(self, k):
         som = 0
@@ -189,6 +199,8 @@ class RandomVariable():
 
     @pyx.ccall
     @pyx.boundscheck(False)
+    @pyx.cdivision(True)    
+    @pyx.wraparound(False)
     @pyx.initializedcheck(False)         
     def pmf(self, kk: pyx.int) -> pyx.double:
         i: pyx.int
@@ -231,10 +243,18 @@ class RandomVariable():
         return (fx / (2*W*S))*(w[i] + w[i+1])
 
     @pyx.ccall
+    @pyx.boundscheck(False)
+    @pyx.cdivision(True)    
+    @pyx.wraparound(False)
+    @pyx.initializedcheck(False)        
     def lower(self) -> pyx.int:
         return int(self._bins[0])
 
     @pyx.ccall
+    @pyx.boundscheck(False)
+    @pyx.cdivision(True)    
+    @pyx.wraparound(False)
+    @pyx.initializedcheck(False)        
     def upper(self) -> pyx.int:
         return int(self._bins[self.nActive - 1])
 
@@ -295,12 +315,12 @@ class RandomVariable():
     def __pow__(self, other):
         return self.__conv__(other, __POW__)                
         
-    def __conv__(self, other: RandomVariable, func: pyx.int):
+    def __conv__(self, other: RandomVariable, func: pyx.int) -> RandomVariable:
         s: pyx.int
         o: pyx.int
         pF: pyx.double
         kF: pyx.double
-        final = RandomVariable()
+        final: RandomVariable = RandomVariable()
 
         for s in range(self.lower(), self.upper() + 1):
             for o in range(other.lower(), other.upper() + 1):
@@ -308,9 +328,9 @@ class RandomVariable():
                 kF = self._applyFunc(s, o, func)
 
                 if pF > 0:
-                    final.add(kF, pF)
+                    final._add(kF, pF)
 
-        final.compress()
+        # final.compress()
         return final
 
                 
