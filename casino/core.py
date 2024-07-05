@@ -170,6 +170,12 @@ class RandomVariable():
 
             self._shiftLeftAndOverride(k+1)
 
+    def centroids(self):
+        return self.bins[:-1]
+
+    def weights(self):
+        return self.cnts[:-1]
+
     def add(self, point, count=1):
         self._add(point, count)
 
@@ -314,7 +320,8 @@ class RandomVariable():
 
     def __pow__(self, other):
         return self.__conv__(other, __POW__)                
-        
+
+    @pyx.ccall
     def __conv__(self, other: RandomVariable, func: pyx.int) -> RandomVariable:
         s: pyx.int
         o: pyx.int
