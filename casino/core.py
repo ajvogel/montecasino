@@ -268,6 +268,25 @@ class RandomVariable():
         pass
 
     def quantile(self, p):
+        S = self._sumWeights()
+        s = 0
+
+        for i in range(self.nActive):
+            w = (self._cnts[i] + self._cnts[i+1]) / 2
+            if s/S <= p <= (s + w)/S:
+                # The percentile point is in this bin.
+                x = self._bins
+                y = self._cnts                
+                m = (y[i+1] - y[i])/(x[i+1] - x[i])
+                A = p*(S - s)
+
+                k = (-y[i] + (y[i]**2 + 2*m*A)**0.5)/m + x[i]
+
+                return k 
+            else:
+                s = s + w
+            
+        
         pass
 
     def compress(self):
@@ -322,12 +341,12 @@ class RandomVariable():
         return self.__conv__(other, __POW__)                
 
     @pyx.ccall
-    def __conv__(self, other: RandomVariable, func: pyx.int) -> RandomVariable:
+    def __conv__(self, other, func: pyx.int):
         s: pyx.int
         o: pyx.int
         pF: pyx.double
         kF: pyx.double
-        final: RandomVariable = RandomVariable()
+        final = RandomVariable()
 
         for s in range(self.lower(), self.upper() + 1):
             for o in range(other.lower(), other.upper() + 1):

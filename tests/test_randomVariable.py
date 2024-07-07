@@ -113,7 +113,24 @@ def test_normalApprox():
     
     assert abs(0.6827 - prob1) <= 1e-1
     assert abs(0.9545 - prob2) <= 1e-2
-    assert abs(0.9973 - prob3) <= 1e-3  
+    assert abs(0.9973 - prob3) <= 1e-3
+
+def test_normalApprox_quantile():
+    """"""
+    std = 100
+    mu  = 100
+    data = np.random.randn(10000)*std + mu
+    x = cs.RandomVariable(maxBins=32)
+    for d in data:
+        x.add(d)
+
+
+    assert abs(-64.485 - x.quantile(0.05)) <= 1e-2
+    assert abs(32.551 - x.quantile(0.25)) <= 1e-2
+    assert abs(100 - x.quantile(0.50)) <= 1e-2
+    assert abs(167.449 - x.quantile(0.75)) <= 1e-2
+    assert abs(264.485 - x.quantile(0.99)) <= 1e-2    
+
 
 
 
