@@ -59,13 +59,27 @@ class RandomVariable():
         self._bins = self.bins
         self._cnts = self.cnts
 
+    def setBins(self, bins):
+
+        self.bins = bins
+
+        # If we don't set self._bins as well it will still refer to the previous
+        # array and not the new one. In essence self._bins points to the memory
+        # block and not the name self.bins
+        
+        self._bins = self.bins
+
+    def setWeights(self, cnts):
+        self.cnts = cnts
+        self._cnts = self.cnts
+
 
     @pyx.cfunc
     @pyx.boundscheck(False)
     @pyx.wraparound(False)    
     @pyx.initializedcheck(False)        
     def _findLastLesserOrEqualIndex(self, point:pyx.double) -> pyx.int:
-        
+
         idx:pyx.int = -1
         while True:
             if (self._bins[idx + 1] > point) or (idx + 1 == self.nActive):

@@ -9,7 +9,8 @@ def test_findLastLesserOrEqualIndex():
 
     #             0   1   2   3   4    5   6   7   8
     x = np.array([0., 2., 4., 6., 8., 10., 0., 0., 0.])
-    hist.bins    = x
+    # hist.bins    = x
+    hist.setBins(x)
     hist.nActive = 6
 
     assert hist._findLastLesserOrEqualIndex(3)  == 1
@@ -31,8 +32,9 @@ def test_shiftRightAndInsert():
     #             0   1   2   3   4    5    6    7   8
     x = np.array([0., 2., 4., 6., 8., 10., 12., 14., 0.])
     y = np.array([1., 1., 1., 1., 1.,  1.,  1.,  1., 0.])
-    hist.bins    = x
-    hist.cnts    = y
+    hist.setBins(x)
+    hist.setWeights(y)
+
     hist.nActive = 8
 
     hist._shiftRightAndInsert(2, 5, 1)
@@ -48,8 +50,9 @@ def test_shiftRightAndInsert():
     #             0   1   2   3   4    5   6   7 
     x = np.array([0., 2., 4., 6., 8., 10., 0., 0.])
     y = np.array([0., 0., 0., 0., 0.,  0., 0., 0.])
-    hist.bins    = x
-    hist.cnts    = y
+    hist.setBins(x)
+    hist.setWeights(y)    
+
     hist.nActive = 6
 
     hist._shiftRightAndInsert(2, 5, 1)
@@ -62,8 +65,10 @@ def test_shiftRightAndInsert():
     #             0   1   2   3   4    5   6   7 
     x = np.array([0., 0., 0., 0., 0., 0., 0., 0.])
     y = np.array([0., 0., 0., 0., 0.,  0., 0., 0.])
-    hist.bins    = x
-    hist.cnts    = y
+    hist.setBins(x)
+    hist.setWeights(y)    
+    
+
     hist.nActive = 0
 
     hist._shiftRightAndInsert(-1, 5, 1)
@@ -79,8 +84,10 @@ def test_LeftAndOverride():
     #             0   1   2   3   4    5   6   7 
     x = np.array([0., 2., 4., 6., 8., 10., 0., 0.])
     y = np.array([0., 0., 0., 0., 0.,  0., 0., 0.])
-    hist.bins    = x
-    hist.cnts    = y
+    hist.setBins(x)
+    hist.setWeights(y)    
+    
+
     hist.nActive = 6
 
     hist._shiftLeftAndOverride(2)
@@ -92,8 +99,10 @@ def test_LeftAndOverride():
     #             0   1   2   3   4    5   6   7 
     x = np.array([0., 2., 4., 6., 8., 10., 0., 0.])
     y = np.array([0., 0., 0., 0., 0.,  0., 0., 0.])
-    hist.bins    = x
-    hist.cnts    = y
+    hist.setBins(x)
+    hist.setWeights(y)    
+    
+
     hist.nActive = 6
 
     hist._shiftLeftAndOverride(4)
@@ -105,8 +114,10 @@ def test_LeftAndOverride():
     #             0   1   2   3   4   5   6 
     x = np.array([1., 2., 3., 4., 5., 6., 7.])
     y = np.array([0., 0., 0., 0., 0.,  0., 0.])
-    hist.bins    = x
-    hist.cnts    = y
+    hist.setBins(x)
+    hist.setWeights(y)    
+    
+
     hist.nActive = 7
 
     hist._shiftLeftAndOverride(4)
