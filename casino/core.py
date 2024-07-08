@@ -69,12 +69,26 @@ class RandomVariable():
         
         self._bins = self.bins
 
+    def getBins(self):
+        return self.bins
+
     def setWeights(self, cnts):
         self.cnts = cnts
         self._cnts = self.cnts
 
+    def getWeights(self):
+        return self.cnts
 
-    @pyx.cfunc
+    def setActiveBinCount(self, nActive):
+        self.nActive = nActive
+
+    def getActiveBinCount(self):
+        return self.nActive
+
+    def _assertCompiled(self):
+        assert pyx.compiled    
+
+    @pyx.ccall
     @pyx.boundscheck(False)
     @pyx.wraparound(False)    
     @pyx.initializedcheck(False)        
@@ -89,7 +103,7 @@ class RandomVariable():
 
         return idx
 
-    @pyx.cfunc
+    @pyx.ccall
     @pyx.boundscheck(False)
     @pyx.wraparound(False)    
     @pyx.initializedcheck(False)            
@@ -127,7 +141,7 @@ class RandomVariable():
 
         return minK
 
-    @pyx.cfunc
+    @pyx.ccall
     @pyx.boundscheck(False)
     @pyx.wraparound(False)    
     @pyx.initializedcheck(False)                

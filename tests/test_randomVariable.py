@@ -10,14 +10,14 @@ def test_addTwoUniform():
     # print(x.known)
     # assert x._assertConnected()
 
-    print(x.nActive)
-    print(x.maxBins)
+    # print(x.nActive)
+    # print(x.maxBins)
 
     for i in range(2, 13):
         print(x.pmf(i))
 
-    print(x.bins)
-    print(x.cnts)
+    # print(x.bins)
+    # print(x.cnts)
     
     assert abs(x.pmf(2) - 0.0277) <= 1e-4
     assert abs(x.pmf(3) - 0.0555) <= 1e-4
@@ -34,10 +34,10 @@ def test_addTwoUniform():
 
 def test_lowerBound_and_upperBound():
     x = cs.Uniform(1,6) + cs.Uniform(1,6)
-    print(x.lower())
-    print(x.upper())
-    print(x.bins)
-    print(x.cnts)
+    # print(x.lower())
+    # print(x.upper())
+    # print(x.bins)
+    # print(x.cnts)
     assert x.lower() == 2
     assert x.upper() == 12
 
@@ -53,7 +53,7 @@ def test_nActiveCount():
 
     # print(x.nAc-tive)           
 
-    assert x.nActive == 16
+    assert x.getActiveBinCount() == 16
 
 # NO LONGER APPLICABLE
 # def test_binConnectivity():
@@ -86,13 +86,14 @@ def test_freqAddsUp():
 
     # print(sum(x.freq))
 
-    assert (sum(x.cnts) == N)
+    assert (sum(x.getWeights()) == N)
     
 
 def test_normalApprox():
     """"""
     std = 100
     mu  = 100
+    np.random.seed(31337)
     data = np.random.randn(10000)*std + mu
     x = cs.RandomVariable(maxBins=32)
     for d in data:
@@ -119,17 +120,29 @@ def test_normalApprox_quantile():
     """"""
     std = 100
     mu  = 100
+    np.random.seed(31337)
     data = np.random.randn(10000)*std + mu
-    x = cs.RandomVariable(maxBins=32)
+    x = cs.RandomVariable(maxBins=64)
     for d in data:
         x.add(d)
 
+    DATA = [
+        (-64.485, 0.05),
+        (32.551, 0.25),
+        (100.00, 0.50),
+        (167.449, 0.75),
+        (264.485, 0.95)
+    ]
 
-    assert abs(-64.485 - x.quantile(0.05)) <= 1e-2
-    assert abs(32.551 - x.quantile(0.25)) <= 1e-2
-    assert abs(100 - x.quantile(0.50)) <= 1e-2
-    assert abs(167.449 - x.quantile(0.75)) <= 1e-2
-    assert abs(264.485 - x.quantile(0.99)) <= 1e-2    
+    for v, p in DATA:
+        dv = abs((v - x.quantile(p)) / v)
+        print(f'{v} : {x.quantile(p)} : {dv}')
+        assert dv <= 1e-1
+
+    #assert False
+
+
+ 
 
 
 

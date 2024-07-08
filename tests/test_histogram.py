@@ -11,7 +11,8 @@ def test_findLastLesserOrEqualIndex():
     x = np.array([0., 2., 4., 6., 8., 10., 0., 0., 0.])
     # hist.bins    = x
     hist.setBins(x)
-    hist.nActive = 6
+    hist.setActiveBinCount(6)
+
 
     assert hist._findLastLesserOrEqualIndex(3)  == 1
     assert hist._findLastLesserOrEqualIndex(5)  == 2
@@ -20,8 +21,10 @@ def test_findLastLesserOrEqualIndex():
     assert hist._findLastLesserOrEqualIndex(11) == 5
 
     x = np.array([0., 0., 0., 0., 0., 0., 0., 0., 0.])
-    hist.bins    = x
-    hist.nActive = 0
+    hist.setBins(x)
+    hist.setActiveBinCount(0)
+    # hist.bins    = x
+    # hist.nActive = 0
     
     assert hist._findLastLesserOrEqualIndex(5) == -1
 
@@ -34,15 +37,15 @@ def test_shiftRightAndInsert():
     y = np.array([1., 1., 1., 1., 1.,  1.,  1.,  1., 0.])
     hist.setBins(x)
     hist.setWeights(y)
+    hist.setActiveBinCount(8)
 
-    hist.nActive = 8
+
 
     hist._shiftRightAndInsert(2, 5, 1)
 
-    print(hist.bins)
-    print(hist.cnts)
 
-    np.testing.assert_array_equal(hist.bins, np.array([0., 2., 4., 5., 6., 8., 10., 12., 14.]))
+
+    np.testing.assert_array_equal(hist.getBins(), np.array([0., 2., 4., 5., 6., 8., 10., 12., 14.]))
 
     
     hist = cs.RandomVariable(maxBins=7)
@@ -52,31 +55,29 @@ def test_shiftRightAndInsert():
     y = np.array([0., 0., 0., 0., 0.,  0., 0., 0.])
     hist.setBins(x)
     hist.setWeights(y)    
+    hist.setActiveBinCount(6)
 
-    hist.nActive = 6
 
     hist._shiftRightAndInsert(2, 5, 1)
 
-    print(hist.bins)
-    print(hist.cnts)
 
-    np.testing.assert_array_equal(hist.bins, np.array([0., 2., 4., 5., 6., 8., 10., 0.]))
+
+    np.testing.assert_array_equal(hist.getBins(), np.array([0., 2., 4., 5., 6., 8., 10., 0.]))
 
     #             0   1   2   3   4    5   6   7 
     x = np.array([0., 0., 0., 0., 0., 0., 0., 0.])
     y = np.array([0., 0., 0., 0., 0.,  0., 0., 0.])
     hist.setBins(x)
     hist.setWeights(y)    
-    
+    hist.setActiveBinCount(0)
 
-    hist.nActive = 0
+    # hist.nActive = 0
 
     hist._shiftRightAndInsert(-1, 5, 1)
 
-    print(hist.bins)
-    print(hist.cnts)
 
-    np.testing.assert_array_equal(hist.bins, np.array([5., 0., 0., 0., 0., 0., 0., 0.]))
+
+    np.testing.assert_array_equal(hist.getBins(), np.array([5., 0., 0., 0., 0., 0., 0., 0.]))
 
 def test_LeftAndOverride():
     hist = cs.RandomVariable(maxBins=7)
@@ -86,13 +87,13 @@ def test_LeftAndOverride():
     y = np.array([0., 0., 0., 0., 0.,  0., 0., 0.])
     hist.setBins(x)
     hist.setWeights(y)    
-    
+    hist.setActiveBinCount(6)
 
-    hist.nActive = 6
+    # hist.nActive = 6
 
     hist._shiftLeftAndOverride(2)
 
-    np.testing.assert_array_equal(hist.bins, np.array([0., 2., 6., 8., 10., 0., 0., 0.]))
+    np.testing.assert_array_equal(hist.getBins(), np.array([0., 2., 6., 8., 10., 0., 0., 0.]))
     
     hist = cs.RandomVariable(maxBins=7)
 
@@ -100,14 +101,15 @@ def test_LeftAndOverride():
     x = np.array([0., 2., 4., 6., 8., 10., 0., 0.])
     y = np.array([0., 0., 0., 0., 0.,  0., 0., 0.])
     hist.setBins(x)
-    hist.setWeights(y)    
+    hist.setWeights(y)
+    hist.setActiveBinCount(6)
     
 
-    hist.nActive = 6
+    # hist.nActive = 6
 
     hist._shiftLeftAndOverride(4)
 
-    np.testing.assert_array_equal(hist.bins, np.array([0., 2., 4., 6., 10., 0., 0., 0.]))
+    np.testing.assert_array_equal(hist.getBins(), np.array([0., 2., 4., 6., 10., 0., 0., 0.]))
 
     hist = cs.RandomVariable(maxBins=6)
 
@@ -116,13 +118,13 @@ def test_LeftAndOverride():
     y = np.array([0., 0., 0., 0., 0.,  0., 0.])
     hist.setBins(x)
     hist.setWeights(y)    
-    
+    hist.setActiveBinCount(7)
 
-    hist.nActive = 7
+    # hist.nActive = 7
 
     hist._shiftLeftAndOverride(4)
 
-    np.testing.assert_array_equal(hist.bins, np.array([1., 2., 3., 4., 6., 7., 0.]))
+    np.testing.assert_array_equal(hist.getBins(), np.array([1., 2., 3., 4., 6., 7., 0.]))
 
 
 
