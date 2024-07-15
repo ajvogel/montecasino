@@ -298,7 +298,6 @@ class RandomVariable():
 
 
     def quantile(self, p):
-        print()
         c  = self._bins
         m  = self._cnts
 
@@ -306,58 +305,35 @@ class RandomVariable():
         Sp = S*p
         s = 0
 
-        print(f'p = {p}')
-        print(f'S = {S}')
-        print(f'Sp = {Sp}')                
-
-        for i in range(self.nActive):
-            w = (m[i] + m[i+1]) / 2
-
-            print(f'{i} | {c[i]}, {m[i]}: {s} < {Sp} <= {s+w}')
+        for i in range(-1, self.nActive):
+            if i == -1:
+                ci   = c[i+1] - 0.1
+                ci_n = c[i+1]
+                mi   = 0
+                mi_n = m[i+1]
+            elif i == self.nActive - 1:
+                ci   = c[i]
+                ci_n = c[i] + 0.1
+                mi   = m[i]
+                mi_n = 0               
+            else:
+                ci   = c[i]
+                ci_n = c[i+1]
+                mi   = m[i]
+                mi_n = m[i+1]
+            
+            w = (mi + mi_n) / 2
 
             if s < Sp <= (s + w):
-                g = (m[i+1] - m[i])/(c[i+1] - c[i])
+                g = (mi_n - mi)/(ci_n - ci)
                 A = Sp - s
 
-                cp = (-m[i] + (m[i]**2 + 2*g*A)**0.5)/g + c[i]
+                cp = (-mi + (mi**2 + 2*g*A)**0.5)/g + ci
                 return cp
 
             else:
                 s += w
             
-
-    # def quantile(self, p):
-    #     S = self._sumWeights()
-    #     s = 0
-
-    #     for i in range(self.nActive):
-    #         w = (self._cnts[i] + self._cnts[i+1]) / 2
-    #         if s/S <= p <= (s + w)/S:
-    #             # The percentile point is in this bin.
-    #             x = self._bins
-    #             y = self._cnts                
-    #             m = (y[i+1] - y[i])/(x[i+1] - x[i])
-    #             A = p*(S - s)
-
-    #             if (y[i]**2 + 2*m*A) < 0:
-    #                 print(f'p = {p}; w = {w}; A = {A}; m = {m}; i = {i}')
-    #                 print(f'{x[i]} <= x <= {x[i+1]}')
-    #                 print(f'{y[i]} <= y <= {y[i+1]}')
-    #                 print(f'{s/S} <= s <= {(s+w)/S}')
-    #                 print(y)
-
-    #             k = (-y[i] + (y[i]**2 + 2*m*A)**0.5)/m + x[i]
-
-    #             return k 
-    #         else:
-    #             s = s + w
-
-    #     # Sometimes when p is close to 1 we don't exit during the loop. Think this
-    #     # is a bug and we need to fix it. For now returning the upper bound should
-    #     # work.
-    #     return self.upper()
-    #     print(p)
-
 
     def compress(self):
         pass
