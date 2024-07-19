@@ -343,41 +343,69 @@ class RandomVariable():
 
 
     def quantile(self, p):
-        c  = self._bins
-        m  = self._cnts
+        # Using Regula Falsi
+        a = self.lower()
+        b = self.upper()
 
-        S  = self._sumWeights()
-        Sp = S*p
-        s = 0
+        fa = 0 - p
+        fb = 1 - p
 
-        for i in range(-1, self.nActive):
-            if i == -1:
-                ci   = c[i+1] - 0.1
-                ci_n = c[i+1]
-                mi   = 0
-                mi_n = m[i+1]
-            elif i == self.nActive - 1:
-                ci   = c[i]
-                ci_n = c[i] + 0.1
-                mi   = m[i]
-                mi_n = 0               
+        while (b - a) > 0.1:
+            c = (fb*a - fa*b) / (fb - fa)
+            fc = self.cdf(c) - p
+
+            print(f'{a:.1f} <= {c:.1f} <= {b:.1f}')
+
+            if fc < 0:
+                a  = c
+                fa = fc
+            elif fc > 0:
+                b  = c
+                fb = fc
             else:
-                ci   = c[i]
-                ci_n = c[i+1]
-                mi   = m[i]
-                mi_n = m[i+1]
+                return c
+
+        return (b+a)/2
+
+
+        
+    
+    # def quantile(self, p):
+    #     c  = self._bins
+    #     m  = self._cnts
+
+    #     S  = self._sumWeights()
+    #     Sp = S*p
+    #     s = 0
+
+    #     for i in range(-1, self.nActive):
+    #         if i == -1:
+    #             ci   = c[i+1] - 0.1
+    #             ci_n = c[i+1]
+    #             mi   = 0
+    #             mi_n = m[i+1]
+    #         elif i == self.nActive - 1:
+    #             ci   = c[i]
+    #             ci_n = c[i] + 0.1
+    #             mi   = m[i]
+    #             mi_n = 0               
+    #         else:
+    #             ci   = c[i]
+    #             ci_n = c[i+1]
+    #             mi   = m[i]
+    #             mi_n = m[i+1]
             
-            w = (mi + mi_n) / 2
+    #         w = (mi + mi_n) / 2
 
-            if s <= Sp <= (s + w):
-                g = (mi_n - mi)/(ci_n - ci)
-                A = Sp - s
+    #         if s <= Sp <= (s + w):
+    #             g = (mi_n - mi)/(ci_n - ci)
+    #             A = Sp - s
 
-                cp = (-mi + (mi**2 + 2*g*A)**0.5)/g + ci
-                return cp
+    #             cp = (-mi + (mi**2 + 2*g*A)**0.5)/g + ci
+    #             return cp
 
-            else:
-                s += w
+    #         else:
+    #             s += w
             
 
     def compress(self):
