@@ -208,28 +208,73 @@ class RandomVariable():
         self._add(point, count)
 
     def cdf(self, k):
+        """
+
+        Ted Dunning, Computing Extremely Accurate Quantiles Usings t-Digests
+        """
         som = 0
-
+        c = self.bins
         m = self.cnts
-        b = self.bins
 
-        if k < b[0]:
-            return 0
-        elif b[0] <= k <= b[self.nActive - 1]:
-            
+        if k < self.lower():
+            return 0.
+        elif k >= self.upper():
+            return 1.
+        else:
             for i in range(self.nActive):
-                if b[i] <= k < b[i+1]:
-                    mb   = m[i] + (m[i+1] - m[i])/(b[i+1] - b[i])*(k - b[i])
-                    som += (m[i] + mb)/2 * (k - b[i])/(b[i+1] - b[i])
-                    som += m[i]/2
-                    break
+                if c[i] <= k < c[i+1]:
+                    # We use the approach of Dunning here to improve interpolation when
+                    # we have single weighted points.
+                    if (m[i] > 1) & (m[i+1] > 1):
+                        # Case I: Both points greater than one, normal interpolation.
+                        yi   = som + m[i]/2
+                        yi_n = yi + (m[i+1] + m[i]) / 2
+
+                    elif (m[i] == 1) & (m[i+1] > 1):
+                        # Case I: Both points greater than one, normal interpolation.
+                        yi   = som
+                        yi_n = yi + (m[i+1]) / 2
+
+                    elif (m[i] > 1) & (m[i+1] == 1):
+                        # Case I: Both points greater than one, normal interpolation.
+                        yi   = som + m[i]/2
+                        yi_n = yi + (m[i]) / 2
+                    else:
+                        yi   = som
+                        yi_n = yi
+                        
+                    g    = (yi_n - yi) / (c[i+1] - c[i])
+                    yk   = g*(k - c[i]) + yi
+
+                    return yk / self._sumWeights()
+                    
+                    pass
                 else:
                     som += m[i]
 
-            return som / m.sum()
+    # def cdf(self, k):
+    #     som = 0
 
-        else:
-            return 1
+    #     m = self.cnts
+    #     b = self.bins
+
+    #     if k < b[0]:
+    #         return 0
+    #     elif b[0] <= k <= b[self.nActive - 1]:
+            
+    #         for i in range(self.nActive):
+    #             if b[i] <= k < b[i+1]:
+    #                 mb   = m[i] + (m[i+1] - m[i])/(b[i+1] - b[i])*(k - b[i])
+    #                 som += (m[i] + mb)/2 * (k - b[i])/(b[i+1] - b[i])
+    #                 som += m[i]/2
+    #                 break
+    #             else:
+    #                 som += m[i]
+
+    #         return som / m.sum()
+
+    #     else:
+    #         return 1
 
     @pyx.ccall
     @pyx.boundscheck(False)
@@ -324,7 +369,7 @@ class RandomVariable():
             
             w = (mi + mi_n) / 2
 
-            if s < Sp <= (s + w):
+            if s <= Sp <= (s + w):
                 g = (mi_n - mi)/(ci_n - ci)
                 A = Sp - s
 
