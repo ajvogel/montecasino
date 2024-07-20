@@ -359,8 +359,6 @@ class RandomVariable():
             c = (fb*a - fa*b) / (fb - fa)
             fc = self.cdf(c) - p
 
-            print(f'{a:.1f} <= {c:.1f} <= {b:.1f}')
-
             if fc < 0:
                 a  = c
                 fa = fc
@@ -470,17 +468,26 @@ class RandomVariable():
     def __conv__(self, other, func: pyx.int):
         s: pyx.int
         o: pyx.int
+        i: pyx.int
         pF: pyx.double
         kF: pyx.double
         final = RandomVariable()
 
-        for s in range(self.lower(), self.upper() + 1):
-            for o in range(other.lower(), other.upper() + 1):
-                pF = self.pmf(s) * other.pmf(o)
-                kF = self._applyFunc(s, o, func)
 
-                if pF > 0:
-                    final._add(kF, pF)
+        for i in range(10000):
+            s = self.sample()
+            o = other.sample()
+            kF = self._applyFunc(s, o, func)
+            final._add(kF, 1)
+            
+
+        # for s in range(self.lower(), self.upper() + 1):
+        #     for o in range(other.lower(), other.upper() + 1):
+        #         pF = self.pmf(s) * other.pmf(o)
+        #         kF = self._applyFunc(s, o, func)
+
+        #         if pF > 0:
+        #             final._add(kF, pF)
 
         # final.compress()
         return final
