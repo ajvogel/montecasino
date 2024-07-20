@@ -350,7 +350,9 @@ class RandomVariable():
         fa = 0 - p
         fb = 1 - p
 
-        while (b - a) > 0.1:
+        iter = 0
+
+        while ((b - a) > 0.1) and (iter < 100):
             c = (fb*a - fa*b) / (fb - fa)
             fc = self.cdf(c) - p
 
@@ -364,6 +366,8 @@ class RandomVariable():
                 fb = fc
             else:
                 return c
+
+            iter += 1
 
         return (b+a)/2
 
