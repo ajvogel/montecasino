@@ -282,44 +282,47 @@ class RandomVariable():
     @pyx.wraparound(False)
     @pyx.initializedcheck(False)         
     def pmf(self, kk: pyx.int) -> pyx.double:
-        i: pyx.int
-        p: pyx.double[:]
-        w: pyx.double[:]
-        k: pyx.double
-        N: pyx.double
-        m: pyx.double
-        S: pyx.double
-        W: pyx.double
-        fx: pyx.double
+        return self.cdf(kk + 0.5) - self.cdf(kk - 0.5)
 
         
-        k = pyx.cast(pyx.double, kk)
-
-        if self.nActive < self.maxBins:
-            i = self._findLastLesserOrEqualIndex(k)
-            return self._cnts[i]
+        # i: pyx.int
+        # p: pyx.double[:]
+        # w: pyx.double[:]
+        # k: pyx.double
+        # N: pyx.double
+        # m: pyx.double
+        # S: pyx.double
+        # W: pyx.double
+        # fx: pyx.double
 
         
-        if (k < self._bins[0]) or (k > self._bins[self.nActive - 1]):
-            return 0
+        # k = pyx.cast(pyx.double, kk)
 
-        i = self._findLastLesserOrEqualIndex(k)
-        p = self._bins
-        w = self._cnts
+        # if self.nActive < self.maxBins:
+        #     i = self._findLastLesserOrEqualIndex(k)
+        #     return self._cnts[i]
 
-        N = floor(p[i+1]) - ceil(p[i]) + 1
-        m = (w[i+1] - w[i])/(p[i+1] - p[i])
+        
+        # if (k < self._bins[0]) or (k > self._bins[self.nActive - 1]):
+        #     return 0
 
-        y0 = m*(ceil(p[i]) - p[i]) + w[i]
+        # i = self._findLastLesserOrEqualIndex(k)
+        # p = self._bins
+        # w = self._cnts
 
-        S = (N/2)*(2*y0 + m*(N-1))
-        # W = self.cnts.sum()
-        W = self._sumWeights()
+        # N = floor(p[i+1]) - ceil(p[i]) + 1
+        # m = (w[i+1] - w[i])/(p[i+1] - p[i])
 
-        fx = m*(k - p[i]) + w[i]
+        # y0 = m*(ceil(p[i]) - p[i]) + w[i]
+
+        # S = (N/2)*(2*y0 + m*(N-1))
+        # # W = self.cnts.sum()
+        # W = self._sumWeights()
+
+        # fx = m*(k - p[i]) + w[i]
 
 
-        return (fx / (2*W*S))*(w[i] + w[i+1])
+        # return (fx / (2*W*S))*(w[i] + w[i+1])
 
     @pyx.ccall
     @pyx.boundscheck(False)
