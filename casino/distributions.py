@@ -23,6 +23,22 @@ class Constant(RandomVariable):
 
 #---------------------------------------------------------------------------------------------------
 
+
+# class Uniform(RandomVariable):
+#     def __init__(self, left, right) -> None:
+#         nActive = right - left + 1
+
+#         bins = np.arange(float(left), float(right + 1))
+#         print(bins)
+#         wgts = np.ones_like(bins)
+#         print(wgts)
+
+#         RandomVariable.__init__(self, maxBins=nActive)
+#         self.setBins(bins)
+#         self.setWeights(wgts)
+#         self.setActiveBinCount(nActive)
+
+
 class Uniform(RandomVariable):
     def __init__(self, left, right) -> None:
         self.left  = left
@@ -31,11 +47,15 @@ class Uniform(RandomVariable):
         self.p = 1. / ((self.right - self.left) + 1)
 
 
-    def pmf(self, k):
-        if self.left <= k <= self.right:
+    def pmf(self, kk):
+        if self.left <= kk <= self.right:
             return self.p
         else:
             return 0
+
+    def sample(self, size=1):
+        return np.random.randint(self.left, self.right+1)
+
 
     def lower(self):
         return self.left

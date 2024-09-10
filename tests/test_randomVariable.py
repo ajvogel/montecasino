@@ -14,10 +14,10 @@ def test_addTwoUniform():
     # print(x.maxBins)
 
     for i in range(2, 13):
-        print(x.pmf(i))
+        print(i, x.pmf(i))
 
-    # print(x.bins)
-    # print(x.cnts)
+    print("Bins = ",x.getBins())
+    print("Wgts = ",x.getWeights())
     
     assert abs(x.pmf(2) - 0.0277) <= 1e-4
     assert abs(x.pmf(3) - 0.0555) <= 1e-4

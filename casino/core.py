@@ -247,10 +247,13 @@ class RandomVariable():
                     yk   = g*(k - c[i]) + yi
 
                     return yk / self._sumWeights()
-                    
-                    pass
+
                 else:
                     som += m[i]
+
+            print(k)
+            print(self.getBins())
+            print(self.getWeights())
 
     # def cdf(self, k):
     #     som = 0
@@ -474,20 +477,20 @@ class RandomVariable():
         final = RandomVariable()
 
 
-        for i in range(10000):
-            s = self.sample()
-            o = other.sample()
-            kF = self._applyFunc(s, o, func)
-            final._add(kF, 1)
+        # for i in range(100000):
+        #     s = self.sample()
+        #     o = other.sample()
+        #     kF = self._applyFunc(s, o, func)
+        #     final._add(kF, 1)
             
 
-        # for s in range(self.lower(), self.upper() + 1):
-        #     for o in range(other.lower(), other.upper() + 1):
-        #         pF = self.pmf(s) * other.pmf(o)
-        #         kF = self._applyFunc(s, o, func)
+        for s in range(self.lower(), self.upper() + 1):
+            for o in range(other.lower(), other.upper() + 1):
+                pF = self.pmf(s) * other.pmf(o)
+                kF = self._applyFunc(s, o, func)
 
-        #         if pF > 0:
-        #             final._add(kF, pF)
+                if pF > 0:
+                    final._add(kF, pF)
 
         # final.compress()
         return final
