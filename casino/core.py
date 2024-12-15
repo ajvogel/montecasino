@@ -19,6 +19,97 @@ if pyx.compiled:
 else:
     print('WARNING: Not Compiled.')
 
+
+
+
+
+
+
+#---[ VirtualMachine ]----------------------------------------------------------
+
+PASS    = 0
+PUSH    = 1
+ADD     = 2
+MUL     = 3
+POW     = 4
+RANDINT = 5
+
+class VirtualMachine():
+    def __init__(self, codes, operands) -> None:
+        self.codes    = codes
+        self.operands = operands
+        self.stack    = np.zeros(100)
+        self.stackCount = 0
+
+    def pushStack(self, value):
+        self.stack[self.stackCount] = value
+        self.stackCount += 1
+
+    def popStack(self):
+        assert self.stackCount > 0
+        self.stackCount -= 1
+        return self.stack[self.stackCount]
+
+    def _add(self):
+        x1 = self.popStack()
+        x2 = self.popStack()
+        self.pushStack(x1 + x2)
+
+    def _mul(self):
+        x1 = self.popStack()
+        x2 = self.popStack()
+        self.pushStack(x1 * x2)        
+        
+    def _pow(self):
+        x1 = self.popStack()
+        x2 = self.popStack()
+        self.pushStack(x1 ** x2)
+
+    def _randInt(self):
+        l = self.popStack()
+        h = self.popStack()
+        self.pushStack(np.random.randint(l, h))
+        
+    def run(self):
+
+        N     = self.codes.shape(0)
+        i     = 0
+
+        while i < N:
+            opCode = self.codes[i]
+
+            if   opCode == PASS:
+                pass
+            elif opCode == PUSH:    self.pushStack(self.operands[i])
+            elif opCode == ADD:     self._add()
+            elif opCode == MUL:     self._mul()
+            elif opCode == POW:     self._pow()
+            elif opCode == RANDINT: self._randInt()
+
+            i += 1
+
+        return self.popStack()
+                
+                
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
 LOWER = (1 - 0.9999) / 2
 UPPER = 1 - LOWER 
 
