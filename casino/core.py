@@ -66,13 +66,13 @@ class VirtualMachine():
         self.pushStack(x1 ** x2)
 
     def _randInt(self):
-        l = self.popStack()
         h = self.popStack()
+        l = self.popStack()
         self.pushStack(np.random.randint(l, h))
         
-    def run(self):
+    def compute(self):
 
-        N     = self.codes.shape(0)
+        N     = self.codes.shape[0]
         i     = 0
 
         while i < N:
@@ -89,6 +89,9 @@ class VirtualMachine():
             i += 1
 
         return self.popStack()
+
+    def run(self):
+        return self.compute()
                 
                 
             
