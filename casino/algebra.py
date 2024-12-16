@@ -86,6 +86,14 @@ class Node():
         vm = VirtualMachine(codes, operands)
         return vm.run()
 
+    def sample(self, samples=10000, maxBins=32):
+        print('Compiling...')
+        codes, operands = self.compile()
+        vm = VirtualMachine(codes, operands)
+        print('Simulating...')
+        return vm.sample(samples=samples, maxBins=maxBins)
+        
+
 class Num(Node):
     def printTree(self,level=0):
         print(' '*level*4+str(self.children[0]))

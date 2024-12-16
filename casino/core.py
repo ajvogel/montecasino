@@ -34,7 +34,16 @@ MUL     = 3
 POW     = 4
 RANDINT = 5
 
+@pyx.cclass
 class VirtualMachine():
+    _codes: pyx.double[:]
+    _operands: pyx.double[:]
+    _stack: pyx.double[:]    
+
+    codes: np.ndarray
+    operands: np.ndarray
+    stack: np.ndarray
+    stackCount: pyx.int
     def __init__(self, codes, operands) -> None:
         self.codes    = codes
         self.operands = operands
@@ -50,6 +59,8 @@ class VirtualMachine():
         self.stackCount -= 1
         return self.stack[self.stackCount]
 
+
+    @pyx.cfunc
     def _add(self):
         x1 = self.popStack()
         x2 = self.popStack()
@@ -65,15 +76,15 @@ class VirtualMachine():
         x2 = self.popStack()
         self.pushStack(x1 ** x2)
 
+    @pyx.cfunc
     def _randInt(self):
         h = self.popStack()
         l = self.popStack()
         self.pushStack(np.random.randint(l, h))
         
     def compute(self):
-
-        N     = self.codes.shape[0]
-        i     = 0
+        N:pyx.int = self.codes.shape[0]
+        i:pyx.int = 0
 
         while i < N:
             opCode = self.codes[i]
@@ -90,21 +101,17 @@ class VirtualMachine():
 
         return self.popStack()
 
+    def sample(self, samples=10000, maxBins=32):
+        rv = RandomVariable(maxBins=maxBins)
+        for i in range(samples):
+            x = self.compute()
+            rv.add(x)
+
+        return rv
+
     def run(self):
         return self.compute()
                 
-                
-            
-
-
-
-
-
-
-
-
-
-
 
 
 
