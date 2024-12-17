@@ -8,6 +8,8 @@ if pyx.compiled:
     from cython.cimports.libc.math import round as round
     from cython.cimports.libc.math import ceil as ceil
     from cython.cimports.libc.math import floor as floor
+    from cython.cimports.libc.stdlib import rand as rand
+    from cython.cimports.libc.stdlib import RAND_MAX as RAND_MAX
 else:
     ceil = np.ceil
     floor = np.floor
@@ -27,16 +29,16 @@ else:
 
 #---[ VirtualMachine ]----------------------------------------------------------
 
-PASS    = 0
-PUSH    = 1
-ADD     = 2
-MUL     = 3
-POW     = 4
-RANDINT = 5
+PASS:pyx.int    = 0
+PUSH:pyx.int    = 1
+ADD:pyx.int    = 2
+MUL:pyx.int     = 3
+POW:pyx.int     = 4
+RANDINT:pyx.int = 5
 
 @pyx.cclass
 class VirtualMachine():
-    _codes: pyx.double[:]
+    _codes: pyx.long[:]
     _operands: pyx.double[:]
     _stack: pyx.double[:]    
 
@@ -50,48 +52,90 @@ class VirtualMachine():
         self.stack    = np.zeros(100)
         self.stackCount = 0
 
-    def pushStack(self, value):
-        self.stack[self.stackCount] = value
-        self.stackCount += 1
+    # Init the memory view.fdd
+        self._codes = self.codes
+        self._operands = self.operands
+        self._stack   = self.stack
 
-    def popStack(self):
+    @pyx.ccall
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)    
+    @pyx.initializedcheck(False)       
+    def pushStack(self, value: pyx.double):
+        self._stack[self.stackCount] = value
+        self.stackCount += 1
+        
+    @pyx.ccall
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)    
+    @pyx.initializedcheck(False)            
+    def popStack(self) -> pyx.float:
         assert self.stackCount > 0
         self.stackCount -= 1
-        return self.stack[self.stackCount]
+        return self._stack[self.stackCount]
 
 
     @pyx.cfunc
-    def _add(self):
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)    
+    @pyx.initializedcheck(False)     
+    def _add(self) -> pyx.void:
         x1 = self.popStack()
         x2 = self.popStack()
         self.pushStack(x1 + x2)
-
-    def _mul(self):
+        
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)    
+    @pyx.initializedcheck(False)
+    def _mul(self) -> pyx.void:
         x1 = self.popStack()
         x2 = self.popStack()
         self.pushStack(x1 * x2)        
-        
-    def _pow(self):
+
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)    
+    @pyx.initializedcheck(False)        
+    def _pow(self) -> pyx.void:
         x1 = self.popStack()
         x2 = self.popStack()
         self.pushStack(x1 ** x2)
 
     @pyx.cfunc
-    def _randInt(self):
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)    
+    @pyx.initializedcheck(False)        
+    def _randInt(self) -> pyx.void:
         h = self.popStack()
         l = self.popStack()
-        self.pushStack(np.random.randint(l, h))
+  
+        x: pyx.double = pyx.cast(pyx.double, ((h - l)*rand() + l) / pyx.cast(pyx.double, RAND_MAX))
+        x = round(x)
         
-    def compute(self):
-        N:pyx.int = self.codes.shape[0]
+        self.pushStack(x)
+        
+    @pyx.ccall
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)    
+    @pyx.initializedcheck(False)            
+    def compute(self) -> pyx.float:
+        PASS:pyx.int    = 0
+        PUSH:pyx.int    = 1
+        ADD:pyx.int    = 2
+        MUL:pyx.int     = 3
+        POW:pyx.int     = 4
+        RANDINT:pyx.int = 5        
+        N:pyx.int = self._codes.shape[0]
         i:pyx.int = 0
+        opCode: pyx.long
 
         while i < N:
-            opCode = self.codes[i]
+            opCode = self._codes[i]
 
             if   opCode == PASS:
                 pass
-            elif opCode == PUSH:    self.pushStack(self.operands[i])
+            elif opCode == PUSH:    self.pushStack(self._operands[i])
             elif opCode == ADD:     self._add()
             elif opCode == MUL:     self._mul()
             elif opCode == POW:     self._pow()
@@ -101,11 +145,12 @@ class VirtualMachine():
 
         return self.popStack()
 
-    def sample(self, samples=10000, maxBins=32):
+    def sample(self, samples:pyx.int=10000, maxBins:pyx.int=32):
         rv = RandomVariable(maxBins=maxBins)
+        i: pyx.int
         for i in range(samples):
-            x = self.compute()
-            rv.add(x)
+            x:pyx.float = self.compute()
+            rv._add(x, 1)
 
         return rv
 

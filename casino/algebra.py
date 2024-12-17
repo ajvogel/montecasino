@@ -78,7 +78,7 @@ class Node():
         operands = []
         self._compile(codes, operands)
         codes = np.array(codes)
-        operands = np.array(operands)
+        operands = np.array(operands, dtype=np.double)
         return codes, operands
 
     def compute(self):
