@@ -9,12 +9,12 @@ import casino as cs
 
 print('Running...')
 tic = time.time()
-tri1 = cs.Triangular(10, 30, 50)
+tri1 = cs.Uniform(1, 100)
 
 bla = tri1
 
-for i in range(15):
-    bla = bla + cs.Triangular(10, 30, 50)
+for i in range(50):
+    bla = bla + cs.Uniform(1, 100)
 
 toc = time.time()
 
@@ -23,7 +23,7 @@ toc = time.time()
 
 # cs.printPMF(bla)
 
-print(f'Took {(toc - tic) * 1000} milliseconds')
+print(f'Took {(toc - tic) } seconds...')
 
 
 

@@ -8,7 +8,9 @@ if pyx.compiled:
     from cython.cimports.libc.math import round as round
     from cython.cimports.libc.math import ceil as ceil
     from cython.cimports.libc.math import floor as floor
+    from cython.cimports.libc.time import time as c_time
     from cython.cimports.libc.stdlib import rand as rand
+    from cython.cimports.libc.stdlib import srand as c_srand    
     from cython.cimports.libc.stdlib import RAND_MAX as RAND_MAX
 else:
     ceil = np.ceil
@@ -22,7 +24,7 @@ else:
     print('WARNING: Not Compiled.')
 
 
-
+c_srand(c_time(pyx.NULL))
 
 
 
