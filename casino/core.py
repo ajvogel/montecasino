@@ -5,13 +5,13 @@ import numpy as np
 import cython as pyx
 
 if pyx.compiled:
-    from cython.cimports.libc.math import round as round
+    from cython.cimports.libc.math import round as c_round
     from cython.cimports.libc.math import ceil as ceil
     from cython.cimports.libc.math import floor as floor
     from cython.cimports.libc.time import time as c_time
-    from cython.cimports.libc.stdlib import rand as rand
+    from cython.cimports.libc.stdlib import rand as c_rand
     from cython.cimports.libc.stdlib import srand as c_srand    
-    from cython.cimports.libc.stdlib import RAND_MAX as RAND_MAX
+    from cython.cimports.libc.stdlib import RAND_MAX as c_RAND_MAX
 else:
     ceil = np.ceil
     floor = np.floor
@@ -25,6 +25,32 @@ else:
 
 
 c_srand(c_time(pyx.NULL))
+
+#---[ Probability Distributions ]-----------------------------------------------
+
+# Rand
+@pyx.cfunc
+def _rand() -> pyx.double:
+    out:pyx.double = pyx.cast(pyx.double, c_rand()) / pyx.cast(pyx.double, c_RAND_MAX)
+    return out
+
+# RandInt
+@pyx.cfunc
+def _randint(l: pyx.double, h: pyx.double) -> pyx.double:
+    return c_round((h - l) * _rand() + l)
+    
+    
+
+
+
+
+# NormalDistribution
+
+
+# Pert Distribution
+
+
+# Negative Binomial
 
 
 
@@ -111,11 +137,10 @@ class VirtualMachine():
     def _randInt(self) -> pyx.void:
         h = self.popStack()
         l = self.popStack()
-  
-        x: pyx.double = pyx.cast(pyx.double, ((h - l)*rand() + l) / pyx.cast(pyx.double, RAND_MAX))
-        x = round(x)
+
+        # x: pyx.double = c_round((h - l)*_rand() + l)
         
-        self.pushStack(x)
+        self.pushStack(pyx.cast(pyx.double, _randint(l,h)))
         
     @pyx.ccall
     @pyx.boundscheck(False)
