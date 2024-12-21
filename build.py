@@ -18,7 +18,7 @@ def build(setup_kwds):
     #     sources=["casino/core.py"]
     # )
 
-    cythonized = cythonize("casino/core.py", annotate=True, force=True)
+    cythonized = cythonize(["casino/core.py","casino/ranlib/distributions.py"], annotate=True, force=True)
 
     dist = Distribution({
         "ext_modules":cythonized,
