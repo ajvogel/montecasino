@@ -20,7 +20,7 @@ else:
 
 if pyx.compiled:
     print('Running through Cython!')
-else:
+else:  
     print('WARNING: Not Compiled.')
 
 
@@ -39,7 +39,7 @@ def _rand() -> pyx.double:
 def _randint(l: pyx.double, h: pyx.double) -> pyx.double:
     return c_round((h - l) * _rand() + l)
     
-    
+
 
 
 
