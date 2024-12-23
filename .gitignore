@@ -5,11 +5,12 @@ __pycache__/
 # C extensions
 *.so
 pyrightconfig.json
-
+*~
 /build/
 /dist/
 /casino.sublime-project
 /casino.sublime-workspace
-*.c
 /casino/*.html
 /setup.py
+casino/random.c
+casino/core.c
