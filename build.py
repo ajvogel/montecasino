@@ -21,7 +21,10 @@ def build(setup_kwds):
     cythonized = cythonize([
         "casino/core.py",
         "casino/random.py"
-                           ], annotate=True, force=True)
+                           ],
+        annotate=True,
+        force=True,
+    include_path=['casino/'])
 
     dist = Distribution({
         "ext_modules":cythonized,
