@@ -1,6 +1,6 @@
 import cython as pyx
 
 @pyx.ccall
-def normal() -> pyx.float:
-    return snorm()
+def normal(mu: pyx.float , std: pyx.float) -> pyx.float:
+    return snorm()*std + mu
 
