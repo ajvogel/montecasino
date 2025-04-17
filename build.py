@@ -19,8 +19,9 @@ def build(setup_kwds):
     # )
 
     cythonized = cythonize([
-        "casino/core.py",
-        "casino/random.py"
+        "casino/random.py",
+        "casino/digest.py",
+        "casino/engine.py"
                            ],
         annotate=True,
         force=True,
@@ -30,7 +31,7 @@ def build(setup_kwds):
         "ext_modules":cythonized,
         "cmdclass": {
             "build_ext": cython_build_ext,
-        },        
+        },
     })
 
 
@@ -44,10 +45,10 @@ def build(setup_kwds):
         mode = os.stat(relative_extension).st_mode
         mode |= (mode & 0o444) >> 2
         os.chmod(relative_extension, mode)
-    
-    # breakpoint()          
-    # build_ext_cmd.copy_extensions_to_source() 
-    
+
+    # breakpoint()
+    # build_ext_cmd.copy_extensions_to_source()
+
 if __name__ == "__main__":
     build(None)
 
@@ -169,5 +170,3 @@ if __name__ == "__main__":
 # except Exception:
 #     if not allowed_to_fail:
 #         raise
-
-
