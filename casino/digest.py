@@ -311,29 +311,6 @@ class Digest():
             print(self.getBins())
             print(self.getWeights())
 
-    # def cdf(self, k):
-    #     som = 0
-
-    #     m = self.cnts
-    #     b = self.bins
-
-    #     if k < b[0]:
-    #         return 0
-    #     elif b[0] <= k <= b[self.nActive - 1]:
-
-    #         for i in range(self.nActive):
-    #             if b[i] <= k < b[i+1]:
-    #                 mb   = m[i] + (m[i+1] - m[i])/(b[i+1] - b[i])*(k - b[i])
-    #                 som += (m[i] + mb)/2 * (k - b[i])/(b[i+1] - b[i])
-    #                 som += m[i]/2
-    #                 break
-    #             else:
-    #                 som += m[i]
-
-    #         return som / m.sum()
-
-    #     else:
-    #         return 1
 
     @pyx.ccall
     @pyx.boundscheck(False)
@@ -344,44 +321,7 @@ class Digest():
         return self.cdf(kk + 0.5) - self.cdf(kk - 0.5)
 
 
-        # i: pyx.int
-        # p: pyx.double[:]
-        # w: pyx.double[:]
-        # k: pyx.double
-        # N: pyx.double
-        # m: pyx.double
-        # S: pyx.double
-        # W: pyx.double
-        # fx: pyx.double
 
-
-        # k = pyx.cast(pyx.double, kk)
-
-        # if self.nActive < self.maxBins:
-        #     i = self._findLastLesserOrEqualIndex(k)
-        #     return self._cnts[i]
-
-
-        # if (k < self._bins[0]) or (k > self._bins[self.nActive - 1]):
-        #     return 0
-
-        # i = self._findLastLesserOrEqualIndex(k)
-        # p = self._bins
-        # w = self._cnts
-
-        # N = floor(p[i+1]) - ceil(p[i]) + 1
-        # m = (w[i+1] - w[i])/(p[i+1] - p[i])
-
-        # y0 = m*(ceil(p[i]) - p[i]) + w[i]
-
-        # S = (N/2)*(2*y0 + m*(N-1))
-        # # W = self.cnts.sum()
-        # W = self._sumWeights()
-
-        # fx = m*(k - p[i]) + w[i]
-
-
-        # return (fx / (2*W*S))*(w[i] + w[i+1])
 
     @pyx.ccall
     @pyx.boundscheck(False)
@@ -431,45 +371,6 @@ class Digest():
 
         return (b+a)/2
 
-
-
-
-    # def quantile(self, p):
-    #     c  = self._bins
-    #     m  = self._cnts
-
-    #     S  = self._sumWeights()
-    #     Sp = S*p
-    #     s = 0
-
-    #     for i in range(-1, self.nActive):
-    #         if i == -1:
-    #             ci   = c[i+1] - 0.1
-    #             ci_n = c[i+1]
-    #             mi   = 0
-    #             mi_n = m[i+1]
-    #         elif i == self.nActive - 1:
-    #             ci   = c[i]
-    #             ci_n = c[i] + 0.1
-    #             mi   = m[i]
-    #             mi_n = 0
-    #         else:
-    #             ci   = c[i]
-    #             ci_n = c[i+1]
-    #             mi   = m[i]
-    #             mi_n = m[i+1]
-
-    #         w = (mi + mi_n) / 2
-
-    #         if s <= Sp <= (s + w):
-    #             g = (mi_n - mi)/(ci_n - ci)
-    #             A = Sp - s
-
-    #             cp = (-mi + (mi**2 + 2*g*A)**0.5)/g + ci
-    #             return cp
-
-    #         else:
-    #             s += w
 
 
     def compress(self):
