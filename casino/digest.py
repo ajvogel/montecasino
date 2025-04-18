@@ -18,7 +18,7 @@ if pyx.compiled:
     from cython.cimports.libc.stdlib import rand as c_rand
     from cython.cimports.libc.stdlib import srand as c_srand
     from cython.cimports.libc.stdlib import RAND_MAX as c_RAND_MAX
-    from cython.cimports.random import normal
+    # from cython.cimports.random import normal
 else:
     ceil = np.ceil
     floor = np.floor
@@ -31,46 +31,22 @@ else:
     print('WARNING: Not Compiled.')
 
 
-c_srand(c_time(pyx.NULL))
+# c_srand(c_time(pyx.NULL))
 
 #---[ Probability Distributions ]-----------------------------------------------
 
-# Rand
-@pyx.cfunc
-def _rand() -> pyx.double:
-    out:pyx.double = pyx.cast(pyx.double, c_rand()) / pyx.cast(pyx.double, c_RAND_MAX)
-    return out
+# # Rand
+# @pyx.cfunc
+# def _rand() -> pyx.double:
+#     out:pyx.double = pyx.cast(pyx.double, c_rand()) / pyx.cast(pyx.double, c_RAND_MAX)
+#     return out
 
-# RandInt
-@pyx.cfunc
-def _randint(l: pyx.double, h: pyx.double) -> pyx.double:
-    return c_round((h - l) * _rand() + l)
-
-
+# # RandInt
+# @pyx.cfunc
+# def _randint(l: pyx.double, h: pyx.double) -> pyx.double:
+#     return c_round((h - l) * _rand() + l)
 
 
-
-
-# NormalDistribution
-
-
-# Pert Distribution
-
-
-# Negative Binomial
-
-
-
-
-#---[ VirtualMachine ]----------------------------------------------------------
-
-
-
-
-
-
-
-#---[ Digest ]------------------------------------------------------------------
 
 # TDigest
 
@@ -95,7 +71,7 @@ DEFAULTS = {
 
 
 @pyx.cclass
-class Digest():
+class TDigest():
     _bins: pyx.double[:]
     _cnts: pyx.double[:]
 
@@ -371,83 +347,5 @@ class Digest():
 
         return (b+a)/2
 
-
-
-    def compress(self):
-        pass
-
-    # --- Convolution related functions....
-
-    @pyx.cfunc
-    @pyx.boundscheck(False)
-    @pyx.initializedcheck(False)
-    def _applyFunc(self, iS: pyx.int, iO:pyx.int, func:pyx.int) -> pyx.int:
-        __ADD__:pyx.int = 0
-        __MUL__:pyx.int = 1
-        __MAX__:pyx.int = 2
-        __MIN__:pyx.int = 3
-        __SUB__:pyx.int = 4
-        __POW__:pyx.int = 5
-
-        iF: pyx.int = 0
-
-        if func == __ADD__:
-            iF = iS + iO
-        elif func == __MUL__:
-            iF = iO*iS
-        elif func == __MAX__:
-            iF = iO if iO > iS else iS
-        elif func == __MIN__:
-            iF = iO  if iO < iS else iS
-        elif func == __SUB__:
-            iF = iS - iO
-        elif func == __POW__:
-            iF = iS**iO
-
-        return iF
-
-    def __add__(self, other):
-        return self.__conv__(other, __ADD__)
-
-    def __sub__(self, other):
-        return self.__conv__(other, __SUB__)
-
-    def __mul__(self, other):
-        return self.__conv__(other, __MUL__)
-
-    def __max__(self, other):
-        return self.__conv__(other, __MAX__)
-
-    def __min__(self, other):
-        return self.__conv__(other, __MIN__)
-
-    def __pow__(self, other):
-        return self.__conv__(other, __POW__)
-
-    @pyx.ccall
-    def __conv__(self, other, func: pyx.int):
-        s: pyx.int
-        o: pyx.int
-        i: pyx.int
-        pF: pyx.double
-        kF: pyx.double
-        final = RandomVariable()
-
-
-        # for i in range(100000):
-        #     s = self.sample()
-        #     o = other.sample()
-        #     kF = self._applyFunc(s, o, func)
-        #     final._add(kF, 1)
-
-
-        for s in range(self.lower(), self.upper() + 1):
-            for o in range(other.lower(), other.upper() + 1):
-                pF = self.pmf(s) * other.pmf(o)
-                kF = self._applyFunc(s, o, func)
-
-                if pF > 0:
-                    final._add(kF, pF)
-
-        # final.compress()
-        return final
+    def median(self):
+        return self.quantile(0.5)

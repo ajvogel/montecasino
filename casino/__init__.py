@@ -1,7 +1,7 @@
 # from .distributions import *
 # from . import nbinom
-from .core import *
-from .distributions import *
+from .digest import *
+#from .distributions import *
 import builtins
 
 __version__ = '0.2.0.post7.dev0+3e6fe06'
@@ -25,7 +25,7 @@ def max(*args):
     for val2 in args[1:]:
         val1 = val1.__max__(val2)
 
-    return val1    
+    return val1
 
 
 def min(*args):
@@ -34,11 +34,11 @@ def min(*args):
     for val2 in args[1:]:
         val1 = val1.__min__(val2)
 
-    return val1    
+    return val1
 
 
 def printPMF(rv):
-    
+
     kVec = []
     pVec = []
 
@@ -49,7 +49,7 @@ def printPMF(rv):
         kVec.append(k)
         pVec.append(p)
         cumProb += rv.pmf(k)
-        k += 1 
+        k += 1
 
     maxP = builtins.max(pVec)
 
@@ -66,4 +66,3 @@ def fromScipy(rvScipy, maxBins=32, samples=1000):
     counts = np.ones_like(data)
     rv = RandomVariable(maxBins=maxBins, data=data, counts=counts)
     return rv
-    
