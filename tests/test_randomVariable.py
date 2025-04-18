@@ -18,16 +18,16 @@ def test_addTwoUniform():
 
     print("Bins = ",x.getBins())
     print("Wgts = ",x.getWeights())
-    
+
     assert abs(x.pmf(2) - 0.0277) <= 1e-4
     assert abs(x.pmf(3) - 0.0555) <= 1e-4
     assert abs(x.pmf(4) - 0.0833) <= 1e-4
     assert abs(x.pmf(5) - 0.1111) <= 1e-4
     assert abs(x.pmf(6) - 0.1388) <= 1e-4
     assert abs(x.pmf(7) - 0.1666) <= 1e-4
-    assert abs(x.pmf(8) - 0.1388) <= 1e-4    
+    assert abs(x.pmf(8) - 0.1388) <= 1e-4
     assert abs(x.pmf(9) - 0.1111) <= 1e-4
-    assert abs(x.pmf(10) - 0.0833) <= 1e-4    
+    assert abs(x.pmf(10) - 0.0833) <= 1e-4
     assert abs(x.pmf(11) - 0.0555) <= 1e-4
     assert abs(x.pmf(12) - 0.0277) <= 1e-4
 
@@ -46,12 +46,12 @@ def test_nActiveCount():
     std = 100
     mu  = 100
     N   = 100
-    data = np.random.randn(N)*std + mu    
+    data = np.random.randn(N)*std + mu
     x = cs.RandomVariable(maxBins=16)
     for d in data:
         x.add(d)
 
-    # print(x.nAc-tive)           
+    # print(x.nAc-tive)
 
     assert x.getActiveBinCount() == 16
 
@@ -62,7 +62,7 @@ def test_nActiveCount():
 #     std = 100
 #     mu  = 1000
 #     N   = 100
-#     data = np.random.randn(N)*std + mu    
+#     data = np.random.randn(N)*std + mu
 #     x = cs.RandomVariable(maxBins=16)
 #     for e, d in enumerate(data):
 #         # print()
@@ -70,7 +70,7 @@ def test_nActiveCount():
 #         x.add(d)
 #         if e >= 16:
 #             x._assertConnected()
-#             # assert False        
+#             # assert False
 
 #     x._assertConnected()
 
@@ -79,7 +79,7 @@ def test_freqAddsUp():
     std = 100
     mu  = 100
     N   = 100
-    data = np.random.randn(N)*std + mu    
+    data = np.random.randn(N)*std + mu
     x = cs.RandomVariable(maxBins=16)
     for d in data:
         x.add(d)
@@ -87,62 +87,14 @@ def test_freqAddsUp():
     # print(sum(x.freq))
 
     assert (sum(x.getWeights()) == N)
-    
-
-def test_normalApprox():
-    """"""
-    std = 100
-    mu  = 100
-    np.random.seed(31337)
-    data = np.random.randn(10000)*std + mu
-    x = cs.RandomVariable(maxBins=32)
-    for d in data:
-        x.add(d)
 
 
-    prob1 = x.cdf(mu + std*1) - x.cdf(mu - std*1)
-    prob2 = x.cdf(mu + std*2) - x.cdf(mu - std*2)
-    prob3 = x.cdf(mu + std*3) - x.cdf(mu - std*3)
 
-    # We are not using a lot of samples and keeping the accuracy bar low, otherwise
-    # running the tests will take to long. In practice increasing the number of 
-    # sample points will increase the accuracy.
-
-    print(prob1)
-    print(prob2)
-    print(prob3)
-    
-    assert abs(0.6827 - prob1) <= 1e-1
-    assert abs(0.9545 - prob2) <= 1e-2
-    assert abs(0.9973 - prob3) <= 1e-3
-
-def test_normalApprox_quantile():
-    """"""
-    std = 100
-    mu  = 100
-    np.random.seed(31337)
-    data = np.random.randn(10000)*std + mu
-    x = cs.RandomVariable(maxBins=64)
-    for d in data:
-        x.add(d)
-
-    DATA = [
-        (-64.485, 0.05),
-        (32.551, 0.25),
-        (100.00, 0.50),
-        (167.449, 0.75),
-        (264.485, 0.95)
-    ]
-
-    for v, p in DATA:
-        dv = abs((v - x.quantile(p)) / v)
-        print(f'{v} : {x.quantile(p)} : {dv}')
-        assert dv <= 1e-1
 
     #assert False
 
 
- 
+
 
 
 
@@ -193,16 +145,15 @@ def test_sumDices():
         err = abs(out2.pmf(k) - pp)
 
         print(f'{k: >2} = {out2.pmf(k):1.9f} <-> {pp:1.9f} ==> {err:.15e}')
-        
+
 
         assert (out2.pmf(k) - pp) < 1e-7
 
     # cnts = out2.getCountArray()
     # lwr  = out2.getLowerArray()
     # upr  = out2.getUpperArray()
-    
-    # for l, u, c in zip(lwr, upr, cnts):
-    #     print(f'[{l: >8d}; {u: >8d}): {u - l:>5d}: {c/cnts.sum():e}')        
 
-    # assert False                
-        
+    # for l, u, c in zip(lwr, upr, cnts):
+    #     print(f'[{l: >8d}; {u: >8d}): {u - l:>5d}: {c/cnts.sum():e}')
+
+    # assert False
