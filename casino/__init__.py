@@ -1,6 +1,7 @@
 # from .distributions import *
 # from . import nbinom
 from .digest import *
+from .ranvar import *
 #from .distributions import *
 import builtins
 

@@ -3,7 +3,8 @@ import numpy as np
 
 def test_addTwoUniform():
     """addUniform"""
-    x = cs.Uniform(1,6) + cs.Uniform(1,6)
+    x = cs.RandInt(1,6) + cs.RandInt(1,6)
+    x = x.compute()
     # print(x.lower)
     # print(x.upper)
     # print(x.count)
@@ -33,7 +34,7 @@ def test_addTwoUniform():
 
 
 def test_lowerBound_and_upperBound():
-    x = cs.Uniform(1,6) + cs.Uniform(1,6)
+    x = cs.RandInt(1,6) + cs.RandInt(1,6)
     # print(x.lower())
     # print(x.upper())
     # print(x.bins)

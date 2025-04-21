@@ -1,16 +1,12 @@
 import numpy as np
-from .digest import Digest
+from .digest import TDigest
+from .engine import Engine
 
 
 for x in range(5):
     print(x)
 
-__PASS__    = 0
-__PUSH__    = 1
-__ADD__     = 2
-__MUL__     = 3
-__POW__     = 4
-__RANDINT__ = 5
+
 
 class RandomVariable():
     def __init__(self, *args):
@@ -22,35 +18,14 @@ class RandomVariable():
     def __mul__(self, other):
         return MUL(self, other)
 
+    def __sub__(self, other):
+        return SUB(self, other)
+
+    def __div__(self, other):
+        return DIV(self, other)
+
     def __pow__(self, other):
         return POW(self, other)
-
-    def __truediv__(self, other):
-        pass
-
-    def __floordiv__(self, other):
-        pass
-
-    def __divmod__(self, other):
-        pass
-
-    def __radd__(self, other):
-        pass
-
-    def __rmul__(self, other):
-        pass
-
-    def __rpow__(self, other):
-        pass
-
-    def __rtruediv__(self, other):
-        pass
-
-    def __rfloordiv__(self, other):
-        pass
-
-    def __rdivmod__(self, other):
-        pass
 
     def printTree(self, level=0):
         print(' '*level*4+self.__class__.__name__)
@@ -60,18 +35,22 @@ class RandomVariable():
             else:
                 print(' '*(level + 1)*4+str(c))
 
+    def _compileWithChildren(self, codes, operands):
+        self._compileChildren(codes, operands)
+        self._compile(codes, operands)
+
     def _compile(self, codes, operands):
-        pass
+        raise NotImplementedError
 
     def _compileChildren(self, codes, operands):
         for c in self.children:
-            if hasattr(c, '_compile'):
+            if hasattr(c, '_compileWithChildren'):
+                c._compileWithChildren(codes, operands)
+            elif hasattr(c, '_compile'):
                 c._compile(codes, operands)
             else:
-                codes.append(__PUSH__)
+                codes.append(Engine.__PUSH__)
                 operands.append(c)
-
-                # program.append(('PSH',c))
 
     def compile(self):
         codes    = []
@@ -83,48 +62,59 @@ class RandomVariable():
 
     def compute(self):
         codes, operands = self.compile()
-        vm = VirtualMachine(codes, operands)
-        return vm.run()
+        vm = Engine(codes, operands)
+        return vm.compute()
 
-    def sample(self, samples=10000, maxBins=32):
-        print('Compiling...')
-        codes, operands = self.compile()
-        vm = VirtualMachine(codes, operands)
-        print('Simulating...')
-        return vm.sample(samples=samples, maxBins=maxBins)
+class RandomVariableDigest(RandomVariable):
+    def _compile(self, codes, operands):
+        self._compileChildren(codes, operands)
+        codes.append(Engine.__DIGEST__)
+        operands.append(0)
 
-
-class Num(Node):
+class Num(RandomVariable):
     def printTree(self,level=0):
         print(' '*level*4+str(self.children[0]))
 
     def _compile(self, codes, operands):
-        codes.append(__PUSH__)
+        codes.append(Engine.__PUSH__)
         operands.append(self.children[0])
         # program.append(('PSH', self.children[0]))
 
 
-class RandInt(Node):
+class RandInt(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
-        codes.append(__RANDINT__)
+        codes.append(Engine.__RANDINT__)
         operands.append(0)
 
-class ADD(Node):
+class ADD(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
-        codes.append(__ADD__)
-        operands.append(0)
-
-class MUL(Node):
-    def _compile(self, codes, operands):
-        self._compileChildren(codes, operands)
-        codes.append(__MUL__)
+        codes.append(Engine.__ADD__)
         operands.append(0)
 
 
-class POW(Node):
+class SUB(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
-        codes.append(__POW__)
+        codes.append(Engine.__SUB__)
+        operands.append(0)
+
+class DIV(RandomVariable):
+    def _compile(self, codes, operands):
+        self._compileChildren(codes, operands)
+        codes.append(Engine.__DIV__)
+        operands.append(0)
+
+class MUL(RandomVariable):
+    def _compile(self, codes, operands):
+        self._compileChildren(codes, operands)
+        codes.append(Engine.__MUL__)
+        operands.append(0)
+
+
+class POW(RandomVariable):
+    def _compile(self, codes, operands):
+        self._compileChildren(codes, operands)
+        codes.append(Engine.__POW__)
         operands.append(0)
