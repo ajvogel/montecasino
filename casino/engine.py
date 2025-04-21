@@ -3,7 +3,7 @@ import cython as pyx
 import numpy as np
 
 
-
+from .random import randint
 # Virtual Machine
 
 
@@ -52,7 +52,7 @@ class Engine():
     @pyx.boundscheck(False)
     @pyx.wraparound(False)
     @pyx.initializedcheck(False)
-    def popStack(self) -> pyx.float:
+    def popStack(self) -> pyx.double:
         assert self.stackCount > 0
         self.stackCount -= 1
         return self._stack[self.stackCount]
@@ -123,7 +123,7 @@ class Engine():
 
         # x: pyx.double = c_round((h - l)*_rand() + l)
 
-        self.pushStack(pyx.cast(pyx.double, _randint(l,h)))
+        self.pushStack(pyx.cast(pyx.double, randint(l,h)))
 
     @pyx.ccall
     @pyx.boundscheck(False)
