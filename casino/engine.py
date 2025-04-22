@@ -2,7 +2,9 @@ from .digest import TDigest
 import cython as pyx
 import numpy as np
 
-from pyx.cimports.random import randint
+#from cython.cimports.digest import TDigest
+from cython.cimports.casino.random import randint
+
 #from .random import randint
 # Virtual Machine
 
