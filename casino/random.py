@@ -19,7 +19,7 @@ def rand() -> pyx.double:
     return out
 
 # RandInt
-@pyx.cpdef
+@pyx.ccall
 def randint(low: pyx.double, high: pyx.double) -> pyx.double:
     return c_round((high - low) * rand() + low)
 

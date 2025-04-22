@@ -21,7 +21,7 @@ def build(setup_kwds):
     cythonized = cythonize([
         "casino/random.py",
         "casino/digest.py",
-        #"casino/engine.py"
+        "casino/engine.py"
                            ],
         annotate=True,
         force=True,

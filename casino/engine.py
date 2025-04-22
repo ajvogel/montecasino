@@ -2,8 +2,8 @@ from .digest import TDigest
 import cython as pyx
 import numpy as np
 
-
-from .random import randint
+from pyx.cimports.random import randint
+#from .random import randint
 # Virtual Machine
 
 
