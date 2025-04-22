@@ -1,9 +1,12 @@
 import casino as cs
 import numpy as np
+import sys
 
 def test_addTwoUniform():
     """addUniform"""
+    print("x = cs.RandInt(1,6) + cs.RandInt(1,6)")
     x = cs.RandInt(1,6) + cs.RandInt(1,6)
+    print("x = x.compute()")
     x = x.compute()
     # print(x.lower)
     # print(x.upper)
@@ -13,12 +16,22 @@ def test_addTwoUniform():
 
     # print(x.nActive)
     # print(x.maxBins)
+    sys.exit()
 
     for i in range(2, 13):
         print(i, x.pmf(i))
 
     print("Bins = ",x.getBins())
     print("Wgts = ",x.getWeights())
+    print('nActive =',x.getActiveBinCount())
+    print('lower = ', x.lower())
+    print('upper = ', x.upper())
+
+    print("abs(x.pmf(2) - 0.0277) <= 1e-4", abs(x.pmf(2) - 0.0277) <= 1e-4)
+
+    assert True
+
+    print('False')
 
     assert abs(x.pmf(2) - 0.0277) <= 1e-4
     assert abs(x.pmf(3) - 0.0555) <= 1e-4
@@ -158,3 +171,7 @@ def test_sumDices():
     #     print(f'[{l: >8d}; {u: >8d}): {u - l:>5d}: {c/cnts.sum():e}')
 
     # assert False
+
+
+if __name__ == "__main__":
+    test_addTwoUniform()

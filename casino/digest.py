@@ -244,13 +244,16 @@ class TDigest():
 
         Ted Dunning, Computing Extremely Accurate Quantiles Usings t-Digests
         """
+        print('self.cdf(k)',k)
         som = 0
         c = self.bins
         m = self.cnts
 
         if k < self.lower():
+            print('return 0.')
             return 0.
         elif k >= self.upper():
+            print('return 1.')
             return 1.
         else:
             for i in range(self.nActive):
