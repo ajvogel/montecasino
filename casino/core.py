@@ -350,6 +350,10 @@ OP_FLOORDIV: pyx.int = 26
 OP_FLOORDIV: pyx.int = 27
 OP_BINOPMAX:pyx.int = 50
 
+# Summation Thingies...
+OP_SUM_START:pyx.int = 51
+OP_SUM_END:pyx.int   = 52
+
 # Statistical Ops
 OP_RANDINT:pyx.int = 100
 
@@ -362,15 +366,19 @@ class VirtualMachine():
     _codes: pyx.double[:]
     _operands: pyx.double[:]
     _stack: pyx.double[:]
+    _variables: pyx.double[:]
+
 
     codes: np.ndarray
     operands: np.ndarray
     stack: np.ndarray
+    variables: np.adarray
     stackCount: pyx.int
     def __init__(self, codes, operands) -> None:
         self.codes    = codes
         self.operands = operands
         self.stack    = np.zeros(100)
+        self.variables = np.zeros(26)
         self.stackCount = 0
 
     # Init the memory view.fdd
@@ -394,6 +402,14 @@ class VirtualMachine():
         assert self.stackCount > 0
         self.stackCount -= 1
         return self._stack[self.stackCount]
+
+    @pyx.cfunc
+    def _store(self, varNumber: pyx.int) -> pyx.void:
+        varValue = self.popStack()
+        self._variables[varNumber] = varValue
+
+    def _load(self, varNumber: pyx.int) -> pyx.void:
+        self.pushStack(self._variables[varNumber])
 
     @pyx.cfunc
     @pyx.boundscheck(False)
@@ -448,6 +464,10 @@ class VirtualMachine():
                 pass
             elif opCode == OP_PUSH:
                 self.pushStack(self._operands[i])
+            elif opCode == OP_STORE:
+                self._store(self._operands[i])
+            elif opCode == OP_LOAD:
+                self._load(self._operands[i])
             elif OP_ADD <= opCode <= OP_BINOPMAX:
                 self._binop(opCode)
 
