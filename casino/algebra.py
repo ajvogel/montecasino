@@ -1,18 +1,7 @@
 import numpy as np
-from .core import VirtualMachine
+from .core import *
 
-
-for x in range(5):
-    print(x)
-
-__PASS__    = 0
-__PUSH__    = 1
-__ADD__     = 2
-__MUL__     = 3
-__POW__     = 4
-__RANDINT__ = 5
-
-class Node():
+class RandomVariable():
     def __init__(self, *args):
         self.children = list(args)
 
@@ -68,7 +57,7 @@ class Node():
             if hasattr(c, '_compile'):
                 c._compile(codes, operands)
             else:
-                codes.append(__PUSH__)
+                codes.append(PUSH)
                 operands.append(c)
 
                 # program.append(('PSH',c))
@@ -77,55 +66,54 @@ class Node():
         codes    = []
         operands = []
         self._compile(codes, operands)
-        codes = np.array(codes)
+        codes = np.array(codes, dtype=np.int32)
         operands = np.array(operands, dtype=np.double)
         return codes, operands
 
-    def compute(self):
+    def sample(self):
         codes, operands = self.compile()
         vm = VirtualMachine(codes, operands)
         return vm.run()
 
-    def sample(self, samples=10000, maxBins=32):
+    def compute(self, samples=10000, maxBins=32):
         print('Compiling...')
         codes, operands = self.compile()
         vm = VirtualMachine(codes, operands)
         print('Simulating...')
         return vm.sample(samples=samples, maxBins=maxBins)
-        
 
-class Num(Node):
+
+class Constant(RandomVariable):
     def printTree(self,level=0):
         print(' '*level*4+str(self.children[0]))
 
     def _compile(self, codes, operands):
-        codes.append(__PUSH__)
+        codes.append(PUSH)
         operands.append(self.children[0])
         # program.append(('PSH', self.children[0]))
 
 
-class RandInt(Node):
+class RandInt(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
-        codes.append(__RANDINT__)
+        codes.append(RANDINT)
         operands.append(0)
 
-class ADD(Node):
+class ADD(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
-        codes.append(__ADD__)
+        codes.append(ADD)
         operands.append(0)
 
-class MUL(Node):
+class MUL(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
-        codes.append(__MUL__)
-        operands.append(0)        
+        codes.append(MUL)
+        operands.append(0)
 
 
-class POW(Node):
+class POW(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
-        codes.append(__POW__)
-        operands.append(0)                
-
+        codes.append(POW)
+        operands.append(0)

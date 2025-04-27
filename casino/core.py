@@ -329,27 +329,27 @@ def _randint(l: pyx.double, h: pyx.double) -> pyx.double:
 
 
 #======================================[ Virtual Machine ]=========================================
-__PASS__:pyx.int  = 0
-__PUSH__:pyx.int  = 1
-__DROP__:pyx.int  = 2
-__STORE__:pyx.int = 3
-__LOAD__:pyx.int  = 4
+PASS:pyx.int  = 0
+PUSH:pyx.int  = 1
+DROP:pyx.int  = 2
+STORE:pyx.int = 3
+LOAD:pyx.int  = 4
 
 # Onetary Ops
-__NEG__:pyx.int   = 10
-__ABS__:pyx.int   = 11
+NEG:pyx.int   = 10
+ABS:pyx.int   = 11
 
 # Binary Ops
-__ADD__:pyx.int   = 20
-__MUL__:pyx.int   = 21
-__POW__:pyx.int   = 22
-__DIV__:pyx.int   = 23
-__SUB__:pyx.int   = 24
-__MOD__:pyx.int   = 25
-__BINOPMAX__:pyx.int = 50
+ADD:pyx.int   = 20
+MUL:pyx.int   = 21
+POW:pyx.int   = 22
+DIV:pyx.int   = 23
+SUB:pyx.int   = 24
+MOD:pyx.int   = 25
+BINOPMAX:pyx.int = 50
 
 # Statistical Ops
-__RANDINT__:pyx.int = 100
+RANDINT:pyx.int = 100
 
 @pyx.cclass
 class VirtualMachine():
@@ -400,17 +400,17 @@ class VirtualMachine():
     def _binop(self, opCode: pyx.long) -> pyx.void:
         x1 = self.popStack()
         x2 = self.popStack()
-        if opCode == __ADD__:
+        if opCode == ADD:
             self.pushStack(x1 + x2)
-        elif opCode == __MUL__:
+        elif opCode == MUL:
             self.pushStack(x1 * x2)
-        elif opCode == __POW__:
+        elif opCode == POW:
             self.pushStack(x1 ** x2)
-        elif opCode == __DIV__:
+        elif opCode == DIV:
             self.pushStack(x1 / x2)
-        elif opCode == __MOD__:
+        elif opCode == MOD:
             self.pushStack(x1 % x2)
-        elif opCode == __SUB__:
+        elif opCode == SUB:
             self.pushStack(x1 - x2)
 
     @pyx.cfunc
@@ -438,13 +438,15 @@ class VirtualMachine():
         while i < N:
             opCode = self._codes[i]
 
-            if   opCode == __PASS__:
+            if   opCode == PASS:
                 pass
-            elif __ADD__ <= opCode <= __BINOPMAX__:
+            elif opCode == PUSH:
+                self.pushStack(self._operands[i])
+            elif ADD <= opCode <= BINOPMAX:
                 self._binop(opCode)
 
 
-            elif opCode == __RANDINT__:
+            elif opCode == RANDINT:
                 self._randInt()
 
             i += 1

@@ -1,6 +1,8 @@
 # from .distributions import *
 # from . import nbinom
+
 from .core import *
+from .algebra import *
 
 import builtins
 
