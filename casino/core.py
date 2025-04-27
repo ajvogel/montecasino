@@ -28,22 +28,6 @@ c_srand(c_time(pyx.NULL))
 
 
 
-LOWER = (1 - 0.9999) / 2
-UPPER = 1 - LOWER
-
-__ADD__:pyx.int = 0
-__MUL__:pyx.int = 1
-__MAX__:pyx.int = 2
-__MIN__:pyx.int = 3
-__SUB__:pyx.int = 4
-__POW__:pyx.int = 5
-
-DEFAULTS = {
-    'maxBins':32,
-    'compress':True,
-    'tolerance':1e-3
-}
-
 
 
 
@@ -343,28 +327,35 @@ def _randint(l: pyx.double, h: pyx.double) -> pyx.double:
 
 
 
-# NormalDistribution
 
-
-# Pert Distribution
-
-
-# Negative Binomial
-
-
-
-
-#---[ VirtualMachine ]----------------------------------------------------------
-
-PASS:pyx.int    = 0
-PUSH:pyx.int    = 1
-ADD:pyx.int    = 2
-MUL:pyx.int     = 3
-POW:pyx.int     = 4
-RANDINT:pyx.int = 5
+#======================================[ Virtual Machine ]=========================================
 
 @pyx.cclass
 class VirtualMachine():
+
+    # Core Op Codes
+    __PASS__:pyx.int  = 0
+    __PUSH__:pyx.int  = 1
+    __DROP__:pyx.int  = 2
+    __STORE__:pyx.int = 3
+    __LOAD__:pyx.int  = 4
+
+    # Onetary Ops
+    __NEG__:pyx.int   = 10
+    __ABS__:pyx.int   = 11
+
+    # Binary Ops
+    __ADD__:pyx.int   = 20
+    __MUL__:pyx.int   = 21
+    __POW__:pyx.int   = 22
+    __DIV__:pyx.int   = 23
+    __SUB__:pyx.int   = 24
+    __MOD__:pyx.int   = 25
+    __BINOPMAX__:pyx.int = 50
+
+    # Statistical Ops
+    __RANDINT__:pyx.int = 100
+
     _codes: pyx.long[:]
     _operands: pyx.double[:]
     _stack: pyx.double[:]
@@ -401,33 +392,25 @@ class VirtualMachine():
         self.stackCount -= 1
         return self._stack[self.stackCount]
 
-
     @pyx.cfunc
     @pyx.boundscheck(False)
     @pyx.wraparound(False)
     @pyx.initializedcheck(False)
-    def _add(self) -> pyx.void:
+    def _binop(self, opCode: pyx.long) -> pyx.void:
         x1 = self.popStack()
         x2 = self.popStack()
-        self.pushStack(x1 + x2)
-
-    @pyx.cfunc
-    @pyx.boundscheck(False)
-    @pyx.wraparound(False)
-    @pyx.initializedcheck(False)
-    def _mul(self) -> pyx.void:
-        x1 = self.popStack()
-        x2 = self.popStack()
-        self.pushStack(x1 * x2)
-
-    @pyx.cfunc
-    @pyx.boundscheck(False)
-    @pyx.wraparound(False)
-    @pyx.initializedcheck(False)
-    def _pow(self) -> pyx.void:
-        x1 = self.popStack()
-        x2 = self.popStack()
-        self.pushStack(x1 ** x2)
+        if opCode == self.__ADD__:
+            self.pushStack(x1 + x2)
+        elif opCode == self.__MUL__:
+            self.pushStack(x1 * x2)
+        elif opCode == self.__POW__:
+            self.pushStack(x1 ** x2)
+        elif opCode == self.__DIV__:
+            self.pushStack(x1 / x2)
+        elif opCode == self.__MOD__:
+            self.pushStack(x1 % x2)
+        elif opCode == self.__SUB__:
+            self.pushStack(x1 - x2)
 
     @pyx.cfunc
     @pyx.boundscheck(False)
@@ -445,13 +428,8 @@ class VirtualMachine():
     @pyx.boundscheck(False)
     @pyx.wraparound(False)
     @pyx.initializedcheck(False)
-    def compute(self) -> pyx.float:
-        PASS:pyx.int    = 0
-        PUSH:pyx.int    = 1
-        ADD:pyx.int    = 2
-        MUL:pyx.int     = 3
-        POW:pyx.int     = 4
-        RANDINT:pyx.int = 5
+    def sample(self) -> pyx.float:
+
         N:pyx.int = self._codes.shape[0]
         i:pyx.int = 0
         opCode: pyx.long
@@ -459,26 +437,29 @@ class VirtualMachine():
         while i < N:
             opCode = self._codes[i]
 
-            if   opCode == PASS:
+            if   opCode == self.__PASS__:
                 pass
-            elif opCode == PUSH:    self.pushStack(self._operands[i])
-            elif opCode == ADD:     self._add()
-            elif opCode == MUL:     self._mul()
-            elif opCode == POW:     self._pow()
-            elif opCode == RANDINT: self._randInt()
+            elif self.__ADD__ <= opCode <= self.__BINOPMAX__:
+                self._binop(opCode)
+
+
+            elif opCode == self.__RANDINT__:
+                self._randInt()
 
             i += 1
 
         return self.popStack()
 
-    def sample(self, samples:pyx.int=10000, maxBins:pyx.int=32):
+    def compute(self, samples:pyx.int=10000, maxBins:pyx.int=32):
         rv = RandomVariable(maxBins=maxBins)
         i: pyx.int
         for i in range(samples):
-            x:pyx.float = self.compute()
+            x:pyx.float = self.sample()
             rv._add(x, 1)
 
         return rv
 
     def run(self):
         return self.compute()
+
+#==================================================================================================
