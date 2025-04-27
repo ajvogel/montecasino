@@ -32,7 +32,7 @@ c_srand(c_time(pyx.NULL))
 
 
 @pyx.cclass
-class RandomVariable():
+class Digest():
     _bins: pyx.double[:]
     _cnts: pyx.double[:]
 
@@ -329,32 +329,33 @@ def _randint(l: pyx.double, h: pyx.double) -> pyx.double:
 
 
 #======================================[ Virtual Machine ]=========================================
+__PASS__:pyx.int  = 0
+__PUSH__:pyx.int  = 1
+__DROP__:pyx.int  = 2
+__STORE__:pyx.int = 3
+__LOAD__:pyx.int  = 4
+
+# Onetary Ops
+__NEG__:pyx.int   = 10
+__ABS__:pyx.int   = 11
+
+# Binary Ops
+__ADD__:pyx.int   = 20
+__MUL__:pyx.int   = 21
+__POW__:pyx.int   = 22
+__DIV__:pyx.int   = 23
+__SUB__:pyx.int   = 24
+__MOD__:pyx.int   = 25
+__BINOPMAX__:pyx.int = 50
+
+# Statistical Ops
+__RANDINT__:pyx.int = 100
 
 @pyx.cclass
 class VirtualMachine():
 
     # Core Op Codes
-    __PASS__:pyx.int  = 0
-    __PUSH__:pyx.int  = 1
-    __DROP__:pyx.int  = 2
-    __STORE__:pyx.int = 3
-    __LOAD__:pyx.int  = 4
 
-    # Onetary Ops
-    __NEG__:pyx.int   = 10
-    __ABS__:pyx.int   = 11
-
-    # Binary Ops
-    __ADD__:pyx.int   = 20
-    __MUL__:pyx.int   = 21
-    __POW__:pyx.int   = 22
-    __DIV__:pyx.int   = 23
-    __SUB__:pyx.int   = 24
-    __MOD__:pyx.int   = 25
-    __BINOPMAX__:pyx.int = 50
-
-    # Statistical Ops
-    __RANDINT__:pyx.int = 100
 
     _codes: pyx.long[:]
     _operands: pyx.double[:]
@@ -399,17 +400,17 @@ class VirtualMachine():
     def _binop(self, opCode: pyx.long) -> pyx.void:
         x1 = self.popStack()
         x2 = self.popStack()
-        if opCode == self.__ADD__:
+        if opCode == __ADD__:
             self.pushStack(x1 + x2)
-        elif opCode == self.__MUL__:
+        elif opCode == __MUL__:
             self.pushStack(x1 * x2)
-        elif opCode == self.__POW__:
+        elif opCode == __POW__:
             self.pushStack(x1 ** x2)
-        elif opCode == self.__DIV__:
+        elif opCode == __DIV__:
             self.pushStack(x1 / x2)
-        elif opCode == self.__MOD__:
+        elif opCode == __MOD__:
             self.pushStack(x1 % x2)
-        elif opCode == self.__SUB__:
+        elif opCode == __SUB__:
             self.pushStack(x1 - x2)
 
     @pyx.cfunc
@@ -437,13 +438,13 @@ class VirtualMachine():
         while i < N:
             opCode = self._codes[i]
 
-            if   opCode == self.__PASS__:
+            if   opCode == __PASS__:
                 pass
-            elif self.__ADD__ <= opCode <= self.__BINOPMAX__:
+            elif __ADD__ <= opCode <= __BINOPMAX__:
                 self._binop(opCode)
 
 
-            elif opCode == self.__RANDINT__:
+            elif opCode == __RANDINT__:
                 self._randInt()
 
             i += 1
@@ -451,7 +452,7 @@ class VirtualMachine():
         return self.popStack()
 
     def compute(self, samples:pyx.int=10000, maxBins:pyx.int=32):
-        rv = RandomVariable(maxBins=maxBins)
+        rv = Digest(maxBins=maxBins)
         i: pyx.int
         for i in range(samples):
             x:pyx.float = self.sample()
