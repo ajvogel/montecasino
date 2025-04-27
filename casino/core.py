@@ -398,8 +398,10 @@ class VirtualMachine():
     @pyx.wraparound(False)
     @pyx.initializedcheck(False)
     def _binop(self, opCode: pyx.double) -> pyx.void:
-        x1 = self.popStack()
+        # When things are removed from the stack we pop them from the bottom of the stack
+        # in the reverse order in which they were pushed. So we pop x2 first before x1.
         x2 = self.popStack()
+        x1 = self.popStack()
         if opCode == OP_ADD:
             self.pushStack(x1 + x2)
         elif opCode == OP_MUL:

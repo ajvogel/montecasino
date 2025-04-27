@@ -75,14 +75,14 @@ class RandomVariable():
     def sample(self):
         codes, operands = self.compile()
         vm = VirtualMachine(codes, operands)
-        return vm.run()
+        return vm.sample()
 
     def compute(self, samples=10000, maxBins=32):
         print('Compiling...')
         codes, operands = self.compile()
         vm = VirtualMachine(codes, operands)
         print('Simulating...')
-        return vm.sample(samples=samples, maxBins=maxBins)
+        return vm.compute(samples=samples, maxBins=maxBins)
 
 
 class Constant(RandomVariable):
