@@ -27,173 +27,6 @@ c_srand(c_time(pyx.NULL))
 #======================================[ Random Variable ]=========================================
 
 
-#==================================================================================================
-
-#---[ Probability Distributions ]-----------------------------------------------
-
-# Rand
-@pyx.cfunc
-def _rand() -> pyx.double:
-    out:pyx.double = pyx.cast(pyx.double, c_rand()) / pyx.cast(pyx.double, c_RAND_MAX)
-    return out
-
-# RandInt
-@pyx.cfunc
-def _randint(l: pyx.double, h: pyx.double) -> pyx.double:
-    return c_round((h - l) * _rand() + l)
-
-
-
-
-
-
-# NormalDistribution
-
-
-# Pert Distribution
-
-
-# Negative Binomial
-
-
-
-
-#---[ VirtualMachine ]----------------------------------------------------------
-
-PASS:pyx.int    = 0
-PUSH:pyx.int    = 1
-ADD:pyx.int    = 2
-MUL:pyx.int     = 3
-POW:pyx.int     = 4
-RANDINT:pyx.int = 5
-
-@pyx.cclass
-class VirtualMachine():
-    _codes: pyx.long[:]
-    _operands: pyx.double[:]
-    _stack: pyx.double[:]
-
-    codes: np.ndarray
-    operands: np.ndarray
-    stack: np.ndarray
-    stackCount: pyx.int
-    def __init__(self, codes, operands) -> None:
-        self.codes    = codes
-        self.operands = operands
-        self.stack    = np.zeros(100)
-        self.stackCount = 0
-
-    # Init the memory view.fdd
-        self._codes = self.codes
-        self._operands = self.operands
-        self._stack   = self.stack
-
-    @pyx.ccall
-    @pyx.boundscheck(False)
-    @pyx.wraparound(False)
-    @pyx.initializedcheck(False)
-    def pushStack(self, value: pyx.double):
-        self._stack[self.stackCount] = value
-        self.stackCount += 1
-
-    @pyx.ccall
-    @pyx.boundscheck(False)
-    @pyx.wraparound(False)
-    @pyx.initializedcheck(False)
-    def popStack(self) -> pyx.float:
-        assert self.stackCount > 0
-        self.stackCount -= 1
-        return self._stack[self.stackCount]
-
-
-    @pyx.cfunc
-    @pyx.boundscheck(False)
-    @pyx.wraparound(False)
-    @pyx.initializedcheck(False)
-    def _add(self) -> pyx.void:
-        x1 = self.popStack()
-        x2 = self.popStack()
-        self.pushStack(x1 + x2)
-
-    @pyx.cfunc
-    @pyx.boundscheck(False)
-    @pyx.wraparound(False)
-    @pyx.initializedcheck(False)
-    def _mul(self) -> pyx.void:
-        x1 = self.popStack()
-        x2 = self.popStack()
-        self.pushStack(x1 * x2)
-
-    @pyx.cfunc
-    @pyx.boundscheck(False)
-    @pyx.wraparound(False)
-    @pyx.initializedcheck(False)
-    def _pow(self) -> pyx.void:
-        x1 = self.popStack()
-        x2 = self.popStack()
-        self.pushStack(x1 ** x2)
-
-    @pyx.cfunc
-    @pyx.boundscheck(False)
-    @pyx.wraparound(False)
-    @pyx.initializedcheck(False)
-    def _randInt(self) -> pyx.void:
-        h = self.popStack()
-        l = self.popStack()
-
-        # x: pyx.double = c_round((h - l)*_rand() + l)
-
-        self.pushStack(pyx.cast(pyx.double, _randint(l,h)))
-
-    @pyx.ccall
-    @pyx.boundscheck(False)
-    @pyx.wraparound(False)
-    @pyx.initializedcheck(False)
-    def compute(self) -> pyx.float:
-        PASS:pyx.int    = 0
-        PUSH:pyx.int    = 1
-        ADD:pyx.int    = 2
-        MUL:pyx.int     = 3
-        POW:pyx.int     = 4
-        RANDINT:pyx.int = 5
-        N:pyx.int = self._codes.shape[0]
-        i:pyx.int = 0
-        opCode: pyx.long
-
-        while i < N:
-            opCode = self._codes[i]
-
-            if   opCode == PASS:
-                pass
-            elif opCode == PUSH:    self.pushStack(self._operands[i])
-            elif opCode == ADD:     self._add()
-            elif opCode == MUL:     self._mul()
-            elif opCode == POW:     self._pow()
-            elif opCode == RANDINT: self._randInt()
-
-            i += 1
-
-        return self.popStack()
-
-    def sample(self, samples:pyx.int=10000, maxBins:pyx.int=32):
-        rv = RandomVariable(maxBins=maxBins)
-        i: pyx.int
-        for i in range(samples):
-            x:pyx.float = self.compute()
-            rv._add(x, 1)
-
-        return rv
-
-    def run(self):
-        return self.compute()
-
-
-
-
-
-
-
-
 
 LOWER = (1 - 0.9999) / 2
 UPPER = 1 - LOWER
@@ -490,84 +323,162 @@ class RandomVariable():
 
         return (b+a)/2
 
+#==================================================================================================
+
+#---[ Probability Distributions ]-----------------------------------------------
+
+# Rand
+@pyx.cfunc
+def _rand() -> pyx.double:
+    out:pyx.double = pyx.cast(pyx.double, c_rand()) / pyx.cast(pyx.double, c_RAND_MAX)
+    return out
+
+# RandInt
+@pyx.cfunc
+def _randint(l: pyx.double, h: pyx.double) -> pyx.double:
+    return c_round((h - l) * _rand() + l)
 
 
 
-    def compress(self):
-        pass
 
-    # --- Convolution related functions....
+
+
+# NormalDistribution
+
+
+# Pert Distribution
+
+
+# Negative Binomial
+
+
+
+
+#---[ VirtualMachine ]----------------------------------------------------------
+
+PASS:pyx.int    = 0
+PUSH:pyx.int    = 1
+ADD:pyx.int    = 2
+MUL:pyx.int     = 3
+POW:pyx.int     = 4
+RANDINT:pyx.int = 5
+
+@pyx.cclass
+class VirtualMachine():
+    _codes: pyx.long[:]
+    _operands: pyx.double[:]
+    _stack: pyx.double[:]
+
+    codes: np.ndarray
+    operands: np.ndarray
+    stack: np.ndarray
+    stackCount: pyx.int
+    def __init__(self, codes, operands) -> None:
+        self.codes    = codes
+        self.operands = operands
+        self.stack    = np.zeros(100)
+        self.stackCount = 0
+
+    # Init the memory view.fdd
+        self._codes = self.codes
+        self._operands = self.operands
+        self._stack   = self.stack
+
+    @pyx.ccall
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)
+    @pyx.initializedcheck(False)
+    def pushStack(self, value: pyx.double):
+        self._stack[self.stackCount] = value
+        self.stackCount += 1
+
+    @pyx.ccall
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)
+    @pyx.initializedcheck(False)
+    def popStack(self) -> pyx.float:
+        assert self.stackCount > 0
+        self.stackCount -= 1
+        return self._stack[self.stackCount]
+
 
     @pyx.cfunc
     @pyx.boundscheck(False)
+    @pyx.wraparound(False)
     @pyx.initializedcheck(False)
-    def _applyFunc(self, iS: pyx.int, iO:pyx.int, func:pyx.int) -> pyx.int:
-        __ADD__:pyx.int = 0
-        __MUL__:pyx.int = 1
-        __MAX__:pyx.int = 2
-        __MIN__:pyx.int = 3
-        __SUB__:pyx.int = 4
-        __POW__:pyx.int = 5
+    def _add(self) -> pyx.void:
+        x1 = self.popStack()
+        x2 = self.popStack()
+        self.pushStack(x1 + x2)
 
-        iF: pyx.int = 0
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)
+    @pyx.initializedcheck(False)
+    def _mul(self) -> pyx.void:
+        x1 = self.popStack()
+        x2 = self.popStack()
+        self.pushStack(x1 * x2)
 
-        if func == __ADD__:
-            iF = iS + iO
-        elif func == __MUL__:
-            iF = iO*iS
-        elif func == __MAX__:
-            iF = iO if iO > iS else iS
-        elif func == __MIN__:
-            iF = iO  if iO < iS else iS
-        elif func == __SUB__:
-            iF = iS - iO
-        elif func == __POW__:
-            iF = iS**iO
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)
+    @pyx.initializedcheck(False)
+    def _pow(self) -> pyx.void:
+        x1 = self.popStack()
+        x2 = self.popStack()
+        self.pushStack(x1 ** x2)
 
-        return iF
+    @pyx.cfunc
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)
+    @pyx.initializedcheck(False)
+    def _randInt(self) -> pyx.void:
+        h = self.popStack()
+        l = self.popStack()
 
-    def __add__(self, other):
-        return self.__conv__(other, __ADD__)
+        # x: pyx.double = c_round((h - l)*_rand() + l)
 
-    def __sub__(self, other):
-        return self.__conv__(other, __SUB__)
-
-    def __mul__(self, other):
-        return self.__conv__(other, __MUL__)
-
-    def __max__(self, other):
-        return self.__conv__(other, __MAX__)
-
-    def __min__(self, other):
-        return self.__conv__(other, __MIN__)
-
-    def __pow__(self, other):
-        return self.__conv__(other, __POW__)
+        self.pushStack(pyx.cast(pyx.double, _randint(l,h)))
 
     @pyx.ccall
-    def __conv__(self, other, func: pyx.int):
-        s: pyx.int
-        o: pyx.int
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)
+    @pyx.initializedcheck(False)
+    def compute(self) -> pyx.float:
+        PASS:pyx.int    = 0
+        PUSH:pyx.int    = 1
+        ADD:pyx.int    = 2
+        MUL:pyx.int     = 3
+        POW:pyx.int     = 4
+        RANDINT:pyx.int = 5
+        N:pyx.int = self._codes.shape[0]
+        i:pyx.int = 0
+        opCode: pyx.long
+
+        while i < N:
+            opCode = self._codes[i]
+
+            if   opCode == PASS:
+                pass
+            elif opCode == PUSH:    self.pushStack(self._operands[i])
+            elif opCode == ADD:     self._add()
+            elif opCode == MUL:     self._mul()
+            elif opCode == POW:     self._pow()
+            elif opCode == RANDINT: self._randInt()
+
+            i += 1
+
+        return self.popStack()
+
+    def sample(self, samples:pyx.int=10000, maxBins:pyx.int=32):
+        rv = RandomVariable(maxBins=maxBins)
         i: pyx.int
-        pF: pyx.double
-        kF: pyx.double
-        final = RandomVariable()
+        for i in range(samples):
+            x:pyx.float = self.compute()
+            rv._add(x, 1)
 
+        return rv
 
-        # for i in range(100000):
-        #     s = self.sample()
-        #     o = other.sample()
-        #     kF = self._applyFunc(s, o, func)
-        #     final._add(kF, 1)
-
-
-        for s in range(self.lower(), self.upper() + 1):
-            for o in range(other.lower(), other.upper() + 1):
-                pF = self.pmf(s) * other.pmf(o)
-                kF = self._applyFunc(s, o, func)
-
-                if pF > 0:
-                    final._add(kF, pF)
-
-        # final.compress()
-        return final
+    def run(self):
+        return self.compute()
