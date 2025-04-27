@@ -385,6 +385,7 @@ class VirtualMachine():
         self._codes = self.codes
         self._operands = self.operands
         self._stack   = self.stack
+        self._variables = self.variables
 
     @pyx.ccall
     @pyx.boundscheck(False)
@@ -404,12 +405,14 @@ class VirtualMachine():
         return self._stack[self.stackCount]
 
     @pyx.cfunc
-    def _store(self, varNumber: pyx.int) -> pyx.void:
+    def _store(self, varNumber: pyx.double) -> pyx.void:
+        idx: pyx.int = pyx.cast(pyx.int, varNumber)
         varValue = self.popStack()
-        self._variables[varNumber] = varValue
+        self._variables[idx] = varValue
 
-    def _load(self, varNumber: pyx.int) -> pyx.void:
-        self.pushStack(self._variables[varNumber])
+    def _load(self, varNumber: pyx.double) -> pyx.void:
+        idx: pyx.int = pyx.cast(pyx.int, varNumber)
+        self.pushStack(self._variables[idx])
 
     @pyx.cfunc
     @pyx.boundscheck(False)

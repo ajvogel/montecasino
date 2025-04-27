@@ -149,3 +149,35 @@ class POW(RandomVariable):
         self._compileChildren(codes, operands)
         codes.append(OP_POW)
         operands.append(0)
+
+
+class SUM(RandomVariable):
+    """
+    Creates a summation (Sigma symbol in mathematics) for loop. The first argument is the
+    number of iterations and the second argument is the term that needs to be added
+    together.
+    """
+    def __init__(self, nTerms=1, term=0):
+        self.nTerms = nTerms
+        self.term   = term
+    def _compile(self, codes, operands):
+
+
+        # Compile nTerms.
+        if hasattr(self.nTerms, '_compile'):
+            self.nTerms._compile(codes, operands)
+        else:
+            codes.append(OP_PUSH)
+            operands.append(self.nTerms)
+
+        codes.append(OP_SUM_START)
+        operands.append(0)
+
+        if hasattr(self.term, '_compile'):
+            self.term._compile(codes, operands)
+        else:
+            codes.append(OP_PUSH)
+            operands.append(self.term)
+
+        codes.append(OP_SUM_END)
+        codes.append(0)

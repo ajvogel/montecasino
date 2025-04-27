@@ -58,3 +58,12 @@ def test_order_of_operations():
     z = (((a + b) * c) + d) * e
 
     assert z.sample() == (((2 + 3) * 4) + 5) * 6
+
+
+def test_summation():
+    T = cs.Constant(10)
+    N = cs.Constant(5)
+
+    som = cs.SUM(N, T)
+
+    assert som.sample() == 50
