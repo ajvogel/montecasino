@@ -9,7 +9,7 @@ if pyx.compiled:
     from cython.cimports.libc.stdlib import rand as c_rand
     from cython.cimports.libc.stdlib import srand as c_srand
     from cython.cimports.libc.stdlib import RAND_MAX as c_RAND_MAX
-    from cython.cimports.random import normal
+    # from cython.cimports.random import normal
 else:
     ceil = np.ceil
     floor = np.floor
