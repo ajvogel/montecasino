@@ -329,27 +329,27 @@ def _randint(l: pyx.double, h: pyx.double) -> pyx.double:
 
 
 #======================================[ Virtual Machine ]=========================================
-PASS:pyx.int  = 0
-PUSH:pyx.int  = 1
-DROP:pyx.int  = 2
-STORE:pyx.int = 3
-LOAD:pyx.int  = 4
+OP_PASS:pyx.int  = 0
+OP_PUSH:pyx.int  = 1
+OP_DROP:pyx.int  = 2
+OP_STORE:pyx.int = 3
+OP_LOAD:pyx.int  = 4
 
 # Onetary Ops
-NEG:pyx.int   = 10
-ABS:pyx.int   = 11
+OP_NEG:pyx.int   = 10
+OP_ABS:pyx.int   = 11
 
 # Binary Ops
-ADD:pyx.int   = 20
-MUL:pyx.int   = 21
-POW:pyx.int   = 22
-DIV:pyx.int   = 23
-SUB:pyx.int   = 24
-MOD:pyx.int   = 25
-BINOPMAX:pyx.int = 50
+OP_ADD:pyx.int   = 20
+OP_MUL:pyx.int   = 21
+OP_POW:pyx.int   = 22
+OP_DIV:pyx.int   = 23
+OP_SUB:pyx.int   = 24
+OP_MOD:pyx.int   = 25
+OP_BINOPMAX:pyx.int = 50
 
 # Statistical Ops
-RANDINT:pyx.int = 100
+OP_RANDINT:pyx.int = 100
 
 @pyx.cclass
 class VirtualMachine():
@@ -357,7 +357,7 @@ class VirtualMachine():
     # Core Op Codes
 
 
-    _codes: pyx.long[:]
+    _codes: pyx.double[:]
     _operands: pyx.double[:]
     _stack: pyx.double[:]
 
@@ -397,20 +397,20 @@ class VirtualMachine():
     @pyx.boundscheck(False)
     @pyx.wraparound(False)
     @pyx.initializedcheck(False)
-    def _binop(self, opCode: pyx.long) -> pyx.void:
+    def _binop(self, opCode: pyx.double) -> pyx.void:
         x1 = self.popStack()
         x2 = self.popStack()
-        if opCode == ADD:
+        if opCode == OP_ADD:
             self.pushStack(x1 + x2)
-        elif opCode == MUL:
+        elif opCode == OP_MUL:
             self.pushStack(x1 * x2)
-        elif opCode == POW:
+        elif opCode == OP_POW:
             self.pushStack(x1 ** x2)
-        elif opCode == DIV:
+        elif opCode == OP_DIV:
             self.pushStack(x1 / x2)
-        elif opCode == MOD:
+        elif opCode == OP_MOD:
             self.pushStack(x1 % x2)
-        elif opCode == SUB:
+        elif opCode == OP_SUB:
             self.pushStack(x1 - x2)
 
     @pyx.cfunc
@@ -433,20 +433,20 @@ class VirtualMachine():
 
         N:pyx.int = self._codes.shape[0]
         i:pyx.int = 0
-        opCode: pyx.long
+        opCode: pyx.double
 
         while i < N:
             opCode = self._codes[i]
 
-            if   opCode == PASS:
+            if   opCode == OP_PASS:
                 pass
-            elif opCode == PUSH:
+            elif opCode == OP_PUSH:
                 self.pushStack(self._operands[i])
-            elif ADD <= opCode <= BINOPMAX:
+            elif OP_ADD <= opCode <= OP_BINOPMAX:
                 self._binop(opCode)
 
 
-            elif opCode == RANDINT:
+            elif opCode == OP_RANDINT:
                 self._randInt()
 
             i += 1

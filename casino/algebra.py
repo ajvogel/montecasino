@@ -57,7 +57,7 @@ class RandomVariable():
             if hasattr(c, '_compile'):
                 c._compile(codes, operands)
             else:
-                codes.append(PUSH)
+                codes.append(OP_PUSH)
                 operands.append(c)
 
                 # program.append(('PSH',c))
@@ -66,7 +66,9 @@ class RandomVariable():
         codes    = []
         operands = []
         self._compile(codes, operands)
-        codes = np.array(codes, dtype=np.int32)
+        print(codes)
+        print(operands)
+        codes = np.array(codes, dtype=np.double)
         operands = np.array(operands, dtype=np.double)
         return codes, operands
 
@@ -88,7 +90,7 @@ class Constant(RandomVariable):
         print(' '*level*4+str(self.children[0]))
 
     def _compile(self, codes, operands):
-        codes.append(PUSH)
+        codes.append(OP_PUSH)
         operands.append(self.children[0])
         # program.append(('PSH', self.children[0]))
 
@@ -96,24 +98,24 @@ class Constant(RandomVariable):
 class RandInt(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
-        codes.append(RANDINT)
+        codes.append(OP_RANDINT)
         operands.append(0)
 
 class ADD(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
-        codes.append(ADD)
+        codes.append(OP_ADD)
         operands.append(0)
 
 class MUL(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
-        codes.append(MUL)
+        codes.append(OP_MUL)
         operands.append(0)
 
 
 class POW(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
-        codes.append(POW)
+        codes.append(OP_POW)
         operands.append(0)
