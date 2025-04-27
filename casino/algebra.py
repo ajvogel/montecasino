@@ -8,6 +8,9 @@ class RandomVariable():
     def __add__(self, other):
         return ADD(self, other)
 
+    def __sub__(self, other):
+        return SUB(self, other)
+
     def __mul__(self, other):
         return MUL(self, other)
 
@@ -106,6 +109,13 @@ class ADD(RandomVariable):
         self._compileChildren(codes, operands)
         codes.append(OP_ADD)
         operands.append(0)
+
+class SUB(RandomVariable):
+    def _compile(self, codes, operands):
+        self._compileChildren(codes, operands)
+        codes.append(OP_SUB)
+        operands.append(0)
+
 
 class MUL(RandomVariable):
     def _compile(self, codes, operands):
