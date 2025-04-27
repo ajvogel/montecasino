@@ -17,6 +17,7 @@ statsmodels = "^0.14.0"
 cython = "^3.0.8"
 
 
+setuptools = "^79.0.1"
 [tool.poetry.group.dev.dependencies]
 ipython = "^8.14.0"
 pyinstrument = "^4.4.0"
