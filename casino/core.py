@@ -346,6 +346,8 @@ OP_POW:pyx.int   = 22
 OP_DIV:pyx.int   = 23
 OP_SUB:pyx.int   = 24
 OP_MOD:pyx.int   = 25
+OP_FLOORDIV: pyx.int = 26
+OP_FLOORDIV: pyx.int = 27
 OP_BINOPMAX:pyx.int = 50
 
 # Statistical Ops
@@ -410,6 +412,8 @@ class VirtualMachine():
             self.pushStack(x1 ** x2)
         elif opCode == OP_DIV:
             self.pushStack(x1 / x2)
+        elif opCode == OP_FLOORDIV:
+            self.pushStack(x1 // x2)
         elif opCode == OP_MOD:
             self.pushStack(x1 % x2)
         elif opCode == OP_SUB:

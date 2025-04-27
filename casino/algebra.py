@@ -18,10 +18,13 @@ class RandomVariable():
         return POW(self, other)
 
     def __truediv__(self, other):
-        pass
+        return DIV(self, other)
+
+    def __mod__(self, other):
+        return MOD(self, other)
 
     def __floordiv__(self, other):
-        pass
+        return FLOORDIV(self, other)
 
     def __divmod__(self, other):
         pass
@@ -123,6 +126,23 @@ class MUL(RandomVariable):
         codes.append(OP_MUL)
         operands.append(0)
 
+class DIV(RandomVariable):
+    def _compile(self, codes, operands):
+        self._compileChildren(codes, operands)
+        codes.append(OP_DIV)
+        operands.append(0)
+
+class FLOORDIV(RandomVariable):
+    def _compile(self, codes, operands):
+        self._compileChildren(codes, operands)
+        codes.append(OP_FLOORDIV)
+        operands.append(0)
+
+class MOD(RandomVariable):
+    def _compile(self, codes, operands):
+        self._compileChildren(codes, operands)
+        codes.append(OP_MOD)
+        operands.append(0)
 
 class POW(RandomVariable):
     def _compile(self, codes, operands):
