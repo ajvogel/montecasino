@@ -437,6 +437,13 @@ class VirtualMachine():
         # dfd
         if self._variables[idx] > 0:
             # Jumpy back to the start of the sum loop.
+            while True:
+                self.counter -= 1
+                if (self._codes[self.counter] == OP_SUM_START) and (self._operands[self.counter] == loopNumber):
+                    break
+
+                if self.counter < 0:
+                    break
 
 
             pass
