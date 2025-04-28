@@ -67,3 +67,12 @@ def test_summation():
     som = cs.SUM(N, T)
 
     assert som.sample() == 50
+
+
+# def test_summation2():
+#     T = cs.Constant(10)
+#     N = cs.Constant(5)
+
+#     som = (cs.SUM(N, T) + cs.Constant(50)) * cs.Constant(10)
+
+#     assert som.sample() == 1000

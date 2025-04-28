@@ -390,17 +390,11 @@ class VirtualMachine():
         self._variables = self.variables
 
     @pyx.ccall
-    @pyx.boundscheck(False)
-    @pyx.wraparound(False)
-    @pyx.initializedcheck(False)
     def pushStack(self, value: pyx.double):
         self._stack[self.stackCount] = value
         self.stackCount += 1
 
     @pyx.ccall
-    @pyx.boundscheck(False)
-    @pyx.wraparound(False)
-    @pyx.initializedcheck(False)
     def popStack(self) -> pyx.float:
         assert self.stackCount > 0
         self.stackCount -= 1
@@ -449,9 +443,6 @@ class VirtualMachine():
             pass
 
     @pyx.cfunc
-    @pyx.boundscheck(False)
-    @pyx.wraparound(False)
-    @pyx.initializedcheck(False)
     def _binop(self, opCode: pyx.double) -> pyx.void:
         # When things are removed from the stack we pop them from the bottom of the stack
         # in the reverse order in which they were pushed. So we pop x2 first before x1.
@@ -473,9 +464,6 @@ class VirtualMachine():
             self.pushStack(x1 - x2)
 
     @pyx.cfunc
-    @pyx.boundscheck(False)
-    @pyx.wraparound(False)
-    @pyx.initializedcheck(False)
     def _randInt(self) -> pyx.void:
         h = self.popStack()
         l = self.popStack()
@@ -485,9 +473,6 @@ class VirtualMachine():
         self.pushStack(pyx.cast(pyx.double, _randint(l,h)))
 
     @pyx.ccall
-    @pyx.boundscheck(False)
-    @pyx.wraparound(False)
-    @pyx.initializedcheck(False)
     def sample(self) -> pyx.float:
 
         N:pyx.int = self._codes.shape[0]
