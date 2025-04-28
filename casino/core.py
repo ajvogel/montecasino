@@ -374,12 +374,14 @@ class VirtualMachine():
     stack: np.ndarray
     variables: np.adarray
     stackCount: pyx.int
+    counter: pyx.int
     def __init__(self, codes, operands) -> None:
         self.codes    = codes
         self.operands = operands
         self.stack    = np.zeros(100)
         self.variables = np.zeros(26)
         self.stackCount = 0
+        self.counter = 0
 
     # Init the memory view.fdd
         self._codes = self.codes
@@ -413,6 +415,31 @@ class VirtualMachine():
     def _load(self, varNumber: pyx.double) -> pyx.void:
         idx: pyx.int = pyx.cast(pyx.int, varNumber)
         self.pushStack(self._variables[idx])
+
+    def _sumStart(self, loopNumber: pyx.double) -> pyx.void:
+        idx: pyx.int = pyx.cast(pyx.int, loopNumber)
+        nTerms = self.popStack()
+        self.pushStack(0)
+        self._variables[idx] = nTerms
+
+
+    def _sumEnd(self, loopNumber: pyx.double) -> pyx.void:
+        idx: pyx.int = pyx.cast(pyx.int, loopNumber)
+
+        # First we add the running total to the answer.
+        x1 = self.popStack()
+        x2 = self.popStack()
+        self.pushStack(x1 + x2)
+
+        # Deduct counter
+        self._variables[idx] -= 1
+
+        # dfd
+        if self._variables[idx] > 0:
+            # Jumpy back to the start of the sum loop.
+
+
+            pass
 
     @pyx.cfunc
     @pyx.boundscheck(False)
@@ -457,28 +484,31 @@ class VirtualMachine():
     def sample(self) -> pyx.float:
 
         N:pyx.int = self._codes.shape[0]
-        i:pyx.int = 0
+        #i:pyx.int = 0
         opCode: pyx.double
 
-        while i < N:
-            opCode = self._codes[i]
+        while self.counter < N:
+            opCode = self._codes[self.counter]
 
             if   opCode == OP_PASS:
                 pass
             elif opCode == OP_PUSH:
-                self.pushStack(self._operands[i])
+                self.pushStack(self._operands[self.counter])
             elif opCode == OP_STORE:
-                self._store(self._operands[i])
+                self._store(self._operands[self.counter])
             elif opCode == OP_LOAD:
-                self._load(self._operands[i])
+                self._load(self._operands[self.counter])
+            elif opCode == OP_SUM_START:
+                self._sumStart(self._operands[self.counter])
+            elif opCode == OP_SUM_END:
+                self._sumEnd(self._operands[self.counter])
             elif OP_ADD <= opCode <= OP_BINOPMAX:
                 self._binop(opCode)
-
 
             elif opCode == OP_RANDINT:
                 self._randInt()
 
-            i += 1
+            self.counter += 1
 
         return self.popStack()
 
