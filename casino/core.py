@@ -418,6 +418,7 @@ class VirtualMachine():
 
 
     def _sumEnd(self, loopNumber: pyx.double) -> pyx.void:
+
         idx: pyx.int = pyx.cast(pyx.int, loopNumber)
 
         # First we add the running total to the answer.
@@ -438,7 +439,8 @@ class VirtualMachine():
 
                 if self.counter < 0:
                     break
-
+        else:
+            self.counter += 1
 
             pass
 
@@ -480,6 +482,7 @@ class VirtualMachine():
         opCode: pyx.double
 
         while self.counter < N:
+            print(f'{self.counter}: {self._codes[self.counter]}     {self._operands[self.counter]}')
             opCode = self._codes[self.counter]
 
             if   opCode == OP_PASS:

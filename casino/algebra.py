@@ -180,4 +180,4 @@ class SUM(RandomVariable):
             operands.append(self.term)
 
         codes.append(OP_SUM_END)
-        codes.append(0)
+        operands.append(0)
