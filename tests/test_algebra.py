@@ -76,3 +76,12 @@ def test_summation2():
     som = (cs.SUM(N, T) - cs.Constant(30)) * cs.Constant(20)
 
     assert som.sample() == 400
+
+
+def test_summation_nested():
+    T = cs.SUM(5,cs.Constant(1)*2) # 10
+    N = cs.SUM(5,1) # 5
+
+    som = (cs.SUM(N, T) - cs.Constant(30)) * cs.Constant(20)
+
+    assert som.sample() == 400
