@@ -440,9 +440,8 @@ class VirtualMachine():
                 if self.counter < 0:
                     break
         else:
-            self.counter += 1
-
             pass
+
 
     @pyx.cfunc
     def _binop(self, opCode: pyx.double) -> pyx.void:
@@ -477,12 +476,15 @@ class VirtualMachine():
     @pyx.ccall
     def sample(self) -> pyx.float:
 
+        for e, (c, o) in enumerate(list(zip(self.codes, self.operands))):
+            print(f'{e}: {c}   {o}')
+
         N:pyx.int = self._codes.shape[0]
         #i:pyx.int = 0
         opCode: pyx.double
 
         while self.counter < N:
-            print(f'{self.counter}: {self._codes[self.counter]}     {self._operands[self.counter]}')
+
             opCode = self._codes[self.counter]
 
             if   opCode == OP_PASS:
@@ -503,6 +505,7 @@ class VirtualMachine():
             elif opCode == OP_RANDINT:
                 self._randInt()
 
+            print(f'{self.counter}: {self._codes[self.counter]}     {self._operands[self.counter]} -> {self.stack[:5]}')
             self.counter += 1
 
         return self.popStack()
