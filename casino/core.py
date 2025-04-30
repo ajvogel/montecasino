@@ -458,7 +458,6 @@ class VirtualMachine():
         idx: pyx.int = pyx.cast(pyx.int, loopNumber)
         nTerms = self.popStack()
         self.pushStack(0)
-        #self._variables[idx] = nTerms
         self.pushIterator(nTerms)
         self.pushPointer(self.counter)
 
@@ -471,26 +470,15 @@ class VirtualMachine():
         x1 = self.popStack()
         x2 = self.popStack()
         self.pushStack(x1 + x2)
-
-        # Deduct counter
-        #self._variables[idx] -= 1
         self.pushIterator(self.popIterator() - 1)
 
-        # dfd
         if self.peekIterator() > 0:
             self.counter = self.peekPointer()
-            # # Jumpy back to the start of the sum loop.
-            # while True:
-            #     self.counter -= 1
-            #     if (self._codes[self.counter] == OP_SUM_START) and (self._operands[self.counter] == loopNumber):
-            #         break
 
-            #     if self.counter < 0:
-            #         break
         else:
             self.popPointer()
             self.popIterator()
-            pass
+
 
 
     @pyx.cfunc
