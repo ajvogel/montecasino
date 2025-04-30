@@ -367,20 +367,25 @@ class VirtualMachine():
     _operands: pyx.double[:]
     _stack: pyx.double[:]
     _variables: pyx.double[:]
+    _pointers: pyx.long[:]
 
 
     codes: np.ndarray
     operands: np.ndarray
     stack: np.ndarray
-    variables: np.adarray
+    variables: np.ndarray
     stackCount: pyx.int
     counter: pyx.int
+    pointerCount: pyx.int
+    pointers: np.ndarray
     def __init__(self, codes, operands) -> None:
         self.codes    = codes
         self.operands = operands
         self.stack    = np.zeros(100)
         self.variables = np.zeros(26)
+        self.pointers = np.zeros(16, dtype=np.int_)
         self.stackCount = 0
+        self.pointerCount = 0
         self.counter = 0
 
     # Init the memory view.fdd
@@ -388,6 +393,23 @@ class VirtualMachine():
         self._operands = self.operands
         self._stack   = self.stack
         self._variables = self.variables
+        self._pointers = self.pointers
+
+    @pyx.cfunc
+    def pushPointer(self, value: pyx.int) -> pyx.void:
+        self._pointers[self.pointerCount] = value
+        self.pointerCount += 1
+
+    @pyx.cfunc
+    def popPointer(self) -> pyx.int:
+        assert self.pointerCount > 0
+        self.pointerCount -= 1
+        return self._pointers[self.pointerCount]
+
+    @pyx.cfunc
+    def peekPointer(self) -> pyx.int:
+        """Returns the bottom pointer in the pointer stack without popping it from the stack"""
+        return self._pointers[self.pointerCount - 1]
 
     @pyx.ccall
     def pushStack(self, value: pyx.double):
@@ -415,6 +437,7 @@ class VirtualMachine():
         nTerms = self.popStack()
         self.pushStack(0)
         self._variables[idx] = nTerms
+        self.pushPointer(self.counter)
 
 
     def _sumEnd(self, loopNumber: pyx.double) -> pyx.void:
@@ -431,15 +454,17 @@ class VirtualMachine():
 
         # dfd
         if self._variables[idx] > 0:
-            # Jumpy back to the start of the sum loop.
-            while True:
-                self.counter -= 1
-                if (self._codes[self.counter] == OP_SUM_START) and (self._operands[self.counter] == loopNumber):
-                    break
+            self.counter = self.peekPointer()
+            # # Jumpy back to the start of the sum loop.
+            # while True:
+            #     self.counter -= 1
+            #     if (self._codes[self.counter] == OP_SUM_START) and (self._operands[self.counter] == loopNumber):
+            #         break
 
-                if self.counter < 0:
-                    break
+            #     if self.counter < 0:
+            #         break
         else:
+            self.popPointer()
             pass
 
 
@@ -505,7 +530,7 @@ class VirtualMachine():
             elif opCode == OP_RANDINT:
                 self._randInt()
 
-            print(f'{self.counter}: {self._codes[self.counter]}     {self._operands[self.counter]} -> {self.stack[:5]}')
+            print(f'{self.counter}: {self._codes[self.counter]}     {self._operands[self.counter]} -> {reversed(self.stack)[:5]}    {self.pointers[:2]}')
             self.counter += 1
 
         return self.popStack()
