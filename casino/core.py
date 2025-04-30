@@ -368,7 +368,7 @@ class VirtualMachine():
     _stack: pyx.double[:]
     _variables: pyx.double[:]
     _pointers: pyx.long[:]
-
+    _iterators: pyx.double[:]
 
     codes: np.ndarray
     operands: np.ndarray
@@ -378,22 +378,28 @@ class VirtualMachine():
     counter: pyx.int
     pointerCount: pyx.int
     pointers: np.ndarray
+    iterCount: pyx.int
+    iterators: np.ndarray
     def __init__(self, codes, operands) -> None:
         self.codes    = codes
         self.operands = operands
         self.stack    = np.zeros(100)
         self.variables = np.zeros(26)
         self.pointers = np.zeros(16, dtype=np.int_)
+        self.iterators = np.zeros(16)
         self.stackCount = 0
         self.pointerCount = 0
+        self.iterCount = 0
         self.counter = 0
 
-    # Init the memory view.fdd
+
+        # Init the memory view.fdd
         self._codes = self.codes
         self._operands = self.operands
         self._stack   = self.stack
         self._variables = self.variables
         self._pointers = self.pointers
+        self._iterators = self.iterators
 
     @pyx.cfunc
     def pushPointer(self, value: pyx.int) -> pyx.void:
@@ -405,6 +411,22 @@ class VirtualMachine():
         assert self.pointerCount > 0
         self.pointerCount -= 1
         return self._pointers[self.pointerCount]
+
+    @pyx.cfunc
+    def pushIterator(self, value: pyx.double) -> pyx.void:
+        self._iterators[self.iterCount] = value
+        self.iterCount += 1
+
+    @pyx.cfunc
+    def popIterator(self) -> pyx.double:
+        assert self.iterCount > 0
+        self.iterCount -= 1
+        return self._iterators[self.iterCount]
+
+    @pyx.cfunc
+    def peekIterator(self) -> pyx.double:
+        """Returns the bottom pointer in the pointer stack without popping it from the stack"""
+        return self._iterators[self.iterCount - 1]
 
     @pyx.cfunc
     def peekPointer(self) -> pyx.int:
@@ -436,7 +458,8 @@ class VirtualMachine():
         idx: pyx.int = pyx.cast(pyx.int, loopNumber)
         nTerms = self.popStack()
         self.pushStack(0)
-        self._variables[idx] = nTerms
+        #self._variables[idx] = nTerms
+        self.pushIterator(nTerms)
         self.pushPointer(self.counter)
 
 
@@ -450,10 +473,11 @@ class VirtualMachine():
         self.pushStack(x1 + x2)
 
         # Deduct counter
-        self._variables[idx] -= 1
+        #self._variables[idx] -= 1
+        self.pushIterator(self.popIterator() - 1)
 
         # dfd
-        if self._variables[idx] > 0:
+        if self.peekIterator() > 0:
             self.counter = self.peekPointer()
             # # Jumpy back to the start of the sum loop.
             # while True:
@@ -465,6 +489,7 @@ class VirtualMachine():
             #         break
         else:
             self.popPointer()
+            self.popIterator()
             pass
 
 
@@ -498,6 +523,20 @@ class VirtualMachine():
 
         self.pushStack(pyx.cast(pyx.double, _randint(l,h)))
 
+
+    def printState(self):
+        _stack = []
+        for i in reversed(range(self.stackCount)):
+            _stack.append(self.stack[i])
+
+        _stack = " ".join([f'{s:.0f}' for s in _stack ])
+
+        print(f'{self.counter}: {self._codes[self.counter]:.0f}     {self._operands[self.counter]} -> [{_stack}]    {self.pointers[:2]}')
+
+
+
+
+
     @pyx.ccall
     def sample(self) -> pyx.float:
 
@@ -509,7 +548,7 @@ class VirtualMachine():
         opCode: pyx.double
 
         while self.counter < N:
-
+            self.printState()
             opCode = self._codes[self.counter]
 
             if   opCode == OP_PASS:
@@ -530,7 +569,7 @@ class VirtualMachine():
             elif opCode == OP_RANDINT:
                 self._randInt()
 
-            print(f'{self.counter}: {self._codes[self.counter]}     {self._operands[self.counter]} -> {reversed(self.stack)[:5]}    {self.pointers[:2]}')
+
             self.counter += 1
 
         return self.popStack()
