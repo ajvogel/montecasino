@@ -1,6 +1,8 @@
 import numpy as np
 import cython as pyx
 
+import random
+
 if pyx.compiled:
     from cython.cimports.libc.math import round as c_round
     from cython.cimports.libc.math import ceil as ceil
@@ -401,6 +403,20 @@ class VirtualMachine():
         self._pointers = self.pointers
         self._iterators = self.iterators
 
+    @pyx.ccall
+    def reset(self):
+        self.stackCount   = 0
+        self.iterCount    = 0
+        self.pointerCount = 0
+        self.counter      = 0
+
+        self.stack    = np.zeros(100)
+        self.variables = np.zeros(26)
+        self.pointers = np.zeros(16, dtype=np.int_)
+        self.iterators = np.zeros(16)
+
+
+
     @pyx.cfunc
     def pushPointer(self, value: pyx.int) -> pyx.void:
         self._pointers[self.pointerCount] = value
@@ -509,7 +525,8 @@ class VirtualMachine():
 
         # x: pyx.double = c_round((h - l)*_rand() + l)
 
-        self.pushStack(pyx.cast(pyx.double, _randint(l,h)))
+        #self.pushStack(pyx.cast(pyx.double, _randint(l,h)))
+        self.pushStack(random.randint(int(l),int(h)))
 
 
     def printState(self):
@@ -528,15 +545,15 @@ class VirtualMachine():
     @pyx.ccall
     def sample(self) -> pyx.float:
 
-        for e, (c, o) in enumerate(list(zip(self.codes, self.operands))):
-            print(f'{e}: {c}   {o}')
+        # for e, (c, o) in enumerate(list(zip(self.codes, self.operands))):
+        #     print(f'{e}: {c}   {o}')
 
         N:pyx.int = self._codes.shape[0]
         #i:pyx.int = 0
         opCode: pyx.double
 
         while self.counter < N:
-            self.printState()
+            #self.printState()
             opCode = self._codes[self.counter]
 
             if   opCode == OP_PASS:
@@ -567,6 +584,7 @@ class VirtualMachine():
         i: pyx.int
         for i in range(samples):
             x:pyx.float = self.sample()
+            self.reset()
             rv._add(x, 1)
 
         return rv
