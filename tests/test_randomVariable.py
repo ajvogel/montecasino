@@ -222,9 +222,14 @@ def test_sumDices():
     yActual = np.array([d[1]/100 for d in data6]).cumsum()
     yTest   = np.array([out2.cdf(k) for k in range(6,37)])
 
+    with open('output.csv','w') as fout:
+        fout.write('Actual,Estimate\n')
+        for a, e in zip(yActual, yTest):
+            fout.write(f'{a*100:3.3f},{e*100:3.3f}\n')
+
     error   =  (((yTest - yActual)**2).mean())**0.5
 
-    assert error < 1.e-1
+    assert error < 5.e-2
     print(yActual)
     print(yTest)
     print(error)
