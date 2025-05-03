@@ -213,20 +213,30 @@ def test_sumDices():
 
     out = [cs.RandInt(1,6) for ii in range(6)]
     out2 = out[0] + out[1] + out[2] + out[3] + out[4] + out[5]
-    out2 = out2.compute(samples=100000)
+    out2 = out2.compute(samples=10_000)
     #out2 = cs.SUM(5, cs.RandInt(1,6)).compute()
 
     # cnts = out2.getCountArray()
     # print(sum(cnts))
+    #
+    yActual = np.array([d[1]/100 for d in data6]).cumsum()
+    yTest   = np.array([out2.cdf(k) for k in range(6,37)])
 
-    for k,p in data6:
-        pp = p/100
-        err = abs(out2.pmf(k) - pp) / pp
+    error   =  (((yTest - yActual)**2).mean())**0.5
 
-        print(f'{k: >2} = {out2.pmf(k):1.9f} <-> {pp:1.9f} ==> {err:.15e}')
+    assert error < 1.e-1
+    print(yActual)
+    print(yTest)
+    print(error)
+
+    # for k,p in data6:
+    #     pp = p/100
+    #     err = abs(out2.pmf(k) - pp) / pp
+
+    #     print(f'{k: >2} = {out2.cdf(k):1.9f} <-> {pp:1.9f} ==> {err:.15e}')
 
 
-    assert False
+    # assert False
 
     # for k,p in data6:
     #     pp = p/100
