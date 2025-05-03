@@ -5,6 +5,7 @@ import random
 
 if pyx.compiled:
     from cython.cimports.libc.math import round as c_round
+    from cython.cimports.libc.math import ceil as c_ceil
     from cython.cimports.libc.math import ceil as ceil
     from cython.cimports.libc.math import floor as floor
     from cython.cimports.libc.time import time as c_time
@@ -322,7 +323,15 @@ def _rand() -> pyx.double:
 # RandInt
 @pyx.cfunc
 def _randint(l: pyx.double, h: pyx.double) -> pyx.double:
-    return c_round((h - l) * _rand() + l)
+    l2: pyx.double  = l - 1
+    out: pyx.double = c_ceil((h - l2) * _rand() + l2)
+
+    if out < l:
+        out = l
+
+    return out
+
+    #return c_round((h - l) * _rand() + l)
 
 
 
@@ -524,9 +533,9 @@ class VirtualMachine():
         l = self.popStack()
 
         # x: pyx.double = c_round((h - l)*_rand() + l)
-
+        self.pushStack(_randint(l, h))
         #self.pushStack(pyx.cast(pyx.double, _randint(l,h)))
-        self.pushStack(random.randint(int(l),int(h)))
+        #self.pushStack(random.randint(int(l),int(h)))
 
 
     def printState(self):

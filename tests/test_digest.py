@@ -38,7 +38,7 @@ def test_normalApprox():
     std = 100
     mu  = 100
     np.random.seed(31337)
-    data = np.random.randn(10000)*std + mu
+    data = np.random.randn(10_000)*std + mu
     x = cs.Digest(maxBins=32)
     for d in data:
         x.add(d)
@@ -65,7 +65,7 @@ def test_normalApprox_quantile():
     std = 100
     mu  = 100
     np.random.seed(31337)
-    data = np.random.randn(10000)*std + mu
+    data = np.random.randn(10_000)*std + mu
     x = cs.Digest(maxBins=64)
     for d in data:
         x.add(d)
