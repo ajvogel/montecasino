@@ -3,6 +3,7 @@
 
 from .core import *
 from .algebra import *
+from .opcodes import *
 
 import builtins
 

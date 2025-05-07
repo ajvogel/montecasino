@@ -340,8 +340,12 @@ def _randint(l: pyx.double, h: pyx.double) -> pyx.double:
 
 
 #======================================[ Virtual Machine ]=========================================
-OP_PASS:pyx.int  = 0
-OP_PUSH:pyx.int  = 1
+# pyx.declare creates c constants.
+_PASS = pyx.declare(pyx.int, 0)
+#OP_PASS:pyx.int  = 0
+_PUSH = pyx.declare(pyx.int, 1)
+#OP_PUSH:pyx.int  = 1
+
 OP_DROP:pyx.int  = 2
 OP_STORE:pyx.int = 3
 OP_LOAD:pyx.int  = 4
@@ -358,11 +362,12 @@ OP_DIV:pyx.int   = 23
 OP_SUB:pyx.int   = 24
 OP_MOD:pyx.int   = 25
 OP_FLOORDIV: pyx.int = 26
-OP_FLOORDIV: pyx.int = 27
+
 OP_BINOPMAX:pyx.int = 50
 
 # Summation Thingies...
-OP_SUM_START:pyx.int = 51
+#OP_SUM_START:pyx.int = 51
+_SUM_START = pyx.declare(pyx.int, 51)
 OP_SUM_END:pyx.int   = 52
 
 # Statistical Ops
@@ -479,6 +484,7 @@ class VirtualMachine():
         idx: pyx.int = pyx.cast(pyx.int, varNumber)
         self.pushStack(self._variables[idx])
 
+    @pyx.cfunc
     def _sumStart(self, loopNumber: pyx.double) -> pyx.void:
         idx: pyx.int = pyx.cast(pyx.int, loopNumber)
         nTerms = self.popStack()
@@ -486,7 +492,7 @@ class VirtualMachine():
         self.pushIterator(nTerms)
         self.pushPointer(self.counter)
 
-
+    @pyx.cfunc
     def _sumEnd(self, loopNumber: pyx.double) -> pyx.void:
 
         idx: pyx.int = pyx.cast(pyx.int, loopNumber)
@@ -510,21 +516,29 @@ class VirtualMachine():
     def _binop(self, opCode: pyx.double) -> pyx.void:
         # When things are removed from the stack we pop them from the bottom of the stack
         # in the reverse order in which they were pushed. So we pop x2 first before x1.
+        _ADD:pyx.int   = 20
+        _MUL:pyx.int   = 21
+        _POW:pyx.int   = 22
+        _DIV:pyx.int   = 23
+        _SUB:pyx.int   = 24
+        _MOD:pyx.int   = 25
+        _FLOORDIV: pyx.int = 26
+
         x2 = self.popStack()
         x1 = self.popStack()
-        if opCode == OP_ADD:
+        if opCode == _ADD:
             self.pushStack(x1 + x2)
-        elif opCode == OP_MUL:
+        elif opCode == _MUL:
             self.pushStack(x1 * x2)
-        elif opCode == OP_POW:
+        elif opCode == _POW:
             self.pushStack(x1 ** x2)
-        elif opCode == OP_DIV:
+        elif opCode == _DIV:
             self.pushStack(x1 / x2)
-        elif opCode == OP_FLOORDIV:
+        elif opCode == _FLOORDIV:
             self.pushStack(x1 // x2)
-        elif opCode == OP_MOD:
+        elif opCode == _MOD:
             self.pushStack(x1 % x2)
-        elif opCode == OP_SUB:
+        elif opCode == _SUB:
             self.pushStack(x1 - x2)
 
     @pyx.cfunc
@@ -552,6 +566,7 @@ class VirtualMachine():
 
 
     @pyx.ccall
+    @pyx.initializedcheck(False)
     def sample(self) -> pyx.float:
 
         # for e, (c, o) in enumerate(list(zip(self.codes, self.operands))):
@@ -565,15 +580,15 @@ class VirtualMachine():
             #self.printState()
             opCode = self._codes[self.counter]
 
-            if   opCode == OP_PASS:
+            if   opCode == _PASS:
                 pass
-            elif opCode == OP_PUSH:
+            elif opCode == _PUSH:
                 self.pushStack(self._operands[self.counter])
             elif opCode == OP_STORE:
                 self._store(self._operands[self.counter])
             elif opCode == OP_LOAD:
                 self._load(self._operands[self.counter])
-            elif opCode == OP_SUM_START:
+            elif opCode == _SUM_START:
                 self._sumStart(self._operands[self.counter])
             elif opCode == OP_SUM_END:
                 self._sumEnd(self._operands[self.counter])

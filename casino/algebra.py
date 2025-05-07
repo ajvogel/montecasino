@@ -1,5 +1,6 @@
 import numpy as np
 from .core import *
+from .opcodes import *
 
 class RandomVariable():
     def __init__(self, *args):
