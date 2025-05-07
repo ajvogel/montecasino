@@ -430,43 +430,67 @@ class VirtualMachine():
 
 
     @pyx.cfunc
+    @pyx.initializedcheck(False)
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)
     def pushPointer(self, value: pyx.int) -> pyx.void:
         self._pointers[self.pointerCount] = value
         self.pointerCount += 1
 
     @pyx.cfunc
+    @pyx.initializedcheck(False)
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)
     def popPointer(self) -> pyx.int:
         assert self.pointerCount > 0
         self.pointerCount -= 1
         return self._pointers[self.pointerCount]
 
     @pyx.cfunc
+    @pyx.initializedcheck(False)
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)
     def pushIterator(self, value: pyx.double) -> pyx.void:
         self._iterators[self.iterCount] = value
         self.iterCount += 1
 
     @pyx.cfunc
+    @pyx.initializedcheck(False)
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)
     def popIterator(self) -> pyx.double:
         assert self.iterCount > 0
         self.iterCount -= 1
         return self._iterators[self.iterCount]
 
     @pyx.cfunc
+    @pyx.initializedcheck(False)
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)
     def peekIterator(self) -> pyx.double:
         """Returns the bottom pointer in the pointer stack without popping it from the stack"""
         return self._iterators[self.iterCount - 1]
 
     @pyx.cfunc
+    @pyx.initializedcheck(False)
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)
     def peekPointer(self) -> pyx.int:
         """Returns the bottom pointer in the pointer stack without popping it from the stack"""
         return self._pointers[self.pointerCount - 1]
 
     @pyx.ccall
+    @pyx.initializedcheck(False)
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)
     def pushStack(self, value: pyx.double):
         self._stack[self.stackCount] = value
         self.stackCount += 1
 
     @pyx.ccall
+    @pyx.initializedcheck(False)
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)
     def popStack(self) -> pyx.float:
         assert self.stackCount > 0
         self.stackCount -= 1
@@ -478,6 +502,7 @@ class VirtualMachine():
         varValue = self.popStack()
         self._variables[idx] = varValue
 
+    @pyx.cfunc
     def _load(self, varNumber: pyx.double) -> pyx.void:
         idx: pyx.int = pyx.cast(pyx.int, varNumber)
         self.pushStack(self._variables[idx])
@@ -565,6 +590,8 @@ class VirtualMachine():
 
     @pyx.ccall
     @pyx.initializedcheck(False)
+    @pyx.boundscheck(False)
+    @pyx.wraparound(False)
     def sample(self) -> pyx.float:
 
         # for e, (c, o) in enumerate(list(zip(self.codes, self.operands))):
