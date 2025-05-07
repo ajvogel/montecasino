@@ -342,36 +342,34 @@ def _randint(l: pyx.double, h: pyx.double) -> pyx.double:
 #======================================[ Virtual Machine ]=========================================
 # pyx.declare creates c constants.
 _PASS = pyx.declare(pyx.int, 0)
-#OP_PASS:pyx.int  = 0
 _PUSH = pyx.declare(pyx.int, 1)
-#OP_PUSH:pyx.int  = 1
 
-OP_DROP:pyx.int  = 2
-OP_STORE:pyx.int = 3
-OP_LOAD:pyx.int  = 4
+_DROP  = pyx.declare(pyx.int, 2)
+_STORE = pyx.declare(pyx.int, 3)
+_LOAD  = pyx.declare(pyx.int, 4)
 
 # Onetary Ops
-OP_NEG:pyx.int   = 10
-OP_ABS:pyx.int   = 11
+_NEG = pyx.declare(pyx.int, 10)
+_ABS = pyx.declare(pyx.int, 11)
 
 # Binary Ops
-OP_ADD:pyx.int   = 20
-OP_MUL:pyx.int   = 21
-OP_POW:pyx.int   = 22
-OP_DIV:pyx.int   = 23
-OP_SUB:pyx.int   = 24
-OP_MOD:pyx.int   = 25
-OP_FLOORDIV: pyx.int = 26
+_ADD = pyx.declare(pyx.int, 20)
+_MUL = pyx.declare(pyx.int, 21)
+_POW = pyx.declare(pyx.int, 22)
+_DIV = pyx.declare(pyx.int, 23)
+_SUB = pyx.declare(pyx.int, 24)
+_MOD = pyx.declare(pyx.int, 25)
+_FLOORDIV = pyx.declare(pyx.int, 26)
 
-OP_BINOPMAX:pyx.int = 50
+_BINOPMAX = pyx.declare(pyx.int, 50)
 
 # Summation Thingies...
 #OP_SUM_START:pyx.int = 51
 _SUM_START = pyx.declare(pyx.int, 51)
-OP_SUM_END:pyx.int   = 52
+_SUM_END   = pyx.declare(pyx.int, 52)
 
 # Statistical Ops
-OP_RANDINT:pyx.int = 100
+_RANDINT = pyx.declare(pyx.int, 100)
 
 @pyx.cclass
 class VirtualMachine():
@@ -516,13 +514,13 @@ class VirtualMachine():
     def _binop(self, opCode: pyx.double) -> pyx.void:
         # When things are removed from the stack we pop them from the bottom of the stack
         # in the reverse order in which they were pushed. So we pop x2 first before x1.
-        _ADD:pyx.int   = 20
-        _MUL:pyx.int   = 21
-        _POW:pyx.int   = 22
-        _DIV:pyx.int   = 23
-        _SUB:pyx.int   = 24
-        _MOD:pyx.int   = 25
-        _FLOORDIV: pyx.int = 26
+        # _ADD:pyx.int   = 20
+        # _MUL:pyx.int   = 21
+        # _POW:pyx.int   = 22
+        # _DIV:pyx.int   = 23
+        # _SUB:pyx.int   = 24
+        # _MOD:pyx.int   = 25
+        # _FLOORDIV: pyx.int = 26
 
         x2 = self.popStack()
         x1 = self.popStack()
@@ -584,18 +582,18 @@ class VirtualMachine():
                 pass
             elif opCode == _PUSH:
                 self.pushStack(self._operands[self.counter])
-            elif opCode == OP_STORE:
+            elif opCode == _STORE:
                 self._store(self._operands[self.counter])
-            elif opCode == OP_LOAD:
+            elif opCode == _LOAD:
                 self._load(self._operands[self.counter])
             elif opCode == _SUM_START:
                 self._sumStart(self._operands[self.counter])
-            elif opCode == OP_SUM_END:
+            elif opCode == _SUM_END:
                 self._sumEnd(self._operands[self.counter])
-            elif OP_ADD <= opCode <= OP_BINOPMAX:
+            elif _ADD <= opCode <= _BINOPMAX:
                 self._binop(opCode)
 
-            elif opCode == OP_RANDINT:
+            elif opCode == _RANDINT:
                 self._randInt()
 
 
