@@ -9,6 +9,8 @@ if pyx.compiled:
     from cython.cimports.libc.math import ceil as ceil
     from cython.cimports.libc.math import floor as floor
     from cython.cimports.libc.time import time as c_time
+    from cython.cimports.libc.math import log as c_log
+    from cython.cimports.libc.math import sqrt as c_sqrt
     from cython.cimports.libc.stdlib import rand as c_rand
     from cython.cimports.libc.stdlib import srand as c_srand
     from cython.cimports.libc.stdlib import RAND_MAX as c_RAND_MAX
@@ -333,6 +335,24 @@ def _randint(l: pyx.double, h: pyx.double) -> pyx.double:
 
     #return c_round((h - l) * _rand() + l)
 
+@pyx.cfunc
+def _randnorm(mu: pyx.double, stdev: pyx.double) -> pyx.double:
+    """
+    https://en.wikipedia.org/wiki/Marsaglia_polar_method
+    """
+    while True:
+        x:pyx.double = 2*_rand() - 1
+        y:pyx.double = 2*_rand() - 1
+
+        s: pyx.double = x**2 + y**2
+
+        if s < 1:
+            break
+
+    z: pyx.double = x * c_sqrt( -2*c_log(s) / s)
+    return z * stdev + mu
+
+
 
 
 
@@ -370,6 +390,7 @@ _SUM_END   = pyx.declare(pyx.int, 52)
 
 # Statistical Ops
 _RANDINT = pyx.declare(pyx.int, 100)
+_RANDNORM = pyx.declare(pyx.int, 101)
 
 @pyx.cclass
 class VirtualMachine():
@@ -574,6 +595,12 @@ class VirtualMachine():
         #self.pushStack(pyx.cast(pyx.double, _randint(l,h)))
         #self.pushStack(random.randint(int(l),int(h)))
 
+    @pyx.cfunc
+    def _randNorm(self) -> pyx.void:
+        mu: pyx.double    = self.popStack()
+        stdev: pyx.double = self.popStack()
+
+        self.pushStack(_randnorm(mu, stdev))
 
     def printState(self):
         _stack = []
@@ -622,6 +649,8 @@ class VirtualMachine():
 
             elif opCode == _RANDINT:
                 self._randInt()
+            elif opCode == _RANDNORM:
+                self._randNorm()
 
 
             self.counter += 1

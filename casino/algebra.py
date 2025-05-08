@@ -151,6 +151,12 @@ class POW(RandomVariable):
         codes.append(OP_POW)
         operands.append(0)
 
+class NORMAL(RandomVariable):
+    def _compile(self, codes, operands):
+        self._compileChildren(codes, operands)
+        codes.append(OP_RANDNORM)
+        operands.append(0)
+
 
 class SUM(RandomVariable):
     """
