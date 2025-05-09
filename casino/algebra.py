@@ -59,13 +59,22 @@ class RandomVariable():
     def _compile(self, codes, operands):
         pass
 
+    def _compileOrPush(self, codes, operands, child):
+        if hasattr(child, '_compile'):
+            child._compile(codes, operands)
+        else:
+            codes.append(OP_PUSH)
+            operands.append(child)
+
+
     def _compileChildren(self, codes, operands):
         for c in self.children:
-            if hasattr(c, '_compile'):
-                c._compile(codes, operands)
-            else:
-                codes.append(OP_PUSH)
-                operands.append(c)
+            self._compileOrPush(codes, operands, c)
+            # if hasattr(c, '_compile'):
+            #     c._compile(codes, operands)
+            # else:
+            #     codes.append(OP_PUSH)
+            #     operands.append(c)
 
                 # program.append(('PSH',c))
 
@@ -152,8 +161,14 @@ class POW(RandomVariable):
         operands.append(0)
 
 class NORMAL(RandomVariable):
+    def __init__(self, mean=0, stdev=1):
+        self.mean = mean
+        self.stdev = stdev
+
     def _compile(self, codes, operands):
-        self._compileChildren(codes, operands)
+        self._compileOrPush(codes, operands, self.mean)
+        self._compileOrPush(codes, operands, self.stdev)
+        # self._compileChildren(codes, operands)
         codes.append(OP_RANDNORM)
         operands.append(0)
 

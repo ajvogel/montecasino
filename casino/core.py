@@ -597,10 +597,10 @@ class VirtualMachine():
 
     @pyx.cfunc
     def _randNorm(self) -> pyx.void:
+        std: pyx.double = self.popStack()
         mu: pyx.double    = self.popStack()
-        stdev: pyx.double = self.popStack()
 
-        self.pushStack(_randnorm(mu, stdev))
+        self.pushStack(_randnorm(mu, std))
 
     def printState(self):
         _stack = []
