@@ -281,7 +281,8 @@ class Digest():
         return int(self._bins[self.nActive - 1])
 
     def sample(self, size=1):
-        p = np.random.rand()
+        p: pyx.double = _rand()
+        #p = np.random.rand()
         return int(round(self.quantile(p)))
 
 
