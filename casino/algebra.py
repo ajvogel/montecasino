@@ -203,3 +203,15 @@ class SUM(RandomVariable):
 
         codes.append(OP_SUM_END)
         operands.append(0)
+
+
+#========================================================================================
+
+class Quantiles(RandomVariable):
+    """
+    Samples from equally spaced quantile values.
+    """
+    def _compile(self, codes, operands):
+        self._compileChildren(codes, operands)
+        codes.append(OP_RAND_QUANTILES)
+        operands.append(len(self.children))

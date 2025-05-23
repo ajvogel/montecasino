@@ -7,7 +7,7 @@ if pyx.compiled:
     from cython.cimports.libc.math import round as c_round
     from cython.cimports.libc.math import ceil as c_ceil
     from cython.cimports.libc.math import ceil as ceil
-    from cython.cimports.libc.math import floor as floor
+    from cython.cimports.libc.math import floor as c_floor
     from cython.cimports.libc.time import time as c_time
     from cython.cimports.libc.math import log as c_log
     from cython.cimports.libc.math import sqrt as c_sqrt
@@ -392,6 +392,7 @@ _SUM_END   = pyx.declare(pyx.int, 52)
 # Statistical Ops
 _RANDINT = pyx.declare(pyx.int, 100)
 _RANDNORM = pyx.declare(pyx.int, 101)
+_RAND_QUANTILES = pyx.declare(pyx.int, 102)
 
 @pyx.cclass
 class VirtualMachine():
@@ -519,6 +520,12 @@ class VirtualMachine():
         return self._stack[self.stackCount]
 
     @pyx.cfunc
+    def _dropStack(self, cnt:pyx.int = 1):
+        i: pyx.int
+        for i in range(cnt):
+            self.popStack()
+
+    @pyx.cfunc
     def _store(self, varNumber: pyx.double) -> pyx.void:
         idx: pyx.int = pyx.cast(pyx.int, varNumber)
         varValue = self.popStack()
@@ -603,6 +610,71 @@ class VirtualMachine():
 
         self.pushStack(_randnorm(mu, std))
 
+    @pyx.cfunc
+    def _randQuantiles(self, nBins: pyx.double) -> pyx.void:
+        """
+
+        quants = 01 15 29 43 57 71 85 99
+                 x0 x1 x2 x3 x4 x5 x6 x7
+
+        """
+        # There is one fewer intervals than there are actual points.
+        dY: pyx.double = 1. / (nBins - 1)
+        y_: pyx.double = _rand()
+
+
+        i: pyx.int = c_floor(y_ / dY)
+
+        self._dropStack(pyx.cast(pyx.int, i))
+
+        xi:pyx.double = self.popStack()
+        xi_n:pyx.double = self.popStack()
+
+        yi:pyx.double   = i*dY
+        yi_n:pyx.double = yi + dY
+
+        self._dropStack(pyx.cast(pyx.int, nBins - i - 1))
+
+        m:pyx.double = (xi_n - xi) / (yi_n - yi)
+
+        x_:pyx.double = xi + m*(y_ - yi)
+
+        return x_
+
+        # dP: pyx.double  = 1. / nBins
+        # v: pyx.double   = _rand()
+        # som: pyx.double = 0
+
+        # x_ = np.zeros(nBins)
+        # y_ = np.zeros(nBins)
+        # x: pyx.double[:] = x_
+        # y: pyx.double[:] = y_
+
+        # for i in range(nBins):
+        #     x[i] = self.popStack()
+        #     y[i] = dP*i
+
+        # # We need to find the bucket that u is in.
+        # if v == 0:
+        #     pass
+        #     # Return left point.
+        # elif v == 1:
+        #     pass
+        #     # Retuen right point.
+        # else:
+        #     idx: pyx.double = c_floor(u / dP)
+
+        #     # Find the containing bin.
+        #     for i in range(nBins):
+        #         if y[i] < v < y[i+1]:
+        #             break
+
+
+
+
+
+
+
     def printState(self):
         _stack = []
         for i in reversed(range(self.stackCount)):
@@ -628,10 +700,12 @@ class VirtualMachine():
         N:pyx.int = self._codes.shape[0]
         #i:pyx.int = 0
         opCode: pyx.double
+        operand: pyx.double
 
         while self.counter < N:
             #self.printState()
             opCode = self._codes[self.counter]
+            operand = self._operands[self.counter]
 
             if   opCode == _PASS:
                 pass
@@ -652,6 +726,8 @@ class VirtualMachine():
                 self._randInt()
             elif opCode == _RANDNORM:
                 self._randNorm()
+            elif opCode == _RAND_QUANTILES:
+                self._randQuantiles(operand)
 
 
             self.counter += 1

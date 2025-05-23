@@ -21,6 +21,7 @@ OP_SUM_START = 51
 OP_SUM_END = 52
 OP_RANDINT = 100
 OP_RANDNORM = 101
+OP_RAND_QUANTILES = 102
 # END
 
 if __name__ == "__main__":
