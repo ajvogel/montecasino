@@ -522,7 +522,9 @@ class VirtualMachine():
     @pyx.cfunc
     def _dropStack(self, cnt:pyx.int = 1):
         i: pyx.int
+        #print('Dropping ',cnt, ' values...')
         for i in range(cnt):
+            #print('    Drop', i, '...')
             self.popStack()
 
     @pyx.cfunc
@@ -621,11 +623,17 @@ class VirtualMachine():
         # There is one fewer intervals than there are actual points.
         dY: pyx.double = 1. / (nBins - 1)
         y_: pyx.double = _rand()
+        #y_: pyx.double = 0.55
 
 
-        i: pyx.int = c_floor(y_ / dY)
+        i: pyx.double = c_floor(y_ / dY)
+
+        #print(i)
+        #print('Stack Count:', self.stackCount)
 
         self._dropStack(pyx.cast(pyx.int, i))
+
+        #print('Stack Count after initial drop:', self.stackCount)
 
         xi:pyx.double = self.popStack()
         xi_n:pyx.double = self.popStack()
@@ -633,13 +641,18 @@ class VirtualMachine():
         yi:pyx.double   = i*dY
         yi_n:pyx.double = yi + dY
 
-        self._dropStack(pyx.cast(pyx.int, nBins - i - 1))
+        #print(xi, ' -> ', xi_n)
+
+        self._dropStack(pyx.cast(pyx.int, nBins - i - 2))
+
+        #print('Stack Count after dropping remaining:', self.stackCount)
 
         m:pyx.double = (xi_n - xi) / (yi_n - yi)
 
         x_:pyx.double = xi + m*(y_ - yi)
 
-        return x_
+        self.pushStack(x_)
+
 
         # dP: pyx.double  = 1. / nBins
         # v: pyx.double   = _rand()

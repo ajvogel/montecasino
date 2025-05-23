@@ -211,6 +211,9 @@ class Quantiles(RandomVariable):
     """
     Samples from equally spaced quantile values.
     """
+    def __init__(self, *args):
+        self.children = list(reversed(args))
+
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
         codes.append(OP_RAND_QUANTILES)

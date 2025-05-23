@@ -234,29 +234,45 @@ def test_sumDices():
     print(yTest)
     print(error)
 
-    # for k,p in data6:
-    #     pp = p/100
-    #     err = abs(out2.pmf(k) - pp) / pp
-
-    #     print(f'{k: >2} = {out2.cdf(k):1.9f} <-> {pp:1.9f} ==> {err:.15e}')
 
 
-    # assert False
 
-    # for k,p in data6:
-    #     pp = p/100
-    #     err = abs(out2.pmf(k) - pp)
+def test_quantileSample():
+    x = [
+        -3719.0165,        -2322.6865,        -2051.7702,        -1879.4139,        -1749.6195,        -1643.9816,
+        -1554.0353,        -1475.1508,        -1404.5068,        -1340.2502,        -1281.0959,        -1226.1134,
+        -1174.6070,        -1126.0414,        -1079.9959,        -1036.1332,        -994.1784,        -953.9045,
+        -915.1212,        -877.6678,        -841.4069,        -806.2200,        -772.0041,        -738.6690,
+        -706.1353,        -674.3324,        -643.1974,        -612.6739,        -582.7108,        -553.2620,
+        -524.2855,        -495.7426,        -467.5981,        -439.8193,        -412.3758,        -385.2395,
+        -358.3840,        -331.7845,        -305.4178,        -279.2617,        -253.2953,        -227.4987,
+        -201.8525,        -176.3385,        -150.9388,        -125.6361,        -100.4136,        -75.2548,
+        -50.1435,        -25.0639,        0.0000,        25.0639,        50.1435,        75.2548,        100.4136,
+        125.6361,        150.9388,        176.3385,        201.8525,        227.4987,        253.2953,        279.2617,
+        305.4178,        331.7845,        358.3840,        385.2395,        412.3758,        439.8193,        467.5981,
+        495.7426,        524.2855,        553.2620,        582.7108,        612.6739,        643.1974,        674.3324,
+        706.1353,        738.6690,        772.0041,        806.2200,        841.4069,        877.6678,        915.1212,
+        953.9045,        994.1784,        1036.1332,        1079.9959,        1126.0414,        1174.6070,        1226.1134,
+        1281.0959,        1340.2502,        1404.5068,        1475.1508,        1554.0353,        1643.9816,        1749.6195,
+        1879.4139,        2051.7702,        2322.6865,        3719.0165
+    ]
 
-    #     print(f'{k: >2} = {out2.pmf(k):1.9f} <-> {pp:1.9f} ==> {err:.15e}')
+    mu  = 0.0
+    std = 1000.0
+    rv = cs.Quantiles(*x).compute()
 
+    prob1 = rv.cdf(mu + std*1) - rv.cdf(mu - std*1)
+    prob2 = rv.cdf(mu + std*2) - rv.cdf(mu - std*2)
+    prob3 = rv.cdf(mu + std*3) - rv.cdf(mu - std*3)
 
-    #     assert (out2.pmf(k) - pp) < 1e-2
+    # We are not using a lot of samples and keeping the accuracy bar low, otherwise
+    # running the tests will take to long. In practice increasing the number of
+    # sample points will increase the accuracy.
 
-    # cnts = out2.getCountArray()
-    # lwr  = out2.getLowerArray()
-    # upr  = out2.getUpperArray()
+    print(prob1)
+    print(prob2)
+    print(prob3)
 
-    # for l, u, c in zip(lwr, upr, cnts):
-    #     print(f'[{l: >8d}; {u: >8d}): {u - l:>5d}: {c/cnts.sum():e}')
-
-    # assert False
+    assert abs(0.6827 - prob1) <= 1e-1
+    assert abs(0.9545 - prob2) <= 1e-2
+    assert abs(0.9973 - prob3) <= 1e-2
