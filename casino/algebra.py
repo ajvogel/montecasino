@@ -218,3 +218,23 @@ class Quantiles(RandomVariable):
         self._compileChildren(codes, operands)
         codes.append(OP_RAND_QUANTILES)
         operands.append(len(self.children))
+
+
+#======================================================================================
+
+class ArraySum(RandomVariable):
+    """
+    Stochastically sums together a contiguous list of random variables.
+    """
+    def __init__(self, array, start, end):
+        self.children = list(reversed(array))
+        self.start = start
+        self.end = end
+
+    def _compile(self, codes, operands):
+        self._compileChildren(codes, operands)
+        self._compileOrPush(codes, operands, self.end)
+        self._compileOrPush(codes, operands, self.start)
+
+        codes.append(OP_ARRAY_SUM)
+        operands.append(len(self.children))

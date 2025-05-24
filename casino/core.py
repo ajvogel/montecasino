@@ -393,6 +393,7 @@ _SUM_END   = pyx.declare(pyx.int, 52)
 _RANDINT = pyx.declare(pyx.int, 100)
 _RANDNORM = pyx.declare(pyx.int, 101)
 _RAND_QUANTILES = pyx.declare(pyx.int, 102)
+_ARRAY_SUM = pyx.declare(pyx.int, 103)
 
 @pyx.cclass
 class VirtualMachine():
@@ -613,6 +614,19 @@ class VirtualMachine():
         self.pushStack(_randnorm(mu, std))
 
     @pyx.cfunc
+    def _arraySum(self, nArray: pyx.double) -> pyx.void:
+        som: pyx.double = 0.0
+        i: pyx.int
+
+        start: pyx.double = self.popStack()
+        end:pyx.double    = self.popStack()
+
+        for i in range(nArray):
+            if start <= i < end:
+                som += self.popStack()
+        self.pushStack(som)
+
+    @pyx.cfunc
     def _randQuantiles(self, nBins: pyx.double) -> pyx.void:
         """
 
@@ -741,7 +755,8 @@ class VirtualMachine():
                 self._randNorm()
             elif opCode == _RAND_QUANTILES:
                 self._randQuantiles(operand)
-
+            elif opCode == _ARRAY_SUM:
+                self._arraySum(operand)
 
             self.counter += 1
 
