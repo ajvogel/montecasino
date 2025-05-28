@@ -291,3 +291,8 @@ def test_array_sum():
     assert cs.ArraySum(array, 0, 5).sample()  == sum(array2[0:5])
     assert cs.ArraySum(array, 0, 1).sample()  == sum(array2[0:1])
     assert cs.ArraySum(array, 5, 10).sample()  == sum(array2[5:10])
+
+    x = cs.Constant(5) + cs.ArraySum(array, 5, 10) + cs.Constant(10)
+
+
+    assert x.sample()  == 5 + sum(array2[5:10]) + 10
