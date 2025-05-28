@@ -617,13 +617,16 @@ class VirtualMachine():
     def _arraySum(self, nArray: pyx.double) -> pyx.void:
         som: pyx.double = 0.0
         i: pyx.int
+        nArrayInt: pyx.int = pyx.cast(pyx.int, nArray)
 
         start: pyx.double = self.popStack()
         end:pyx.double    = self.popStack()
 
-        for i in range(nArray):
-            if start <= i < end:
-                som += self.popStack()
+        for i in range(nArrayInt):
+            x: pyx.double = self.popStack()
+            if (start <= i) and (i < end):
+                som += x
+
         self.pushStack(som)
 
     @pyx.cfunc

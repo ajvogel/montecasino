@@ -276,3 +276,18 @@ def test_quantileSample():
     assert abs(0.6827 - prob1) <= 1e-1
     assert abs(0.9545 - prob2) <= 1e-2
     assert abs(0.9973 - prob3) <= 1e-2
+
+
+def test_array_sum():
+
+
+
+    array = [cs.Constant(i) for i in range(10)]
+    array2 = [i for i in range(10)]
+    start = 0
+    end = 10
+
+    assert cs.ArraySum(array, 0, 10).sample() == sum(array2)
+    assert cs.ArraySum(array, 0, 5).sample()  == sum(array2[0:5])
+    assert cs.ArraySum(array, 0, 1).sample()  == sum(array2[0:1])
+    assert cs.ArraySum(array, 5, 10).sample()  == sum(array2[5:10])
