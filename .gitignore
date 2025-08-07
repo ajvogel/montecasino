@@ -14,3 +14,8 @@ pyrightconfig.json
 /setup.py
 casino/random.c
 casino/core.c
+casino.egg-info/*
+casino/*.c
+docs/old/*
+docs/ranlib/*
+#build.py#
