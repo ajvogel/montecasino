@@ -2,7 +2,7 @@
 # from . import nbinom
 
 from .core import *
-from .algebra import *
+from .nodes import *
 from .opcodes import *
 
 import builtins

@@ -1,3 +1,4 @@
+from typing import SupportsAbs
 import numpy as np
 from .core import *
 from .opcodes import *
@@ -7,25 +8,25 @@ class RandomVariable():
         self.children = list(args)
 
     def __add__(self, other):
-        return ADD(self, other)
+        return Add(self, other)
 
     def __sub__(self, other):
-        return SUB(self, other)
+        return Sub(self, other)
 
     def __mul__(self, other):
-        return MUL(self, other)
+        return Mul(self, other)
 
     def __pow__(self, other):
-        return POW(self, other)
+        return Pow(self, other)
 
     def __truediv__(self, other):
-        return DIV(self, other)
+        return Div(self, other)
 
     def __mod__(self, other):
-        return MOD(self, other)
+        return Mod(self, other)
 
     def __floordiv__(self, other):
-        return FLOORDIV(self, other)
+        return FloorDiv(self, other)
 
     def __divmod__(self, other):
         pass
@@ -101,6 +102,8 @@ class RandomVariable():
         return vm.compute(samples=samples, maxBins=maxBins)
 
 
+#---------------------------------------------------------------------------------------------------
+
 class Constant(RandomVariable):
     def printTree(self,level=0):
         print(' '*level*4+str(self.children[0]))
@@ -108,7 +111,9 @@ class Constant(RandomVariable):
     def _compile(self, codes, operands):
         codes.append(OP_PUSH)
         operands.append(self.children[0])
-        # program.append(('PSH', self.children[0]))
+
+
+#---------------------------------------------------------------------------------------------------
 
 
 class RandInt(RandomVariable):
@@ -117,50 +122,65 @@ class RandInt(RandomVariable):
         codes.append(OP_RANDINT)
         operands.append(0)
 
-class ADD(RandomVariable):
+#---------------------------------------------------------------------------------------------------
+
+class Add(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
         codes.append(OP_ADD)
         operands.append(0)
 
-class SUB(RandomVariable):
+#---------------------------------------------------------------------------------------------------        
+
+class Sub(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
         codes.append(OP_SUB)
         operands.append(0)
 
+#---------------------------------------------------------------------------------------------------                
 
-class MUL(RandomVariable):
+class Mul(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
         codes.append(OP_MUL)
         operands.append(0)
 
-class DIV(RandomVariable):
+#---------------------------------------------------------------------------------------------------                        
+
+class Div(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
         codes.append(OP_DIV)
         operands.append(0)
 
-class FLOORDIV(RandomVariable):
+#---------------------------------------------------------------------------------------------------                                
+
+class FloorDiv(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
         codes.append(OP_FLOORDIV)
         operands.append(0)
 
-class MOD(RandomVariable):
+#---------------------------------------------------------------------------------------------------                                        
+
+class Mod(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
         codes.append(OP_MOD)
         operands.append(0)
 
-class POW(RandomVariable):
+#---------------------------------------------------------------------------------------------------                                                
+
+class Pow(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
         codes.append(OP_POW)
         operands.append(0)
 
-class NORMAL(RandomVariable):
+#---------------------------------------------------------------------------------------------------                                                
+
+class Normal(RandomVariable):
     def __init__(self, mean=0, stdev=1):
         self.mean = mean
         self.stdev = stdev
@@ -172,8 +192,9 @@ class NORMAL(RandomVariable):
         codes.append(OP_RANDNORM)
         operands.append(0)
 
+#---------------------------------------------------------------------------------------------------                                                
 
-class SUM(RandomVariable):
+class Summation(RandomVariable):
     """
     Creates a summation (Sigma symbol in mathematics) for loop. The first argument is the
     number of iterations and the second argument is the term that needs to be added
@@ -204,8 +225,7 @@ class SUM(RandomVariable):
         codes.append(OP_SUM_END)
         operands.append(0)
 
-
-#========================================================================================
+#---------------------------------------------------------------------------------------------------                                                
 
 class Quantiles(RandomVariable):
     """
@@ -220,9 +240,9 @@ class Quantiles(RandomVariable):
         operands.append(len(self.children))
 
 
-#======================================================================================
-
-class ArraySum(RandomVariable):
+#---------------------------------------------------------------------------------------------------                                                
+        
+class Summation(RandomVariable):
     """
     Stochastically sums together a contiguous list of random variables.
     """
