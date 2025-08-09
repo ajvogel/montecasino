@@ -672,6 +672,7 @@ class VirtualMachine():
         self.pushStack(x_)
 
 
+    @pyx.cfunc
     def _randHist(self, nBins: pyx.double) -> pyx.void:
         p:    pyx.double
         xi:   pyx.double
@@ -681,6 +682,9 @@ class VirtualMachine():
         m:    pyx.double
         x_:   pyx.double
         i_n:  pyx.int
+        nB:   pyx.int
+
+        nB = pyx.cast(pyx.int, nBins)
 
         p = _rand()
 
@@ -689,7 +693,7 @@ class VirtualMachine():
 
         x_ = 0
         
-        for i_n in range(1, nBins):
+        for i_n in range(1, nB):
             xi_n = self.popStack()
             ci_n = self.popStack()
 
