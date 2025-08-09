@@ -288,7 +288,7 @@ class Quantiles(RandomVariable):
 
 #---------------------------------------------------------------------------------------------------                                                
         
-class Summation(RandomVariable):
+class ArraySum(RandomVariable):
     """
     Stochastically sums together a contiguous list of random variables.
     """
