@@ -686,20 +686,33 @@ class VirtualMachine():
 
         nB = pyx.cast(pyx.int, nBins)
 
-        p = _rand()
+        #p = _rand()
+        p = 0.75
+
+        print("p = ", p)
 
         xi = self.popStack()
         ci = self.popStack()
 
+        print("xi = ", xi)
+        print('ci = ', ci)
+
         x_ = 0
         
         for i_n in range(1, nB):
+            print("i_n")
             xi_n = self.popStack()
             ci_n = self.popStack()
+
+            print("xi_n = ", xi)
+            print('ci_n = ', ci)
+
+            print(ci, "<=", p,"<", ci_n, "  ",ci <= p < ci_n)
 
             if ci <= p < ci_n:
                 m  = (xi_n - xi) / (ci_n - ci)
                 x_ = xi + m*(p - ci)
+                print('x* = ', x_)
 
             elif (i_n == nBins-1) and (p == 1):
                 # If this is the last bin and p is exactly 1 we will miss the last value

@@ -121,11 +121,19 @@ class DigestVariable(RandomVariable):
         w = self._digest.getWeights()
         n = self._digest.getActiveBinCount()
 
+      
+
         # Trim possible zeros at the end of the arrays.
         x = x[:n]
         w = w[:n]
 
+        print([f'{xx:.1f}' for xx in x])
+        print([f'{ww:.1f}' for ww in w])          
+
         b = np.zeros(n - 1)
+
+
+        
         c = np.zeros(n)
 
         for i in range(n - 1):
@@ -137,6 +145,17 @@ class DigestVariable(RandomVariable):
 
         c = c / b.sum()
 
+        print("Bins:")
+
+        print([f'{bb:.1f}' for bb in b])
+        print("C:")
+        print([f'{cc:.5f}' for cc in c])
+        c2 = b.cumsum() / b.sum()        
+        print([f'{cc:.5f}' for cc in c2])        
+
+        c[1:] = c2
+        c[0]  = 0
+        print([f'{cc:.5f}' for cc in c])
         for i in range(n - 1, -1, -1):
             self._compileOrPush(codes, operands, c[i])
             self._compileOrPush(codes, operands, x[i])

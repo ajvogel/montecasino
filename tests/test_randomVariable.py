@@ -302,14 +302,15 @@ def test_sample_digest():
     std = 100
     mu  = 100
     np.random.seed(31337)
-    data = np.random.randn(10_000)*std + mu
-    x = cs.Digest(maxBins=64)
+    data = np.random.randn(100_000)*std + mu
+    x = cs.Digest(maxBins=16)
     for d in data:
         x.add(d)
 
     y = cs.DigestVariable(x)
-    y = y.compute()
-
+    y = y.sample()
+    # y = y.compute(samples=10000)
+    print(y)
     DATA = [
         (-64.485, 0.05),
         (32.551, 0.25),
@@ -320,5 +321,5 @@ def test_sample_digest():
 
     for v, p in DATA:
         dv = abs((v - y.quantile(p)) / v)
-        print(f'{v} : {y.quantile(p)} : {dv}')
+        print(f'{v} : {x.quantile(p)} : {y.quantile(p)} : {dv}')
         assert dv <= 1e-1    

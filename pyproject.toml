@@ -1,6 +1,6 @@
 [project]
 name = "casino"
-version = "0.3.0"
+version = "0.3.6"
 description = "Casino enables fast probabilistic modelling"
 authors = [{ name = "Adolph Vogel", email = "ajvogel@gmail.com" }]
 readme = "README.md"
