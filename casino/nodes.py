@@ -102,7 +102,53 @@ class RandomVariable():
         return vm.compute(samples=samples, maxBins=maxBins)
 
 
-#---------------------------------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------------------
+
+class DigestVariable(RandomVariable):
+    """
+    Wraps the Digest class in a RandomVariable class so that we can use it in our
+    algebra operations.
+    """
+    def __init__(self, digest: Digest):
+        self._digest = digest
+
+    def _compile(self, codes, operands):
+        # We convert and compile the digest node into a generic histogram for random
+        # sampling.
+        
+        x = self._digest.getBins()
+        w = self._digest.getWeights()
+        n = self._digest.getActiveBinCount()
+
+        # Trim possible zeros at the end of the arrays.
+        x = x[:n]
+        w = w[:n]
+
+        b = np.zeros(n - 1)
+        c = np.zeros(n)
+
+        for i in range(n - 1):
+            b[i] = (w[i] + w[i+1]) / 2
+
+        for i in range(n):
+            for j in range(0, i - 1):
+                c[i] = c[i] + b[j]
+
+        c = c / b.sum()
+
+        for i in range(n - 1, -1, -1):
+            self._compileOrPush(codes, operands, c[i])
+            self._compileOrPush(codes, operands, x[i])
+
+        codes.append(OP_RAND_HIST)
+        operands.append(n)
+        
+            
+        
+        
+    
+#-----------------------------------------------------------------------------------------
 
 class Constant(RandomVariable):
     def printTree(self,level=0):

@@ -23,6 +23,7 @@ OP_RANDINT = 100
 OP_RANDNORM = 101
 OP_RAND_QUANTILES = 102
 OP_ARRAY_SUM = 103
+OP_RAND_HIST = 104
 # END
 
 if __name__ == "__main__":

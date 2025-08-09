@@ -394,6 +394,7 @@ _RANDINT = pyx.declare(pyx.int, 100)
 _RANDNORM = pyx.declare(pyx.int, 101)
 _RAND_QUANTILES = pyx.declare(pyx.int, 102)
 _ARRAY_SUM = pyx.declare(pyx.int, 103)
+_RAND_HIST = pyx.declare(pyx.int, 104)
 
 @pyx.cclass
 class VirtualMachine():
@@ -671,35 +672,42 @@ class VirtualMachine():
         self.pushStack(x_)
 
 
-        # dP: pyx.double  = 1. / nBins
-        # v: pyx.double   = _rand()
-        # som: pyx.double = 0
+    def _randHist(self, nBins: pyx.double) -> pyx.void:
+        p:    pyx.double
+        xi:   pyx.double
+        ci:   pyx.double
+        xi_n: pyx.double
+        ci_n: pyx.double
+        m:    pyx.double
+        x_:   pyx.double
+        i_n:  pyx.int
 
-        # x_ = np.zeros(nBins)
-        # y_ = np.zeros(nBins)
-        # x: pyx.double[:] = x_
-        # y: pyx.double[:] = y_
+        p = _rand()
 
-        # for i in range(nBins):
-        #     x[i] = self.popStack()
-        #     y[i] = dP*i
+        xi = self.popStack()
+        ci = self.popStack()
 
-        # # We need to find the bucket that u is in.
-        # if v == 0:
-        #     pass
-        #     # Return left point.
-        # elif v == 1:
-        #     pass
-        #     # Retuen right point.
-        # else:
-        #     idx: pyx.double = c_floor(u / dP)
+        x_ = 0
+        
+        for i_n in range(1, nBins):
+            xi_n = self.popStack()
+            ci_n = self.popStack()
 
-        #     # Find the containing bin.
-        #     for i in range(nBins):
-        #         if y[i] < v < y[i+1]:
-        #             break
+            if ci <= p < ci_n:
+                m  = (xi_n - xi) / (ci_n - ci)
+                x_ = xi + m*(p - ci)
 
+            elif (i_n == nBins-1) and (p == 1):
+                # If this is the last bin and p is exactly 1 we will miss the last value
+                # adding a second check for it here.
+                x_ = xi_n
 
+            xi = xi_n
+            ci = ci_n
+
+        self.pushStack(x_)
+
+            
 
 
 
@@ -760,6 +768,8 @@ class VirtualMachine():
                 self._randQuantiles(operand)
             elif opCode == _ARRAY_SUM:
                 self._arraySum(operand)
+            elif opCode == _RAND_HIST:
+                self._randHist(operand)
 
             self.counter += 1
 
