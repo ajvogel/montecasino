@@ -20,8 +20,11 @@ include = ["casino/*.so"]
 dev = [
     "cython>=3.1.2",
     "pytest>=8.4.1",
+    "setuptools>=80.9.0",
 ]
 
 
 
-
+[build-system]
+requires = ["setuptools>=80", "cython>3.1.2"]
+build-backend = "setuptools.build_meta"
