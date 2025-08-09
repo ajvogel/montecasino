@@ -1,11 +1,26 @@
-[tool.poetry]
+[project]
 name = "casino"
-version = "0.2.0.post7.dev0+3e6fe06"
+version = "0.3.0"
 description = "Casino enables fast probabilistic modelling"
-authors = ["Adolph Vogel <ajvogel@gmail.com>"]
-license = "MIT"
+authors = [{ name = "Adolph Vogel", email = "ajvogel@gmail.com" }]
 readme = "README.md"
-include = ['casino/*.so']
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.3.2",
+]
+
+[tool.hatch.build.targets.sdist]
+include = ["casino/*.so"]
+
+[tool.hatch.build.targets.wheel]
+include = ["casino/*.so"]
+
+[dependency-groups]
+dev = [
+    "cython>=3.1.2",
+    "pytest>=8.4.1",
+]
 
 
 
