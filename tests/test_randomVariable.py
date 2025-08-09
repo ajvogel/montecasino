@@ -296,3 +296,29 @@ def test_array_sum():
 
 
     assert x.sample()  == 5 + sum(array2[5:10]) + 10
+
+
+def test_sample_digest():
+    std = 100
+    mu  = 100
+    np.random.seed(31337)
+    data = np.random.randn(10_000)*std + mu
+    x = cs.Digest(maxBins=64)
+    for d in data:
+        x.add(d)
+
+    y = cs.DigestVariable(x)
+    y = y.compute()
+
+    DATA = [
+        (-64.485, 0.05),
+        (32.551, 0.25),
+        (100.00, 0.50),
+        (167.449, 0.75),
+        (264.485, 0.95)
+    ]
+
+    for v, p in DATA:
+        dv = abs((v - y.quantile(p)) / v)
+        print(f'{v} : {y.quantile(p)} : {dv}')
+        assert dv <= 1e-1    
