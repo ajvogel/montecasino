@@ -1,6 +1,7 @@
 [project]
 name = "casino"
-version = "0.3.6"
+#version = "0.3.6"
+dynamic = ['version']
 description = "Casino enables fast probabilistic modelling"
 authors = [{ name = "Adolph Vogel", email = "ajvogel@gmail.com" }]
 readme = "README.md"
@@ -26,5 +27,5 @@ dev = [
 
 
 [build-system]
-requires = ["setuptools>=80", "cython>=3.1.2"]
+requires = ["setuptools>=80", "cython>=3.1.2","setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
