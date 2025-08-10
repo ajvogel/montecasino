@@ -1,7 +1,7 @@
 [project]
 name = "casino"
 #version = "0.3.6"
-dynamic = ['version']
+dynamic = ["version"]
 description = "Casino enables fast probabilistic modelling"
 authors = [{ name = "Adolph Vogel", email = "ajvogel@gmail.com" }]
 readme = "README.md"
@@ -25,7 +25,20 @@ dev = [
 ]
 
 
+[tool.versioningit.format]
+# Format used when there have been commits since the most recent tag:
+distance = "{base_version}.post{distance}+{vcs}{rev}"
+# Example formatted version: 1.2.3.post42+ge174a1f
+
+# Format used when there are uncommitted changes:
+dirty = "{base_version}+d{build_date:%Y%m%d}"
+# Example formatted version: 1.2.3+d20230922
+
+# Format used when there are both commits and uncommitted changes:
+distance-dirty = "{base_version}.post{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
+# Example formatted version: 1.2.3.post42+ge174a1f.d20230922
+
 
 [build-system]
-requires = ["setuptools>=80", "cython>=3.1.2","setuptools-scm>=8"]
+requires = ["setuptools>=80", "cython>=3.1.2","versioningit"]
 build-backend = "setuptools.build_meta"
