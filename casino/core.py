@@ -686,8 +686,8 @@ class VirtualMachine():
 
         nB = pyx.cast(pyx.int, nBins)
 
-        #p = _rand()
-        p = 0.75
+        p = _rand()
+        #p = 0.25
 
         # print("p = ", p)
 
@@ -723,7 +723,7 @@ class VirtualMachine():
             ci = ci_n
 
             
-        print('x* = ', x_)
+        #print('x* = ', x_)
         self.pushStack(x_)
 
             
