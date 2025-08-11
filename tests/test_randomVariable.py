@@ -308,8 +308,8 @@ def test_sample_digest():
         x.add(d)
 
     y = cs.DigestVariable(x)
-    y = y.sample()
-    # y = y.compute(samples=10000)
+    #y = y.sample()
+    y = y.compute(samples=10)
     print(y)
     DATA = [
         (-64.485, 0.05),
