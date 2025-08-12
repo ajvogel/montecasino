@@ -28,6 +28,12 @@ class RandomVariable():
     def __floordiv__(self, other):
         return FloorDiv(self, other)
 
+    def __matmul__(self, other):
+        return Summation(self, other)
+
+    def __rmatmul__(self, other):
+        return Summation(other, self)
+
     def __divmod__(self, other):
         pass
 
