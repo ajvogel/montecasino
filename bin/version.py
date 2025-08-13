@@ -68,7 +68,11 @@ def update_pyproject_version():
     checksum = get_commit_hash()
     
     # Format version string
-    version = f"{base_version}.post{distance}+{checksum}"
+    if distance > 0:
+        version = f"{base_version}.post{distance}+{checksum}"
+    else:
+        version = f"{base_version}"
+        
     
     # Read pyproject.toml
     pyproject_path = Path("pyproject.toml")

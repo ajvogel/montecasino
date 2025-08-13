@@ -55,6 +55,19 @@ class RandomVariable():
     def __rdivmod__(self, other):
         pass
 
+    def __lt__(self, other):
+        return LessThan(self, other)
+
+    def __le__(self, other):
+        return LessThanEqual(self, other)
+
+    def __gt__(self, other):
+        return LessThan(other, self)
+
+    def __ge__(self, other):
+        return LessThanEqual(other, self)
+        
+
     def printTree(self, level=0):
         print(' '*level*4+self.__class__.__name__)
         for c in self.children:
@@ -193,7 +206,22 @@ class RandInt(RandomVariable):
         codes.append(OP_RANDINT)
         operands.append(0)
 
-#---------------------------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------------------        
+class LessThan(RandomVariable):
+    def _compile(self, codes, operands):
+        self._compileChildren(codes, operands)
+        codes.append(OP_LT)
+        operands.append(0)
+
+#--------------------------------------------------------------------------------------------        
+class LessThanEqual(RandomVariable):
+    def _compile(self, codes, operands):
+        self._compileChildren(codes, operands)
+        codes.append(OP_LE)
+        operands.append(0)        
+
+#--------------------------------------------------------------------------------------------
 
 class Add(RandomVariable):
     def _compile(self, codes, operands):

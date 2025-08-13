@@ -381,6 +381,9 @@ _DIV = pyx.declare(pyx.int, 23)
 _SUB = pyx.declare(pyx.int, 24)
 _MOD = pyx.declare(pyx.int, 25)
 _FLOORDIV = pyx.declare(pyx.int, 26)
+_LT = pyx.declare(pyx.int, 27)
+_LE = pyx.declare(pyx.int, 28)
+
 
 _BINOPMAX = pyx.declare(pyx.int, 50)
 
@@ -572,13 +575,7 @@ class VirtualMachine():
     def _binop(self, opCode: pyx.double) -> pyx.void:
         # When things are removed from the stack we pop them from the bottom of the stack
         # in the reverse order in which they were pushed. So we pop x2 first before x1.
-        # _ADD:pyx.int   = 20
-        # _MUL:pyx.int   = 21
-        # _POW:pyx.int   = 22
-        # _DIV:pyx.int   = 23
-        # _SUB:pyx.int   = 24
-        # _MOD:pyx.int   = 25
-        # _FLOORDIV: pyx.int = 26
+
 
         x2 = self.popStack()
         x1 = self.popStack()
@@ -596,6 +593,10 @@ class VirtualMachine():
             self.pushStack(x1 % x2)
         elif opCode == _SUB:
             self.pushStack(x1 - x2)
+        elif opCode == _LT:
+            self.pushStack(1) if x1 < x2 else self.pushStack(0)
+        elif opCode == _LE:
+            self.pushStack(1) if x1 <= x2 else self.pushStack(0)
 
     @pyx.cfunc
     def _randInt(self) -> pyx.void:
