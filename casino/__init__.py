@@ -7,7 +7,7 @@ from .opcodes import *
 
 import builtins
 
-__version__ = '0.2.0.post7.dev0+3e6fe06'
+# __version__ = '0.2.0.post7.dev0+3e6fe06'
 
 # def max(val1, val2):
 #     """
@@ -59,13 +59,23 @@ def printPMF(rv):
     for k, p in zip(kVec, pVec):
         print(f'{k:5} | {"█"*int(p / maxP *100)}')
 
-def fromScipy(rvScipy, maxBins=32, samples=1000):
+def fromScipy(rvScipy, maxBins=32, samples=10_000):
     """
     Generates a RandomVariable by repeatably sampling a Scipy frozen distribution
     this allows us to use Scipy and Statsmodels to fit distributions and then
     convert them to Casino Random Variables.
     """
     data = rvScipy.rvs(size=samples)
+    return fromArray(data)
     counts = np.ones_like(data)
     rv = RandomVariable(maxBins=maxBins, data=data, counts=counts)
+    return rv
+
+
+def fromArray(array):
+    digest = Digest()
+    for ar in array:
+        digest.add(ar)
+
+    rv = DigestVariable(digest)
     return rv
