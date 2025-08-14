@@ -214,7 +214,7 @@ class Digest():
         c = self.bins
         m = self.cnts
 
-        if k < self.lower():
+        if k <= self.lower():
             return 0.
         elif k >= self.upper():
             return 1.
