@@ -114,11 +114,12 @@ class RandomVariable():
         return vm.sample()
 
     def compute(self, samples=10000, maxBins=32):
-        print('Compiling...')
+        # print('Compiling...')
         codes, operands = self.compile()
         vm = VirtualMachine(codes, operands)
-        print('Simulating...')
-        return vm.compute(samples=samples, maxBins=maxBins)
+        # print('Simulating...')
+        digest =  vm.compute(samples=samples, maxBins=maxBins)
+        return DigestVariable(digest)
 
 
 
@@ -132,6 +133,18 @@ class DigestVariable(RandomVariable):
     def __init__(self, digest: Digest):
         self._digest = digest
 
+    def quantile(self, q):
+        return self._digest.quantile(q)
+
+    def cdf(self, k):
+        return self._digest.cdf(k)
+
+    def lower(self):
+        return self._digest.lower()
+
+    def upper(self):
+        return self._digest.upper()
+    
     def _compile(self, codes, operands):
         # We convert and compile the digest node into a generic histogram for random
         # sampling.
