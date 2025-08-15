@@ -10,11 +10,20 @@ class RandomVariable():
     def __add__(self, other):
         return Add(self, other)
 
+    def __radd__(self, other):
+        return Add(other, self)
+
     def __sub__(self, other):
         return Sub(self, other)
 
+    def __rsub__(self, other):
+        return Sub(other, self)    
+
     def __mul__(self, other):
         return Mul(self, other)
+
+    def __rmul__(self, other):
+        return Mul(other, self)    
 
     def __pow__(self, other):
         return Pow(self, other)
@@ -35,15 +44,6 @@ class RandomVariable():
         return Summation(other, self)
 
     def __divmod__(self, other):
-        pass
-
-    def __radd__(self, other):
-        pass
-
-    def __rmul__(self, other):
-        pass
-
-    def __rpow__(self, other):
         pass
 
     def __rtruediv__(self, other):
@@ -209,9 +209,7 @@ class Constant(RandomVariable):
         codes.append(OP_PUSH)
         operands.append(self.children[0])
 
-
-#---------------------------------------------------------------------------------------------------
-
+#-----------------------------------------------------------------------------------------
 
 class RandInt(RandomVariable):
     def _compile(self, codes, operands):
@@ -219,22 +217,23 @@ class RandInt(RandomVariable):
         codes.append(OP_RANDINT)
         operands.append(0)
 
+#-----------------------------------------------------------------------------------------
 
-#--------------------------------------------------------------------------------------------        
 class LessThan(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
         codes.append(OP_LT)
         operands.append(0)
 
-#--------------------------------------------------------------------------------------------        
+#-----------------------------------------------------------------------------------------
+
 class LessThanEqual(RandomVariable):
     def _compile(self, codes, operands):
         self._compileChildren(codes, operands)
         codes.append(OP_LE)
         operands.append(0)        
 
-#--------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------
 
 class Add(RandomVariable):
     def _compile(self, codes, operands):
@@ -242,7 +241,7 @@ class Add(RandomVariable):
         codes.append(OP_ADD)
         operands.append(0)
 
-#---------------------------------------------------------------------------------------------------        
+#-----------------------------------------------------------------------------------------
 
 class Sub(RandomVariable):
     def _compile(self, codes, operands):
@@ -250,7 +249,7 @@ class Sub(RandomVariable):
         codes.append(OP_SUB)
         operands.append(0)
 
-#---------------------------------------------------------------------------------------------------                
+#-----------------------------------------------------------------------------------------
 
 class Mul(RandomVariable):
     def _compile(self, codes, operands):
@@ -258,7 +257,7 @@ class Mul(RandomVariable):
         codes.append(OP_MUL)
         operands.append(0)
 
-#---------------------------------------------------------------------------------------------------                        
+#-----------------------------------------------------------------------------------------
 
 class Div(RandomVariable):
     def _compile(self, codes, operands):
@@ -266,7 +265,7 @@ class Div(RandomVariable):
         codes.append(OP_DIV)
         operands.append(0)
 
-#---------------------------------------------------------------------------------------------------                                
+#-----------------------------------------------------------------------------------------
 
 class FloorDiv(RandomVariable):
     def _compile(self, codes, operands):
@@ -274,7 +273,7 @@ class FloorDiv(RandomVariable):
         codes.append(OP_FLOORDIV)
         operands.append(0)
 
-#---------------------------------------------------------------------------------------------------                                        
+#-----------------------------------------------------------------------------------------
 
 class Mod(RandomVariable):
     def _compile(self, codes, operands):
@@ -282,7 +281,7 @@ class Mod(RandomVariable):
         codes.append(OP_MOD)
         operands.append(0)
 
-#---------------------------------------------------------------------------------------------------                                                
+#-----------------------------------------------------------------------------------------
 
 class Pow(RandomVariable):
     def _compile(self, codes, operands):
@@ -290,7 +289,7 @@ class Pow(RandomVariable):
         codes.append(OP_POW)
         operands.append(0)
 
-#---------------------------------------------------------------------------------------------------                                                
+#-----------------------------------------------------------------------------------------
 
 class Normal(RandomVariable):
     def __init__(self, mean=0, stdev=1):
@@ -304,7 +303,7 @@ class Normal(RandomVariable):
         codes.append(OP_RANDNORM)
         operands.append(0)
 
-#---------------------------------------------------------------------------------------------------                                                
+#-----------------------------------------------------------------------------------------
 
 class Summation(RandomVariable):
     """
@@ -337,7 +336,7 @@ class Summation(RandomVariable):
         codes.append(OP_SUM_END)
         operands.append(0)
 
-#---------------------------------------------------------------------------------------------------                                                
+#-----------------------------------------------------------------------------------------
 
 class Quantiles(RandomVariable):
     """
@@ -352,7 +351,7 @@ class Quantiles(RandomVariable):
         operands.append(len(self.children))
 
 
-#---------------------------------------------------------------------------------------------------                                                
+#-----------------------------------------------------------------------------------------
         
 class ArraySum(RandomVariable):
     """

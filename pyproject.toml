@@ -1,6 +1,6 @@
 [project]
 name = "casino"
-version = "0.6.0.post6+31074284"
+version = "0.6.0.post7+3fb3f3f1"
 # dynamic = ["version"]
 description = "Casino enables fast probabilistic modelling"
 authors = [{ name = "Adolph Vogel", email = "ajvogel@gmail.com" }]
@@ -21,8 +21,10 @@ include = ["casino/*.so"]
 dev = [
     "cython>=3.1.2",
     "ipython>=9.4.0",
+    "matplotlib>=3.10.5",
     "openpyxl>=3.1.5",
     "pandas>=2.3.1",
+    "pyqt6>=6.9.1",
     "pytest>=8.4.1",
     "quarto>=0.1.0",
     "setuptools>=80.9.0",
