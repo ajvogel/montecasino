@@ -4,6 +4,7 @@
 from .core import *
 from .nodes import *
 from .opcodes import *
+import numpy as np
 
 import builtins
 
@@ -79,3 +80,31 @@ def fromArray(array):
 
     rv = DigestVariable(digest)
     return rv
+
+
+
+def plot(digest, nBins=20, lower=None, upper=None, width=0.8, ax=None, *args, **kwds):
+    if lower is None:
+        lower = digest.lower()
+
+    if upper is None:
+        upper = digest.upper()
+
+    bins = np.linspace(lower, upper, nBins)
+    y = np.zeros(nBins - 1)
+    x = np.zeros(nBins - 1)    
+
+    for i in range(nBins - 1):
+        y[i] = digest.cdf(bins[i+1]) - digest.cdf(bins[i])
+        x[i] = (bins[i+1] + bins[i])/2
+
+    if ax is None:
+        import pylab as plt
+        fig = plt.figure()
+        ax = fig.gca()
+
+    ax.bar(x, y, width=width*(bins[1] - bins[0]), *args, **kwds)
+        
+
+    
+    
