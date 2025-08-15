@@ -287,31 +287,61 @@ class Digest():
 
 
     def quantile(self, p):
-        # Using Regula Falsi
-        a = self.lower()
-        b = self.upper()
-
-        fa = 0 - p
-        fb = 1 - p
-
-        iter = 0
-
-        while ((b - a) > 0.1) and (iter < 100):
-            c = (fb*a - fa*b) / (fb - fa)
-            fc = self.cdf(c) - p
-
-            if fc < 0:
-                a  = c
-                fa = fc
-            elif fc > 0:
-                b  = c
-                fb = fc
-            else:
-                return c
-
-            iter += 1
-
-        return (b+a)/2
+        """
+        Explicit t-digest quantile calculation using centroids and weights
+        Based on Ted Dunning's t-digest algorithm
+        """
+        if p <= 0:
+            return self.lower()
+        elif p >= 1:
+            return self.upper()
+        
+        total_weight = self._sumWeights()
+        target_sum = p * total_weight
+        
+        cumulative_sum = 0.0
+        
+        for i in range(self.nActive - 1):
+            next_cumulative = cumulative_sum + self._cnts[i]
+            
+            # Check if target quantile falls within this centroid's range
+            if cumulative_sum <= target_sum <= next_cumulative:
+                # If we're exactly at a centroid boundary, return the centroid center
+                if target_sum == cumulative_sum:
+                    return self._bins[i]
+                elif target_sum == next_cumulative:
+                    return self._bins[i]
+                
+                # Interpolate within the centroid
+                # For single-point centroids (weight = 1), return the center
+                if self._cnts[i] == 1:
+                    return self._bins[i]
+                else:
+                    # Linear interpolation within the centroid's mass
+                    fraction = (target_sum - cumulative_sum) / self._cnts[i]
+                    return self._bins[i]
+            
+            # Check if target quantile falls between two centroids
+            elif cumulative_sum < target_sum < next_cumulative:
+                # Interpolate between centroid centers
+                weight_before = target_sum - cumulative_sum
+                weight_after = next_cumulative - target_sum
+                total_gap_weight = weight_before + weight_after
+                
+                if total_gap_weight > 0:
+                    fraction = weight_before / total_gap_weight
+                    return self._bins[i] + fraction * (self._bins[i+1] - self._bins[i])
+                else:
+                    return self._bins[i]
+            
+            cumulative_sum = next_cumulative
+        
+        # Handle the last centroid
+        if cumulative_sum <= target_sum <= total_weight:
+            return self._bins[self.nActive - 1]
+        
+        # Fallback
+        return self._bins[self.nActive - 1]
 
 #==================================================================================================
 
