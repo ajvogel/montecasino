@@ -73,8 +73,8 @@ def fromScipy(rvScipy, maxBins=32, samples=10_000):
     return rv
 
 
-def fromArray(array):
-    digest = Digest()
+def fromArray(array, maxBins=32):
+    digest = Digest(maxBins=maxBins)
     for ar in array:
         digest.add(ar)
 
