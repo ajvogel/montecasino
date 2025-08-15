@@ -155,7 +155,7 @@ def test_randInt_sample():
 #     assert False
 
 def test_randInt_distribution():
-    dice = cs.RandInt(1,6).compute()
+    dice = cs.RandInt(1,6).compute()._digest
     nActive = dice.getActiveBinCount()
     minW = min(dice.getWeights()[:nActive])
     maxW = max(dice.getWeights()[:nActive])
