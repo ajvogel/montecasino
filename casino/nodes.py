@@ -102,8 +102,8 @@ class RandomVariable():
         codes    = []
         operands = []
         self._compile(codes, operands)
-        print(codes)
-        print(operands)
+        # print(codes)
+        # print(operands)
         codes = np.array(codes, dtype=np.double)
         operands = np.array(operands, dtype=np.double)
         return codes, operands
@@ -159,8 +159,8 @@ class DigestVariable(RandomVariable):
         x = x[:n]
         w = w[:n]
 
-        print([f'{xx:.1f}' for xx in x])
-        print([f'{ww:.1f}' for ww in w])          
+        # print([f'{xx:.1f}' for xx in x])
+        # print([f'{ww:.1f}' for ww in w])          
 
         b = np.zeros(n - 1)
 
@@ -177,17 +177,17 @@ class DigestVariable(RandomVariable):
 
         c = c / b.sum()
 
-        print("Bins:")
+        # print("Bins:")
 
-        print([f'{bb:.1f}' for bb in b])
-        print("C:")
-        print([f'{cc:.5f}' for cc in c])
+        # print([f'{bb:.1f}' for bb in b])
+        # print("C:")
+        # print([f'{cc:.5f}' for cc in c])
         c2 = b.cumsum() / b.sum()        
-        print([f'{cc:.5f}' for cc in c2])        
+        # print([f'{cc:.5f}' for cc in c2])        
 
         c[1:] = c2
         c[0]  = 0
-        print([f'{cc:.5f}' for cc in c])
+        # print([f'{cc:.5f}' for cc in c])
         for i in range(n - 1, -1, -1):
             self._compileOrPush(codes, operands, c[i])
             self._compileOrPush(codes, operands, x[i])

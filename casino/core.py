@@ -249,9 +249,9 @@ class Digest():
                 else:
                     som += m[i]
 
-            print(k)
-            print(self.getBins())
-            print(self.getWeights())
+            # print(k)
+            # print(self.getBins())
+            # print(self.getWeights())
 
 
 
