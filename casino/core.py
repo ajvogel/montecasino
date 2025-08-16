@@ -205,6 +205,39 @@ class Digest():
     def add(self, point, count=1):
         self._add(point, count)
 
+    def quantile(self, p):
+        if p <= 0:
+            return self.lower()
+        elif p >= 1:
+            return self.upper()
+        else:
+            W  = self._sumWeights()
+            m = self.cnts
+            c = self.bins
+            wi = 0
+            w_ = p*W
+
+            for i in range(self.nActive-1):
+                if i == 0:
+                    wGap = m[i] + m[i+1]/2
+                elif i == self.nActive - 1:
+                    wGap = m[i]/2 + m[i+1]
+                else:
+                    wGap = m[i]/2 + m[i+1]/2
+
+                wi_n = wi + wGap
+                    
+                if wi <= w_ < wi_n:
+                    fraction = (w_ - wi) / wGap
+                    c_ = fraction * (c[i+1] - c[i]) + c[i]
+                    return c_
+
+                wi = wi_n
+
+            else:
+                return self.upper()
+                    
+
     def cdf(self, k):
         """
 
@@ -286,62 +319,94 @@ class Digest():
         return int(round(self.quantile(p)))
 
 
-    def quantile(self, p):
-        """
-        Explicit t-digest quantile calculation using centroids and weights
-        Based on Ted Dunning's t-digest algorithm
-        """
-        if p <= 0:
-            return self.lower()
-        elif p >= 1:
-            return self.upper()
+    # def quantile2(self, p):
+    #     """
+    #     P(X <= x) = p
+    #     """
+    #     if p <= 0:
+    #         return self.lower()
+    #     elif p >= 1:
+    #         return self.upper()
+
+    #     totalWeight  = self._sumWeights()
+    #     targetSum    = p * totalWeight
+    #     cumSum       = 0
+
+    #     for i in range(self.nActive - 1):
+    #         nextSum = cumSum + self._cnts[i]
+
+    #         if cumSum <= targetSum <= nextSum:
+    #             if targetSum == cumSum:
+    #                 return self._bins[i]
+    #             elif targetSum == nextSum:
+    #                 return self._bins[i+1]
+    #             else:
+    #                 fraction = (targetSum - cumSum) / self._cnts[i]
+    #                 return self._bins[i] + fraction * (self._bins[i+1] - self._bins[i])
+
+    #         cumSum = nextSum
+
+    #     if cumSum <= targetSum <= totalWeight:
+    #         # The last bin.
+                    
+    
+
+    # def quantile(self, p):
+    #     """
+    #     Explicit t-digest quantile calculation using centroids and weights
+    #     Based on Ted Dunning's t-digest algorithm
+    #     """
+    #     if p <= 0:
+    #         return self.lower()
+    #     elif p >= 1:
+    #         return self.upper()
         
-        total_weight = self._sumWeights()
-        target_sum = p * total_weight
+    #     total_weight = self._sumWeights()
+    #     target_sum = p * total_weight
         
-        cumulative_sum = 0.0
+    #     cumulative_sum = 0.0
         
-        for i in range(self.nActive - 1):
-            next_cumulative = cumulative_sum + self._cnts[i]
+    #     for i in range(self.nActive - 1):
+    #         next_cumulative = cumulative_sum + self._cnts[i]
             
-            # Check if target quantile falls within this centroid's range
-            if cumulative_sum <= target_sum <= next_cumulative:
-                # If we're exactly at a centroid boundary, return the centroid center
-                if target_sum == cumulative_sum:
-                    return self._bins[i]
-                elif target_sum == next_cumulative:
-                    return self._bins[i]
+    #         # Check if target quantile falls within this centroid's range
+    #         if cumulative_sum <= target_sum <= next_cumulative:
+    #             # If we're exactly at a centroid boundary, return the centroid center
+    #             if target_sum == cumulative_sum:
+    #                 return self._bins[i]
+    #             elif target_sum == next_cumulative:
+    #                 return self._bins[i]
                 
-                # Interpolate within the centroid
-                # For single-point centroids (weight = 1), return the center
-                if self._cnts[i] == 1:
-                    return self._bins[i]
-                else:
-                    # Linear interpolation within the centroid's mass
-                    fraction = (target_sum - cumulative_sum) / self._cnts[i]
-                    return self._bins[i]
+    #             # Interpolate within the centroid
+    #             # For single-point centroids (weight = 1), return the center
+    #             if self._cnts[i] == 1:
+    #                 return self._bins[i]
+    #             else:
+    #                 # Linear interpolation within the centroid's mass
+    #                 fraction = (target_sum - cumulative_sum) / self._cnts[i]
+    #                 return self._bins[i]
             
-            # Check if target quantile falls between two centroids
-            elif cumulative_sum < target_sum < next_cumulative:
-                # Interpolate between centroid centers
-                weight_before = target_sum - cumulative_sum
-                weight_after = next_cumulative - target_sum
-                total_gap_weight = weight_before + weight_after
+    #         # Check if target quantile falls between two centroids
+    #         elif cumulative_sum < target_sum < next_cumulative:
+    #             # Interpolate between centroid centers
+    #             weight_before = target_sum - cumulative_sum
+    #             weight_after = next_cumulative - target_sum
+    #             total_gap_weight = weight_before + weight_after
                 
-                if total_gap_weight > 0:
-                    fraction = weight_before / total_gap_weight
-                    return self._bins[i] + fraction * (self._bins[i+1] - self._bins[i])
-                else:
-                    return self._bins[i]
+    #             if total_gap_weight > 0:
+    #                 fraction = weight_before / total_gap_weight
+    #                 return self._bins[i] + fraction * (self._bins[i+1] - self._bins[i])
+    #             else:
+    #                 return self._bins[i]
             
-            cumulative_sum = next_cumulative
+    #         cumulative_sum = next_cumulative
         
-        # Handle the last centroid
-        if cumulative_sum <= target_sum <= total_weight:
-            return self._bins[self.nActive - 1]
+    #     # Handle the last centroid
+    #     if cumulative_sum <= target_sum <= total_weight:
+    #         return self._bins[self.nActive - 1]
         
-        # Fallback
-        return self._bins[self.nActive - 1]
+    #     # Fallback
+    #     return self._bins[self.nActive - 1]
 
 #==================================================================================================
 
