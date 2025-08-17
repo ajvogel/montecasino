@@ -81,4 +81,6 @@ def test_normalApprox_quantile():
     for v, p in DATA:
         dv = abs((v - x.quantile(p)) / v)
         print(f'{v} : {x.quantile(p)} : {dv}')
-        assert dv <= 1e-1
+        assert dv <= 2.5e-2
+
+

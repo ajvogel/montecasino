@@ -1,6 +1,6 @@
 [project]
 name = "casino"
-version = "0.6.0.post12+0af67d6a"
+version = "0.6.0.post13+781a8689"
 # dynamic = ["version"]
 description = "Casino enables fast probabilistic modelling"
 authors = [{ name = "Adolph Vogel", email = "ajvogel@gmail.com" }]
