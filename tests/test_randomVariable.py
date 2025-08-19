@@ -1,9 +1,9 @@
-import casino as cs
+import montecasino as mc
 import numpy as np
 
 # def test_addTwoUniform():
 #     """addUniform"""
-#     x = cs.Uniform(1,6) + cs.Uniform(1,6)
+#     x = mc.Uniform(1,6) + mc.Uniform(1,6)
 #     # print(x.lower)
 #     # print(x.upper)
 #     # print(x.count)
@@ -33,7 +33,7 @@ import numpy as np
 
 
 # def test_lowerBound_and_upperBound():
-#     x = cs.Uniform(1,6) + cs.Uniform(1,6)
+#     x = mc.Uniform(1,6) + mc.Uniform(1,6)
 #     assert x.lower() == 2
 #     assert x.upper() == 12
 
@@ -43,7 +43,7 @@ import numpy as np
 #     mu  = 100
 #     N   = 100
 #     data = np.random.randn(N)*std + mu
-#     x = cs.RandomVariable(maxBins=16)
+#     x = mc.RandomVariable(maxBins=16)
 #     for d in data:
 #         x.add(d)
 
@@ -59,7 +59,7 @@ import numpy as np
 #     mu  = 1000
 #     N   = 100
 #     data = np.random.randn(N)*std + mu
-#     x = cs.RandomVariable(maxBins=16)
+#     x = mc.RandomVariable(maxBins=16)
 #     for e, d in enumerate(data):
 #         # print()
 #         print(f'Adding {d} as point {e+1}...')
@@ -76,7 +76,7 @@ import numpy as np
 #     mu  = 100
 #     N   = 100
 #     data = np.random.randn(N)*std + mu
-#     x = cs.RandomVariable(maxBins=16)
+#     x = mc.RandomVariable(maxBins=16)
 #     for d in data:
 #         x.add(d)
 
@@ -91,7 +91,7 @@ import numpy as np
 #     mu  = 100
 #     np.random.seed(31337)
 #     data = np.random.randn(10000)*std + mu
-#     x = cs.RandomVariable(maxBins=32)
+#     x = mc.RandomVariable(maxBins=32)
 #     for d in data:
 #         x.add(d)
 
@@ -118,7 +118,7 @@ import numpy as np
 #     mu  = 100
 #     np.random.seed(31337)
 #     data = np.random.randn(10000)*std + mu
-#     x = cs.RandomVariable(maxBins=64)
+#     x = mc.RandomVariable(maxBins=64)
 #     for d in data:
 #         x.add(d)
 
@@ -141,11 +141,11 @@ import numpy as np
 
 
 def test_randInt_sample():
-    dice = cs.RandInt(1,6).sample()
+    dice = mc.RandInt(1,6).sample()
     assert 1 <= dice <= 6
 
 # def test_randInt_compute():
-#     dice = cs.RandInt(1,6).compute()
+#     dice = mc.RandInt(1,6).compute()
 
 #     assert dice.getActiveBinCount() == 6
 #     print(dice)
@@ -155,7 +155,7 @@ def test_randInt_sample():
 #     assert False
 
 def test_randInt_distribution():
-    dice = cs.RandInt(1,6).compute()._digest
+    dice = mc.RandInt(1,6).compute()._digest
     nActive = dice.getActiveBinCount()
     minW = min(dice.getWeights()[:nActive])
     maxW = max(dice.getWeights()[:nActive])
@@ -211,10 +211,10 @@ def test_sumDices():
         [36,0.00214334705075]
         ]
 
-    out = [cs.RandInt(1,6) for ii in range(6)]
+    out = [mc.RandInt(1,6) for ii in range(6)]
     out2 = out[0] + out[1] + out[2] + out[3] + out[4] + out[5]
     out2 = out2.compute(samples=10_000)
-    #out2 = cs.SUM(5, cs.RandInt(1,6)).compute()
+    #out2 = mc.SUM(5, mc.RandInt(1,6)).compute()
 
     # cnts = out2.getCountArray()
     # print(sum(cnts))
@@ -259,7 +259,7 @@ def test_quantileSample():
 
     mu  = 0.0
     std = 1000.0
-    rv = cs.Quantiles(*x).compute()
+    rv = mc.Quantiles(*x).compute()
 
     prob1 = rv.cdf(mu + std*1) - rv.cdf(mu - std*1)
     prob2 = rv.cdf(mu + std*2) - rv.cdf(mu - std*2)
@@ -282,17 +282,17 @@ def test_array_sum():
 
 
 
-    array = [cs.Constant(i) for i in range(10)]
+    array = [mc.Constant(i) for i in range(10)]
     array2 = [i for i in range(10)]
     start = 0
     end = 10
 
-    assert cs.ArraySum(array, 0, 10).sample() == sum(array2)
-    assert cs.ArraySum(array, 0, 5).sample()  == sum(array2[0:5])
-    assert cs.ArraySum(array, 0, 1).sample()  == sum(array2[0:1])
-    assert cs.ArraySum(array, 5, 10).sample()  == sum(array2[5:10])
+    assert mc.ArraySum(array, 0, 10).sample() == sum(array2)
+    assert mc.ArraySum(array, 0, 5).sample()  == sum(array2[0:5])
+    assert mc.ArraySum(array, 0, 1).sample()  == sum(array2[0:1])
+    assert mc.ArraySum(array, 5, 10).sample()  == sum(array2[5:10])
 
-    x = cs.Constant(5) + cs.ArraySum(array, 5, 10) + cs.Constant(10)
+    x = mc.Constant(5) + mc.ArraySum(array, 5, 10) + mc.Constant(10)
 
 
     assert x.sample()  == 5 + sum(array2[5:10]) + 10
@@ -303,11 +303,11 @@ def test_sample_digest():
     mu  = 100
     np.random.seed(31337)
     data = np.random.randn(100_000)*std + mu
-    x = cs.Digest(maxBins=32)
+    x = mc.Digest(maxBins=32)
     for d in data:
         x.add(d)
 
-    y = cs.DigestVariable(x)
+    y = mc.DigestVariable(x)
     #y = y.sample()
     y = y.compute(samples=100_000)
     print(y)

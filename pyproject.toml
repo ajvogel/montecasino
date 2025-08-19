@@ -1,8 +1,8 @@
 [project]
-name = "casino"
+name = "montecasino"
 version = "0.6.0.post13+781a8689"
 # dynamic = ["version"]
-description = "Casino enables fast probabilistic modelling"
+description = "MonteCasino enables fast probabilistic modelling"
 authors = [{ name = "Adolph Vogel", email = "ajvogel@gmail.com" }]
 readme = "README.md"
 license = "MIT"
@@ -12,10 +12,10 @@ dependencies = [
 ]
 
 [tool.hatch.build.targets.sdist]
-include = ["casino/*.so"]
+include = ["montecasino/*.so"]
 
 [tool.hatch.build.targets.wheel]
-include = ["casino/*.so"]
+include = ["montecasino/*.so"]
 
 [dependency-groups]
 dev = [

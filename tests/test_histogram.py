@@ -1,11 +1,11 @@
-import casino as cs
+import montecasino as mc
 import numpy as np
 
 
 
 
 def test_findLastLesserOrEqualIndex():
-    hist = cs.Digest()
+    hist = mc.Digest()
 
     #             0   1   2   3   4    5   6   7   8
     x = np.array([0., 2., 4., 6., 8., 10., 0., 0., 0.])
@@ -30,7 +30,7 @@ def test_findLastLesserOrEqualIndex():
 
 
 def test_shiftRightAndInsert():
-    hist = cs.Digest(maxBins=8)
+    hist = mc.Digest(maxBins=8)
 
     #             0   1   2   3   4    5    6    7   8
     x = np.array([0., 2., 4., 6., 8., 10., 12., 14., 0.])
@@ -48,7 +48,7 @@ def test_shiftRightAndInsert():
     np.testing.assert_array_equal(hist.getBins(), np.array([0., 2., 4., 5., 6., 8., 10., 12., 14.]))
 
 
-    hist = cs.Digest(maxBins=7)
+    hist = mc.Digest(maxBins=7)
 
     #             0   1   2   3   4    5   6   7
     x = np.array([0., 2., 4., 6., 8., 10., 0., 0.])
@@ -80,7 +80,7 @@ def test_shiftRightAndInsert():
     np.testing.assert_array_equal(hist.getBins(), np.array([5., 0., 0., 0., 0., 0., 0., 0.]))
 
 def test_LeftAndOverride():
-    hist = cs.Digest(maxBins=7)
+    hist = mc.Digest(maxBins=7)
 
     #             0   1   2   3   4    5   6   7
     x = np.array([0., 2., 4., 6., 8., 10., 0., 0.])
@@ -95,7 +95,7 @@ def test_LeftAndOverride():
 
     np.testing.assert_array_equal(hist.getBins(), np.array([0., 2., 6., 8., 10., 0., 0., 0.]))
 
-    hist = cs.Digest(maxBins=7)
+    hist = mc.Digest(maxBins=7)
 
     #             0   1   2   3   4    5   6   7
     x = np.array([0., 2., 4., 6., 8., 10., 0., 0.])
@@ -111,7 +111,7 @@ def test_LeftAndOverride():
 
     np.testing.assert_array_equal(hist.getBins(), np.array([0., 2., 4., 6., 10., 0., 0., 0.]))
 
-    hist = cs.Digest(maxBins=6)
+    hist = mc.Digest(maxBins=6)
 
     #             0   1   2   3   4   5   6
     x = np.array([1., 2., 3., 4., 5., 6., 7.])

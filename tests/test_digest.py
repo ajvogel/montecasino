@@ -1,4 +1,4 @@
-import casino as cs
+import montecasino as mc
 import numpy as np
 
 
@@ -9,7 +9,7 @@ def test_nActiveCount():
     mu  = 100
     N   = 100
     data = np.random.randn(N)*std + mu
-    x = cs.Digest(maxBins=16)
+    x = mc.Digest(maxBins=16)
     for d in data:
         x.add(d)
 
@@ -24,7 +24,7 @@ def test_freqAddsUp():
     mu  = 100
     N   = 100
     data = np.random.randn(N)*std + mu
-    x = cs.Digest(maxBins=16)
+    x = mc.Digest(maxBins=16)
     for d in data:
         x.add(d)
 
@@ -39,7 +39,7 @@ def test_normalApprox():
     mu  = 100
     np.random.seed(31337)
     data = np.random.randn(10_000)*std + mu
-    x = cs.Digest(maxBins=32)
+    x = mc.Digest(maxBins=32)
     for d in data:
         x.add(d)
 
@@ -66,7 +66,7 @@ def test_normalApprox_quantile():
     mu  = 100
     np.random.seed(31337)
     data = np.random.randn(10_000)*std + mu
-    x = cs.Digest(maxBins=64)
+    x = mc.Digest(maxBins=64)
     for d in data:
         x.add(d)
 

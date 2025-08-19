@@ -1,4 +1,4 @@
-import casino as cs
+import montecasino as mc
 import numpy as np
 
 
@@ -6,19 +6,19 @@ import numpy as np
 def test_store_and_load():
 
     BYTECODE = [
-        (cs.OP_PUSH, 314),
-        (cs.OP_STORE, 0),
-        (cs.OP_PUSH, 3),
-        (cs.OP_PUSH, 3),
-        (cs.OP_ADD, 0),
-        (cs.OP_LOAD, 0)
+        (mc.OP_PUSH, 314),
+        (mc.OP_STORE, 0),
+        (mc.OP_PUSH, 3),
+        (mc.OP_PUSH, 3),
+        (mc.OP_ADD, 0),
+        (mc.OP_LOAD, 0)
     ]
 
     opcodes  = np.array([opco for opco, oper in BYTECODE], dtype=np.double)
     operands = np.array([oper for opco, oper in BYTECODE], dtype=np.double)
 
 
-    vm = cs.VirtualMachine(opcodes, operands)
+    vm = mc.VirtualMachine(opcodes, operands)
     assert vm.sample() == 314
 
 
@@ -27,15 +27,15 @@ def test_normal_sample():
     mu = 100
 
     BYTECODE = [
-        (cs.OP_PUSH, mu),
-        (cs.OP_PUSH, std),
-        (cs.OP_RANDNORM, 0)
+        (mc.OP_PUSH, mu),
+        (mc.OP_PUSH, std),
+        (mc.OP_RANDNORM, 0)
     ]
 
     opcodes  = np.array([opco for opco, oper in BYTECODE], dtype=np.double)
     operands = np.array([oper for opco, oper in BYTECODE], dtype=np.double)
 
-    vm = cs.VirtualMachine(opcodes, operands)
+    vm = mc.VirtualMachine(opcodes, operands)
     x = vm.compute()
 
     prob1 = x.cdf(mu + std*1) - x.cdf(mu - std*1)
