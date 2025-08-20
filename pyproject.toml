@@ -1,41 +1,50 @@
-[tool.poetry]
-name = "casino"
-version = "0.2.0.post7.dev0+3e6fe06"
-description = "Casino enables fast probabilistic modelling"
-authors = ["Adolph Vogel <ajvogel@gmail.com>"]
-license = "MIT"
+[project]
+name = "montecasino"
+version = "0.7.1"
+# dynamic = ["version"]
+description = "MonteCasino enables fast probabilistic modelling"
+authors = [{ name = "Adolph Vogel", email = "ajvogel@gmail.com" }]
 readme = "README.md"
-include = ['casino/*.so']
+license = "MIT"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.3.2",
+]
 
-[tool.poetry.dependencies]
-#python = ">=3.11,<3.12"
-python = ">=3.11"
-numpy = "^1.26.4"
-pytest = "^7.4.1"
-pandas = "^2.1.0"
-statsmodels = "^0.14.0"
-cython = "^3.0.8"
+[tool.hatch.build.targets.sdist]
+include = ["montecasino/*.so"]
+
+[tool.hatch.build.targets.wheel]
+include = ["montecasino/*.so"]
+
+[dependency-groups]
+dev = [
+    "cython>=3.1.2",
+    "ipython>=9.4.0",
+    "matplotlib>=3.10.5",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.1",
+    "pyqt6>=6.9.1",
+    "pytest>=8.4.1",
+    "quarto>=0.1.0",
+    "setuptools>=80.9.0",
+]
 
 
-[tool.poetry.group.dev.dependencies]
-ipython = "^8.14.0"
-pyinstrument = "^4.4.0"
-jupyter-console = "^6.6.3"
-scipy = "^1.10.1"
-matplotlib = "^3.7.1"
-cython = "^3.0.0"
+# [tool.versioningit.format]
+# # Format used when there have been commits since the most recent tag:
+# distance = "{base_version}.post{distance}+{vcs}{rev}"
+# # Example formatted version: 1.2.3.post42+ge174a1f
 
-# [build-system]
-# requires = ["poetry-core", "setuptools", "cython"]
-# build-backend = "poetry.core.masonry.api"
-pyarrow = "^15.0.0"
+# # Format used when there are uncommitted changes:
+# dirty = "{base_version}+d{build_date:%Y%m%d}"
+# # Example formatted version: 1.2.3+d20230922
+
+# # Format used when there are both commits and uncommitted changes:
+# distance-dirty = "{base_version}.post{distance}+{vcs}{rev}.d{build_date:%Y%m%d}"
+# # Example formatted version: 1.2.3.post42+ge174a1f.d20230922
+
 
 [build-system]
-requires = ["poetry-core", "poetry-dynamic-versioning", "cython", "setuptools"]
-build-backend = "poetry_dynamic_versioning.backend"
-
-[tool.poetry.build]
-script = "build.py"
-
-[tool.poetry-dynamic-versioning]
-enable = true
+requires = ["setuptools>=80", "cython>=3.1.2","versioningit"]
+build-backend = "setuptools.build_meta"

@@ -1,4 +1,4 @@
-import casino as cs
+import montecasino as mc
 import numpy as np
 
 # def test_fillBinGap():
