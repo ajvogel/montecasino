@@ -24,6 +24,25 @@ import builtins
 
 
 def max(*args):
+    """Return the maximum of multiple random variables or expressions.
+    
+    Computes the element-wise maximum across multiple random variables by
+    sequentially applying the __max__ method. This creates an expression tree
+    that will evaluate to the maximum value during Monte Carlo simulation.
+    
+    Args:
+        *args: Variable number of RandomVariable instances or numeric values
+        
+    Returns:
+        RandomVariable: Expression representing the maximum of all inputs
+        
+    Example:
+        >>> x = Normal(0, 1)
+        >>> y = Normal(2, 1)
+        >>> z = Normal(-1, 1)
+        >>> max_expr = max(x, y, z)  # Maximum of three normal distributions
+        >>> result = max_expr.compute()  # Monte Carlo simulation
+    """
     val1 = args[0]
 
     for val2 in args[1:]:
@@ -33,6 +52,25 @@ def max(*args):
 
 
 def min(*args):
+    """Return the minimum of multiple random variables or expressions.
+    
+    Computes the element-wise minimum across multiple random variables by
+    sequentially applying the __min__ method. This creates an expression tree
+    that will evaluate to the minimum value during Monte Carlo simulation.
+    
+    Args:
+        *args: Variable number of RandomVariable instances or numeric values
+        
+    Returns:
+        RandomVariable: Expression representing the minimum of all inputs
+        
+    Example:
+        >>> x = Normal(0, 1)
+        >>> y = Normal(2, 1)
+        >>> z = Normal(-1, 1)
+        >>> min_expr = min(x, y, z)  # Minimum of three normal distributions
+        >>> result = min_expr.compute()  # Monte Carlo simulation
+    """
     val1 = args[0]
 
     for val2 in args[1:]:
@@ -74,9 +112,38 @@ def fromScipy(rvScipy, maxBins=32, samples=10_000):
 
 
 def fromArray(array, maxBins=32):
+    """Create a DigestVariable from an array of data points.
+    
+    Constructs a t-digest from empirical data and wraps it in a DigestVariable
+    for use in algebraic operations and further Monte Carlo modeling. This allows
+    historical data or simulation results to be incorporated into new probabilistic
+    models.
+    
+    The t-digest provides an efficient approximation of the data distribution
+    with bounded memory usage, making it suitable for large datasets while
+    preserving accurate quantile estimates.
+    
+    Args:
+        array (array-like): Numerical data points to fit the digest to
+        maxBins (int, optional): Maximum number of centroids in the t-digest.
+                               Defaults to 32. Higher values provide better
+                               accuracy at the cost of memory usage.
+    
+    Returns:
+        DigestVariable: A random variable representing the empirical distribution
+                       that can be used in further algebraic operations
+    
+    Example:
+        >>> import numpy as np
+        >>> historical_returns = np.random.normal(0.05, 0.2, 1000)
+        >>> return_dist = fromArray(historical_returns)
+        >>> future_value = 1000 * (1 + return_dist)  # Model future portfolio value
+        >>> result = future_value.compute()
+    """
     digest = Digest(maxBins=maxBins)
-    for ar in array:
-        digest.add(ar)
+    digest.fit(array)
+    # for ar in array:
+    #     digest.add(ar)
 
     rv = DigestVariable(digest)
     return rv
@@ -84,6 +151,45 @@ def fromArray(array, maxBins=32):
 
 
 def plot(digest, nBins=20, lower=None, upper=None, width=0.8, ax=None, *args, **kwds):
+    """Plot a histogram representation of a digest distribution.
+    
+    Creates a bar chart visualization of the probability distribution represented
+    by a Digest or DigestVariable. The plot shows the probability density across
+    bins by computing the difference in cumulative distribution function (CDF)
+    values between bin boundaries.
+    
+    This function is useful for visualizing the results of Monte Carlo simulations
+    and understanding the shape of distributions created through algebraic
+    operations on random variables.
+    
+    Args:
+        digest (Digest or DigestVariable): The digest object to plot
+        nBins (int, optional): Number of histogram bins to create. Defaults to 20.
+        lower (float, optional): Lower bound for the plot range. If None, uses
+                                digest.lower(). Defaults to None.
+        upper (float, optional): Upper bound for the plot range. If None, uses
+                                digest.upper(). Defaults to None.
+        width (float, optional): Width factor for bars relative to bin width.
+                               Defaults to 0.8.
+        ax (matplotlib.Axes, optional): Matplotlib axes to plot on. If None,
+                                      creates a new figure and axes. Defaults to None.
+        *args: Additional positional arguments passed to matplotlib's bar() function
+        **kwds: Additional keyword arguments passed to matplotlib's bar() function
+    
+    Returns:
+        None: The function modifies the provided axes or creates a new plot
+    
+    Example:
+        >>> x = Normal(0, 1)
+        >>> result = x.compute(samples=10000)
+        >>> plot(result, nBins=30)  # Plot with 30 bins
+        >>> 
+        >>> # Custom styling
+        >>> import matplotlib.pyplot as plt
+        >>> fig, ax = plt.subplots()
+        >>> plot(result, nBins=25, ax=ax, color='red', alpha=0.7)
+        >>> ax.set_title('Distribution Results')
+    """
     if lower is None:
         lower = digest.lower()
 
