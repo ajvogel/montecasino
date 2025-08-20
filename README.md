@@ -32,12 +32,12 @@ MonteCasino enables you to build complex probabilistic models using familiar mat
 ## Installation
 
 ```bash
-pip install montecasino
+pip install git+https://github.com/ajvogel/montecasino.git@main
 ```
 
 For development installation:
 ```bash
-git clone <repository-url>
+git clone https://github.com/ajvogel/montecasino
 cd casino
 pip install -e .
 ```
