@@ -1,6 +1,7 @@
 import montecasino as mc
 import numpy as np
-
+import pickle
+import copy
 
 
 def test_nActiveCount():
@@ -84,3 +85,33 @@ def test_normalApprox_quantile():
         assert dv <= 2.5e-2
 
 
+
+def test_pickle():
+    std = 100
+    mu  = 100
+    np.random.seed(31337)
+    data = np.random.randn(10_000)*std + mu
+    x = mc.Digest(maxBins=64)
+    for d in data:
+        x.add(d)
+
+    out = pickle.dumps(x)
+
+    x2 = pickle.loads(out)
+
+    assert True
+
+
+    
+def test_copy():
+    std = 100
+    mu  = 100
+    np.random.seed(31337)
+    data = np.random.randn(10_000)*std + mu
+    x = mc.Digest(maxBins=64)
+    for d in data:
+        x.add(d)
+
+    out = copy.deepcopy(x)
+
+    assert True
