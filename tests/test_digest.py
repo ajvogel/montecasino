@@ -99,7 +99,10 @@ def test_pickle():
 
     x2 = pickle.loads(out)
 
-    assert True
+    np.testing.assert_array_equal(x.getWeights(), x2.getWeights())
+    np.testing.assert_array_equal(x.getBins(), x2.getBins())    
+
+
 
 
     
@@ -112,6 +115,8 @@ def test_copy():
     for d in data:
         x.add(d)
 
-    out = copy.deepcopy(x)
+    x2 = copy.deepcopy(x)
 
-    assert True
+    np.testing.assert_array_equal(x.getWeights(), x2.getWeights())
+    np.testing.assert_array_equal(x.getBins(), x2.getBins())    
+
