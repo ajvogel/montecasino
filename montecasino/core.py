@@ -32,10 +32,11 @@ c_srand(c_time(pyx.NULL))
 #======================================[ Random Variable ]=========================================
 
 
-def _reconstructDigest(maxBins, centroids, weights):
+def _reconstructDigest(maxBins, nActive, centroids, weights):
     digest = Digest(maxBins)
     digest.setBins(centroids)
     digest.setWeights(weights)
+    digest.setActiveBinCount(nActive)
     return digest
 
 
@@ -91,7 +92,7 @@ class Digest():
         self._cnts = self.cnts
 
     def __reduce__(self):
-        return (_reconstructDigest, (self.maxBins, self.bins, self.cnts))
+        return (_reconstructDigest, (self.maxBins, self.nActive, self.bins, self.cnts))
 
 
     def setBins(self, bins):
