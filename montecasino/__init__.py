@@ -23,6 +23,20 @@ import builtins
     # return val1
 
 
+
+def P(rv):
+    """
+    Returns the probability that a random var is greater than 0.
+    """
+    if hasattr(rv, 'cdf'):
+        return 1 - rv.cdf(0)
+    else:
+        rv_ = rv.compute()
+        return 1 - rv_.cdf(0)
+    
+
+    
+
 def max(*args):
     """Return the maximum of multiple random variables or expressions.
     
