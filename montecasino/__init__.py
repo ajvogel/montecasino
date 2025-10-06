@@ -29,10 +29,12 @@ def P(rv):
     Returns the probability that a random var is greater than 0.
     """
     if hasattr(rv, 'cdf'):
-        return 1 - rv.cdf(0)
+        return 1 - rv.cdf(0.5)
     else:
         rv_ = rv.compute()
-        return 1 - rv_.cdf(0)
+        # print(rv_._digests.getBins())
+        # print(rv_._digests.getWeights())        
+        return 1 - rv_.cdf(0.5)
     
 
     
