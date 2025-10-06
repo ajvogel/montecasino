@@ -780,6 +780,20 @@ class Pow(RandomVariable):
 
 #-----------------------------------------------------------------------------------------
 
+class Max(RandomVariable):
+    def _compile(self, codes, operands):
+        self._compileChildren(codes, operands)
+        codes.append(OP_MAX)
+        operands.append(0)
+
+class Min(RandomVariable):
+    def _compile(self, codes, operands):
+        self._compileChildren(codes, operands)
+        codes.append(OP_MIN)
+        operands.append(0)          
+
+#-----------------------------------------------------------------------------------------
+
 class Normal(RandomVariable):
     """Represents a normal (Gaussian) distribution.
     

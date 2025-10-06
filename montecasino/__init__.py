@@ -46,7 +46,8 @@ def max(*args):
     val1 = args[0]
 
     for val2 in args[1:]:
-        val1 = val1.__max__(val2)
+        val1 = Max(val1, val2)
+        #val1 = val1.__max__(val2)
 
     return val1
 
@@ -74,7 +75,8 @@ def min(*args):
     val1 = args[0]
 
     for val2 in args[1:]:
-        val1 = val1.__min__(val2)
+        val1 = Min(val1, val2)
+        #val1 = val1.__min__(val2)
 
     return val1
 

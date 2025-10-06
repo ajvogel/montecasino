@@ -603,9 +603,10 @@ _DIV = pyx.declare(pyx.int, 23)
 _SUB = pyx.declare(pyx.int, 24)
 _MOD = pyx.declare(pyx.int, 25)
 _FLOORDIV = pyx.declare(pyx.int, 26)
-_LT = pyx.declare(pyx.int, 27)
-_LE = pyx.declare(pyx.int, 28)
-
+_LT  = pyx.declare(pyx.int, 27)
+_LE  = pyx.declare(pyx.int, 28)
+_MAX = pyx.declare(pyx.int, 29)
+_MIN = pyx.declare(pyx.int, 29)
 
 _BINOPMAX = pyx.declare(pyx.int, 50)
 
@@ -976,6 +977,10 @@ class VirtualMachine():
             self.pushStack(1) if x1 < x2 else self.pushStack(0)
         elif opCode == _LE:
             self.pushStack(1) if x1 <= x2 else self.pushStack(0)
+        elif opCode == _MAX:
+            self.pushStack(x1) if x1 > x2 else self.pushStack(x2)
+        elif opCode == _MIN:
+            self.pushStack(x1) if x1 < x2 else self.pushStack(x2)
 
     @pyx.cfunc
     def _randInt(self) -> pyx.void:
